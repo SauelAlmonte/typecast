@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TypeCast
 
-## Getting Started
+A movie search application built around a from-scratch search-as-you-type
+implementation.
 
-First, run the development server:
+## About
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+TypeCast is a full-stack learning project. The focus is the autocomplete —
+debouncing, in-flight request cancellation, client-side caching, a
+self-owned prefix index, keyboard navigation, and ARIA combobox semantics,
+all implemented directly rather than pulled from a library.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The search component is deliberately data-source agnostic. It sits behind a
+provider interface, so the underlying dataset is swappable. TMDB is the
+first implementation, not a dependency of the design.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Movie data comes from TMDB, but the autocomplete index is built and ranked
+locally from TMDB's daily ID exports rather than proxied from a third-party
+suggestion endpoint.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech Stack
 
-## Learn More
+**Framework**
+- Next.js (App Router, Route Handlers as the API)
+- TypeScript
+- React
 
-To learn more about Next.js, take a look at the following resources:
+**Database**
+- Neon (Postgres)
+- Drizzle ORM
+- Drizzle Kit (migrations)
+- `@neondatabase/serverless`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Auth**
+- Better Auth (Drizzle adapter, email/password with verification)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Validation**
+- Zod
+- `drizzle-zod`
+- `@t3-oss/env-nextjs`
 
-## Deploy on Vercel
+**Cache & Rate Limiting**
+- Upstash Redis
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Data Source**
+- TMDB API (detail data)
+- TMDB daily ID exports (bulk seed and daily deltas)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Styling**
+- CSS custom properties for design tokens
+- Dark default, light available
+
+**Testing & Quality**
+- Vitest (unit)
+- Testing Library (component)
+- Playwright (E2E)
+- MSW (API mocking)
+- `@axe-core/playwright` (accessibility)
+- Lighthouse CI (performance budgets)
+
+**Tooling**
+- pnpm
+- Biome (lint and format)
+- GitHub Actions
+
+**Observability & Security**
+- Sentry
+- Aikido (SAST, SCA, secrets detection)
+
+**Deployment**
+- Vercel
+- Neon
+- Upstash
+
+## Attribution
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+## Disclaimer
+
+This project is provided for demonstration and portfolio purposes. It is
+supplied as is, without warranty of any kind, express or implied. No
+guarantee is made regarding accuracy, availability, or fitness for any
+particular purpose. Use at your own risk.
+
+TMDB data is used under TMDB's non-commercial terms. This project is not
+affiliated with TMDB.
+
+## Intellectual Property
+
+Copyright (c) 2026 Sauel Almonte. All rights reserved.
+
+This repository is **not** open source. No license is granted to any person
+to use, copy, modify, merge, publish, distribute, sublicense, or sell any
+portion of this software.
+
+The source code, architecture, design, and documentation contained in this
+repository are the intellectual property of the author. Viewing this
+repository for evaluation purposes does not confer any rights to its
+contents.
+
+Unauthorized use, reproduction, or derivative work is prohibited.
