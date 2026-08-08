@@ -44,6 +44,30 @@ why in the same plain-English register as the commits, ending with:
 
 Then stop. Sauel reviews, waits for CI, and merges.
 
+## Review comments
+
+When inline comments land on a PR — CodeRabbit or human — work every thread:
+
+1. **Verify the finding against the actual code first.** Reviewers, bots
+   especially, are confidently wrong often enough that this is not optional.
+   Check the docs or the source before acting.
+2. **Fix what holds. Skip what doesn't**, and say why in the reply.
+3. **Reply to each thread** naming what changed and the commit it landed in.
+4. **Resolve the conversation.** Always, once addressed. Never leave a handled
+   thread open.
+
+Resolving needs GraphQL — the REST API can't do it. Fetch thread IDs, then:
+
+```bash
+gh api graphql -f query='
+mutation($id:ID!) {
+  resolveReviewThread(input:{threadId:$id}) { thread { isResolved } }
+}' -f id=<PRRT_thread_id>
+```
+
+Some threads auto-resolve when the fix is pushed. Check `isResolved` before
+calling the mutation rather than assuming either way.
+
 ## Post-merge cleanup
 
 Only once Sauel confirms the PR is merged and CI is green:
