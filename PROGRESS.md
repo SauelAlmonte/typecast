@@ -20,6 +20,8 @@ Running log of where the project stands, what's been decided, and what's still o
 | 2026-08-08 | Review threads | Inline PR comments get verified against the code first, fixed or skipped with a stated reason, replied to with the fixing commit, and then always resolved. Rule lives in `.claude/rules/git-workflow.md`. |
 | 2026-08-08 | Rules layout | Modular files: rules live in `.claude/rules/*.md`, which Claude Code discovers recursively and loads at launch with the same priority as `.claude/CLAUDE.md`. **No `@`-import needed.** Corrected on PR #1 after CodeRabbit flagged the redundant import — the original entry was recorded on bad information from Claude. Rules also accept `paths:` frontmatter to scope loading to matching files. |
 
+| 2026-08-08 | Progress batching | `PROGRESS.md` updates accumulate and ship as one `docs/` PR at session end, rather than a PR per edit. |
+
 ---
 
 ## Open
@@ -41,6 +43,11 @@ Running log of where the project stands, what's been decided, and what's still o
 - [x] Wrote the project context, interaction rules, and constraints into `AGENTS.md`.
 - [x] Restructured `AGENTS.md` so the reply rules sit at the top, above the Next.js managed block. Confirmed intact afterwards with Next's own `hasCurrentAgentRules()`.
 - [x] Created `PROGRESS.md` and added the end-of-session update rule to `AGENTS.md`.
+- [x] Shipped PR #1 (`ed7243c`) — first end-to-end run of the workflow: branch, Conventional Commits, PR, review, merge, cleanup.
+- [x] Corrected the `.claude/rules/` loading model. CodeRabbit contradicted Claude's earlier claim that the directory was inert; the Claude Code docs and the CLI binary both confirmed rules load natively, so the redundant `@`-import came out. Also surfaced `paths:` frontmatter for scoping rules to matching files.
+- [x] Worked CodeRabbit's other findings: language identifiers on two Markdown fences, and a corrected settings-fix entry that no longer claims credit for repairing a gitignored file.
+- [x] Replied to and resolved both review threads, then wrote the review-thread rule into `.claude/rules/git-workflow.md` — verify first, fix or skip with a reason, reply with the commit, always resolve.
+- [x] Post-merge cleanup: `main` fast-forwarded, branch deleted local and remote, prune clean, working tree verified.
 
 ---
 

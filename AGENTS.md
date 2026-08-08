@@ -75,6 +75,9 @@ Treat these as the trigger: Sauel says he's wrapping up or signing off, asks for
 a summary of the session, or a meaningful chunk of work lands and the
 conversation moves on.
 
+Batch the update into a single `docs/` PR at session end rather than opening one
+per edit. Everything else in `.claude/rules/git-workflow.md` still applies.
+
 ## Current status
 
 Configuration phase. No application code written — `src/` is the untouched
