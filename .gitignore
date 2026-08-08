@@ -62,3 +62,7 @@ next-env.d.ts
 .vscode/
 *.swp
 *.swo
+
+# claude code (personal, not shared)
+.claude/settings.local.json
+CLAUDE.local.md
