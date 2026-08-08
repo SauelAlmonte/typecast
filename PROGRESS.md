@@ -17,13 +17,14 @@ Running log of where the project stands, what's been decided, and what's still o
 | 2026-08-08 | Reply rules go first | The reply-style and core/plumbing rules sit at the very top of `AGENTS.md`, above the Next.js block, as the highest-priority instruction. |
 | 2026-08-08 | Session ritual | `PROGRESS.md` is updated at the end of every session, unprompted. Rule lives in `AGENTS.md`. |
 | 2026-08-08 | Git workflow | Always branch off `main` (`feat/<kebab-description>`), Conventional Commits with plain-English reasoning in the body, PR against `main`, then post-merge cleanup once Sauel confirms the merge and green CI. Branch, commit, push, and PR are standing-authorised; merging is his. |
-| 2026-08-08 | Rules layout | Settled in favour of modular files: rules live in `.claude/rules/*.md` and are pulled in by `@`-import from `AGENTS.md`. Same context cost as one file, better to edit and diff per topic. |
+| 2026-08-08 | Rules layout | Modular files: rules live in `.claude/rules/*.md`, which Claude Code discovers recursively and loads at launch with the same priority as `.claude/CLAUDE.md`. **No `@`-import needed.** Corrected on PR #1 after CodeRabbit flagged the redundant import — the original entry was recorded on bad information from Claude. Rules also accept `paths:` frontmatter to scope loading to matching files. |
 
 ---
 
 ## Open
 
-- **CI does not exist yet.** The git rule says "wait for green CI," but there is no GitHub Actions workflow. That gate is aspirational until one is written.
+- **No GitHub Actions workflow yet.** CodeRabbit does review PRs — it's a GitHub App configured on the account rather than in the repo — so there *is* a review gate, just not a test/lint/typecheck one. "Wait for green CI" currently means CodeRabbit alone.
+- **Commit signing** — commits are unverified. `gpg` isn't installed on this machine and git has no signing config. Plan is SSH signing with the existing `~/.ssh/id_ed25519`, which needs registering on GitHub a second time as a *Signing Key*. Sauel is handling it.
 - **Permissions** — what to auto-allow in `settings.json` so the full-gauntlet hooks don't drown in prompts.
 - **Slash commands and subagents** — which recurring workflows are worth encoding.
 - **`PreToolUse` guard scope** — which paths are off-limits (`.env*` and migrations are the obvious candidates).
@@ -34,7 +35,7 @@ Running log of where the project stands, what's been decided, and what's still o
 ## Done
 
 - [x] Verified `AGENTS.md` is safe to edit — `next dev` preserves everything outside its managed markers (`node_modules/next/dist/server/lib/generate-agent-files.js`).
-- [x] Fixed `.claude/settings.json` and `.claude/settings.local.json` — were empty files, which is invalid JSON, not empty config.
+- [x] Fixed `.claude/settings.json` — was an empty file, which is invalid JSON rather than empty config. (`settings.local.json` had the same problem and was repaired too, but it's gitignored, so that fix is local-only and not reproducible from the repo.)
 - [x] Gitignored `.claude/settings.local.json` and `CLAUDE.local.md` as personal, non-shared files.
 - [x] Wrote the project context, interaction rules, and constraints into `AGENTS.md`.
 - [x] Restructured `AGENTS.md` so the reply rules sit at the top, above the Next.js managed block. Confirmed intact afterwards with Next's own `hasCurrentAgentRules()`.
@@ -47,8 +48,13 @@ Running log of where the project stands, what's been decided, and what's still o
 `.claude/` currently holds empty `CLAUDE.md` placeholders in `agents/`,
 `commands/`, `hooks/`, `rules/`, and `skills/`. These are intentional
 scaffolding, filled in as research progresses. They are inert — Claude Code
-does not load them from those locations.
+does not load `CLAUDE.md` from those paths.
 
-Of those five directories, only `agents/`, `commands/`, and `skills/` are read
-natively. `hooks/` is just a place to keep scripts that `settings.json` points
-at; `rules/` only loads if `AGENTS.md` explicitly imports from it.
+Of those five directories, `agents/`, `commands/`, `skills/`, and `rules/` are
+all read natively. Only `hooks/` is pure convention — it's a place to keep
+scripts that `settings.json` points at by path.
+
+Rules in `.claude/rules/*.md` are discovered recursively and load at launch with
+the same priority as `.claude/CLAUDE.md`. Adding `paths:` frontmatter scopes a
+rule to matching files, so it only enters context when Claude reads them — the
+mechanism for keeping situational instructions out of every turn.

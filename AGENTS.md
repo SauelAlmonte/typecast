@@ -63,7 +63,8 @@ No test runner is installed yet.
 
 ## Git workflow
 
-@.claude/rules/git-workflow.md
+See `.claude/rules/git-workflow.md`. Claude Code discovers `.claude/rules/*.md`
+natively at launch, so no import is needed here.
 
 ## End of every session
 

@@ -22,7 +22,7 @@ This applies to every change, including edits to `PROGRESS.md` and docs.
 Conventional Commits. Subject line concise and plain English. The body explains
 the reasoning — the diff already shows what changed, so say why it changed.
 
-```
+```text
 feat(autocomplete): cache suggestions by normalised query
 
 Raw-query keys missed obvious repeats like trailing whitespace and case
@@ -38,7 +38,7 @@ The trailer goes on commits Claude authors, not ones Sauel writes himself.
 Push the branch and open a PR against `main`. The body states what changed and
 why in the same plain-English register as the commits, ending with:
 
-```
+```text
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
