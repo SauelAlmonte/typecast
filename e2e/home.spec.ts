@@ -5,7 +5,7 @@ test("landing page renders", async ({ page }) => {
   await expect(page).toHaveTitle(/typecast/i);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(
-    page.getByRole("textbox", { name: /search movies/i }),
+    page.getByRole("combobox", { name: /search movies/i }),
   ).toBeVisible();
   await expect(
     page.getByText(/not endorsed or certified by TMDB/i),

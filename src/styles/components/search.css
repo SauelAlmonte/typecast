@@ -101,6 +101,26 @@
   cursor: pointer;
 }
 
+.tc-search-heading {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  font-size: var(--type-meta);
+  color: var(--color-ink-muted);
+  border-block-end: 1px solid var(--color-line);
+}
+
+.tc-search-empty {
+  padding-block: var(--space-4);
+  padding-inline: var(--space-4);
+  font-size: var(--type-ui);
+  color: var(--color-ink-muted);
+}
+
+.tc-result-recent-icon {
+  flex-shrink: 0;
+  color: var(--color-ink-muted);
+}
+
 .tc-result-row-active {
   background-color: var(--color-raised);
   border-inline-start-color: var(--tc-chartreuse);
