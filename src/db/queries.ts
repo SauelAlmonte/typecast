@@ -1,7 +1,10 @@
-import { desc, like, sql } from "drizzle-orm";
+import { and, desc, eq, like, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { media } from "@/db/schema";
 import { normalizeSearchText } from "@/lib/normalize";
+
+/** The two kinds the catalog holds; used to scope search and browse. */
+export type MediaKind = "movie" | "tv";
 
 /** One catalog match, the shape every search surface renders. */
 export type MediaMatch = {
@@ -45,11 +48,13 @@ const selection = {
  *
  * @param rawQuery - The fragment as the user typed it; normalized here.
  * @param limit - Maximum rows to return; callers enforce their own caps.
+ * @param kind - Optional scope: only movies or only TV shows.
  * @returns Ranked matches, empty when the fragment normalizes to "".
  */
 export async function searchMedia(
   rawQuery: string,
   limit: number,
+  kind?: MediaKind,
 ): Promise<MediaMatch[]> {
   const q = normalizeSearchText(rawQuery);
   if (q === "") {
@@ -57,6 +62,9 @@ export async function searchMedia(
   }
 
   const db = getDb();
+
+  // and() drops undefined members, so no kind means no extra clause.
+  const kindClause = kind ? eq(media.mediaType, kind) : undefined;
 
   // Escape LIKE wildcards so a literal % or _ in the fragment can't
   // change the pattern's meaning. Both branches match against this.
@@ -66,7 +74,7 @@ export async function searchMedia(
     return db
       .select(selection)
       .from(media)
-      .where(like(media.titleSearch, prefix))
+      .where(and(like(media.titleSearch, prefix), kindClause))
       .orderBy(desc(media.popularity))
       .limit(limit);
   }
@@ -75,13 +83,36 @@ export async function searchMedia(
     .select(selection)
     .from(media)
     .where(
-      sql`${media.titleSearch} like ${prefix}
-          or word_similarity(${q}, ${media.titleSearch}) > 0.4`,
+      and(
+        sql`(${media.titleSearch} like ${prefix}
+            or word_similarity(${q}, ${media.titleSearch}) > 0.4)`,
+        kindClause,
+      ),
     )
     .orderBy(
       sql`(${media.titleSearch} like ${prefix}) desc`,
       sql`word_similarity(${q}, ${media.titleSearch}) desc`,
       desc(media.popularity),
     )
+    .limit(limit);
+}
+
+/**
+ * Browse a kind without a query: the catalog's most popular titles,
+ * for the Movies and TV Shows nav destinations.
+ *
+ * @param kind - Which catalog half to browse.
+ * @param limit - Maximum rows to return.
+ */
+export async function popularMedia(
+  kind: MediaKind,
+  limit: number,
+): Promise<MediaMatch[]> {
+  const db = getDb();
+  return db
+    .select(selection)
+    .from(media)
+    .where(eq(media.mediaType, kind))
+    .orderBy(desc(media.popularity))
     .limit(limit);
 }

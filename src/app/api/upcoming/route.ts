@@ -17,7 +17,8 @@ export type UpcomingItem = {
 /** The rotation changes at sync cadence, once a day; let the CDN hold it. */
 const CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400";
 
-const LIMIT = 6;
+/* Enough for a full rail; the hero rotation takes its own smaller cut. */
+const LIMIT = 18;
 
 /**
  * Latest and upcoming titles for the hero's rotating backdrop.

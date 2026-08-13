@@ -27,6 +27,19 @@
   line-height: var(--leading-h2);
 }
 
+/* Catalog sections between the brand and GitHub. Hidden on phones for
+   now; a collapsed mobile nav is a follow-up, not a squeeze. */
+.tc-header-links {
+  display: flex;
+  gap: var(--space-2);
+}
+
+@media (width <= 48rem) {
+  .tc-header-links {
+    display: none;
+  }
+}
+
 /* Text link with a padded hit area comfortably over the 24px floor (2.5.8). */
 .tc-header-link {
   display: inline-flex;

@@ -13,6 +13,10 @@ const POSTER_BASE = "https://image.tmdb.org/t/p/w780";
 /** How long each featured title holds the background. */
 const ROTATE_MS = 60_000;
 
+/** The rotation stays at six titles so the dot row stays readable;
+ * the rail below the hero shows the endpoint's full list. */
+const ROTATION_MAX = 6;
+
 /**
  * Prime-style rotating hero background: one latest-or-upcoming backdrop
  * fills the section, crossfades to the next every minute, and dots let
@@ -56,7 +60,8 @@ export default function HeroBackdrop() {
         if (!res.ok) {
           throw new Error(`upcoming request failed: ${res.status}`);
         }
-        setItems(await res.json());
+        const data: UpcomingItem[] = await res.json();
+        setItems(data.slice(0, ROTATION_MAX));
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;

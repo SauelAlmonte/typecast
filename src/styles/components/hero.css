@@ -10,11 +10,13 @@
 .tc-hero {
   position: relative;
   align-content: end;
-  /* Landscape stays screen-shaped: an aspect-ratio here transfers
-     through min-block-size into a minimum WIDTH (900px tall at 16:9
-     demands 1600px wide) and shoves the layout off screen. Portrait
-     below is where the ratio genuinely fits. */
-  min-block-size: 100svh;
+  /* A banner, not a full viewport: the vw term tracks window width
+     like a wide cinematic ratio, and the clamp floors and caps it, so
+     the row below the hero peeks above the fold the way Prime's does.
+     vw-based height, not aspect-ratio: a ratio would transfer through
+     the minimum height into a minimum WIDTH (900px tall at 16:9
+     demands 1600px wide) and shove the layout off screen. */
+  min-block-size: clamp(28rem, 45vw, 42rem);
   margin-block-start: calc(-1 * var(--size-header));
   padding-block-start: var(--size-header);
   padding-block-end: var(--space-8);
