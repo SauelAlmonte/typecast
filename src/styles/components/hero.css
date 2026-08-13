@@ -3,11 +3,18 @@
    and dots mark the rotation. Without a backdrop (failed fetch, empty
    catalog, databaseless CI) the same layout sits on the themed canvas. */
 
+/* The hero owns the full viewport: it pulls itself up under the fixed
+   header (cancelling main's offset) so the art runs edge to edge, and
+   the header floats transparent above it. The padding keeps the copy
+   itself out of the header zone. */
 .tc-hero {
   position: relative;
   align-content: end;
-  overflow: hidden;
+  min-block-size: 100svh;
+  margin-block-start: calc(-1 * var(--size-header));
+  padding-block-start: var(--size-header);
   padding-block-end: var(--space-8);
+  overflow: hidden;
 }
 
 .tc-hero-inner {
@@ -82,12 +89,13 @@
   opacity: 0;
 }
 
-/* Darkens the corner the copy sits in; the photo stays readable on the
-   right, the text stays readable on the left. */
+/* Darkens the corner the copy sits in and the strip under the floating
+   header; the photo stays readable everywhere else. */
 .tc-hero-scrim {
   position: absolute;
   inset: 0;
   background:
+    linear-gradient(to bottom, var(--color-scrim-soft), transparent 22%),
     linear-gradient(to top, var(--color-scrim-strong), transparent 60%),
     linear-gradient(to right, var(--color-scrim-soft), transparent 65%);
 }
