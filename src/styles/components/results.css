@@ -1,0 +1,51 @@
+/* Results page: the search bar up top, then a poster grid. The grid
+   tracks are rem-tokened so cards scale with the user's text size. */
+
+.tc-results {
+  display: grid;
+  gap: var(--space-6);
+  justify-items: start;
+  padding-block: var(--space-7);
+}
+
+/* The shared search field centers itself in the hero; here it hugs the
+   start edge with the heading and grid. */
+.tc-results > .tc-search-field {
+  justify-self: stretch;
+}
+
+.tc-results-empty {
+  color: var(--color-ink-muted);
+}
+
+.tc-results-grid {
+  display: grid;
+  grid-template-columns: repeat(
+      auto-fill,
+      minmax(var(--size-card-inline), 1fr)
+    );
+  gap: var(--space-5) var(--space-4);
+  inline-size: 100%;
+  list-style: none;
+}
+
+.tc-result-card {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/* 2:3 like TMDB poster art; object-fit crops odd sources instead of
+   squashing, and the empty-span fallback keeps cards aligned. */
+.tc-result-card-poster {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background-color: var(--color-raised);
+  border-radius: var(--radius-card);
+  margin-block-end: var(--space-1);
+}
+
+.tc-result-card-meta {
+  color: var(--color-ink-muted);
+}

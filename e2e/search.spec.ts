@@ -128,6 +128,24 @@ test("a slow stale response never overwrites a newer query", async ({
   ).toBeHidden();
 });
 
+test("the magnifying-glass button submits to the results page", async ({
+  page,
+}) => {
+  const input = page.getByRole("combobox", { name: /search movies/i });
+  await input.fill("spi");
+  await page.getByRole("button", { name: /^search$/i }).click();
+  await expect(page).toHaveURL(/\/search\?q=spi/);
+});
+
+test("Enter with no suggestion highlighted submits the query", async ({
+  page,
+}) => {
+  const input = page.getByRole("combobox", { name: /search movies/i });
+  await input.fill("spi");
+  await input.press("Enter");
+  await expect(page).toHaveURL(/\/search\?q=spi/);
+});
+
 test("a selection becomes a recent search offered on empty focus", async ({
   page,
 }) => {

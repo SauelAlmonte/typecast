@@ -1,8 +1,6 @@
-/* Slim landmark, not a full-height section. snap-align: end keeps it
-   reachable under mandatory snap. */
+/* Slim landmark, not a full-height section. */
 
 .tc-footer {
-  scroll-snap-align: end;
   border-block-start: 1px solid var(--color-line);
 }
 
@@ -17,6 +15,22 @@
 
 .tc-footer-note {
   color: var(--color-ink-muted);
+}
+
+/* Attribution and rights row under the main strip. */
+.tc-footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding-block-end: var(--space-5);
+}
+
+/* Padding lifts the link's hit area over the 24px floor (2.5.8). */
+.tc-footer-tmdb {
+  display: block;
+  padding-block: var(--space-2);
 }
 
 /* Padded hit area over the 24px floor (2.5.8). */

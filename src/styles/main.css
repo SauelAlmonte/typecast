@@ -10,10 +10,8 @@
 @import "./components/header.css";
 @import "./components/hero.css";
 @import "./components/search.css";
-@import "./components/tag.css";
-@import "./components/narrative.css";
-@import "./components/result-preview.css";
-@import "./components/mechanics.css";
+@import "./components/carousel.css";
+@import "./components/results.css";
 @import "./components/footer.css";
 
 html {

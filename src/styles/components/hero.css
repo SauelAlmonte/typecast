@@ -5,8 +5,11 @@
   text-align: center;
 }
 
+/* Measure in ch: a comfortable line is 45–65 characters, and ch counts
+   characters of the lede's own font. The browser wraps naturally at any
+   width, which is what manual <br> breaks could never do on mobile. */
 .tc-hero-lede {
-  max-inline-size: var(--container-search);
+  max-inline-size: 55ch;
   color: var(--color-ink-muted);
 }
 

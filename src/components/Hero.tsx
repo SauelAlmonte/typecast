@@ -1,8 +1,6 @@
 import SearchBox from "@/components/SearchBox";
+import UpcomingCarousel from "@/components/UpcomingCarousel";
 
-// The search field is the static §5 shell only. The combobox — roles,
-// suggestion panel, clear control, behavior — is a separate build and
-// lands inside this same markup.
 export default function Hero() {
   return (
     <section aria-labelledby="hero-title" className="tc-section tc-hero">
@@ -17,6 +15,7 @@ export default function Hero() {
         </p>
         <SearchBox />
       </div>
+      <UpcomingCarousel />
     </section>
   );
 }

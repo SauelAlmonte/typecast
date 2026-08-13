@@ -50,13 +50,15 @@
   --leading-h1: 0.98;
   --type-h2: clamp(1.75rem, 2.7vw, 2.75rem);
   --leading-h2: 1.04;
-  --type-h3: 1.25rem;
+  --type-h3: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
   --leading-h3: 1.15;
-  --type-body-lg: 1.125rem;
+  --type-body-lg: clamp(1rem, 0.93rem + 0.55vw, 1.125rem);
   --leading-body-lg: 1.55;
-  --type-body: 1rem;
+  /* Body never clamps below 1rem: 16px is the iOS-zoom floor for the
+     search input, which inherits this token. */
+  --type-body: clamp(1rem, 0.97rem + 0.15vw, 1.0625rem);
   --leading-body: 1.5;
-  --type-ui: 0.9375rem;
+  --type-ui: clamp(0.875rem, 0.85rem + 0.25vw, 0.9375rem);
   --leading-ui: 1.25;
   --type-meta: 0.75rem;
   --leading-meta: 1.25;
@@ -83,6 +85,8 @@
   --radius-control: 8px;
   --radius-card: 12px;
   --radius-panel: 16px;
+  /* Any value over half the control height renders a full pill. */
+  --radius-pill: 999px;
 
   /* --- Icon sizes (§7) --- */
   --icon-sm: 16px;
@@ -91,14 +95,24 @@
 
   /* --- Control anatomy (§5) --- */
   --size-header: 5rem;
-  --size-input: 56px;
-  --size-input-mobile: 52px;
+  /* Search-bar geometry is em on purpose: em resolves against the font
+     size of the element that consumes the token, so the whole control
+     scales as one piece with its own text. 3.5em at the 1rem input font
+     is the old 56px. */
+  --size-input: 3.5em;
+  --size-input-mobile: 3.25em;
+  --search-pad-inline: 1em;
+  --search-icon-inset: 0.625em;
+  --search-button-size: 2.25em;
   --size-row: 72px;
   --size-row-mobile: 64px;
   /* Poster thumbnail in result rows, 2:3 like TMDB poster art. Rem so it
      scales with the user's font-size preference alongside the row text. */
   --size-thumb-inline: 2.5rem;
   --size-thumb-block: 3.75rem;
+  /* Carousel poster cards, 2:3; rem so the rail scales with text size. */
+  --size-card-inline: 9.5rem;
+  --size-card-inline-mobile: 7.5rem;
 
   /* --- Motion (§8) --- */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
