@@ -2,8 +2,9 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** Configuration complete — harness, e2e scaffolding, and CI are all
-live. No application code written yet. Next phase: system design.
+**Phase:** System design landed (Design System v2.0) and the first application
+code shipped: the styles foundation (PR #7) and the landing page (PR #8).
+Next: the search combobox, which is Sauel's build, explain-first.
 
 ---
 
@@ -28,17 +29,25 @@ live. No application code written yet. Next phase: system design.
 | 2026-08-13 | Playwright pin | `@playwright/test` pinned exactly to 1.61.0 — the last release whose Chromium/Firefox builds support macOS 12, which this machine runs. A caret range would let a routine `pnpm update` silently break local e2e. WebKit has no usable macOS 12 build at any version (1.49–1.55 all serve one frozen late-2024 binary), so the webkit project is gated to CI, where WebKit is current. Unpin when the Mac is upgraded. |
 | 2026-08-13 | E2E layout | Tests live in `e2e/` at the repo root, `@playwright/test` only — no MCP, no SDKs, no screenshot config. Locally the webServer starts or reuses the dev server; in CI it serves the production build, per the Next.js 16 testing guide. |
 | 2026-08-13 | CI shape | One workflow, two parallel jobs on push/PR to `main`: lint + typecheck (`next typegen` before `tsc`, the PR #3 lesson) and build + Playwright e2e. Node 24 to match local, pnpm from the `packageManager` field, frozen lockfile, concurrency cancels superseded runs. |
+| 2026-08-13 | Plain CSS over Tailwind | The design doc's one pending decision, settled by Sauel: the §9 tree ships as plain CSS. Tokens live in `src/styles/tokens.css`; component files consume tokens and never declare raw values. The reset is hand-written. |
+| 2026-08-13 | Theming deferred | `color-scheme: dark light` with `light-dark()` is live (dark default), but the `[data-theme]` override selectors are deliberately absent: the doc forbids shipping them without a toggle control and a blocking anti-flash script, and neither exists yet. |
+| 2026-08-13 | Component layout | Flat `src/components/` with PascalCase files; each component's CSS lives in `src/styles/components/*.css`, imported by `main.css` in §9 order. First structure decision made after the system design, per the config-phase rule. |
+| 2026-08-13 | Landing shape | Every section is a labelled landmark region filling the viewport below a fixed header: `min-block-size: calc(100svh - var(--size-header))` with mandatory scroll snap (Sauel's call over the proximity recommendation) and `scroll-padding` keeping snap targets clear of the bar. The hero search field is the §5 static shell only, with no combobox ARIA until the real component exists. |
+| 2026-08-13 | No em dashes | Anywhere Sauel reads: UI copy, metadata, commits, PR bodies, replies. Use periods, commas, or colons. |
 
 ---
 
 ## Open
 
-- **Lighthouse** — planned for CI (never hooks), not yet wired in. Needs a real UI to audit first.
-- **Sandbox hardening** — CodeRabbit flagged on PR #3 that `Read`/`Edit` deny rules don't stop Bash subprocesses from reading `.env`. The real fix needs OS-level sandboxing (`sandbox.filesystem.denyRead`), which changes how every shell command runs and would also block `next build`'s legitimate env loading. Deferred as Sauel's call; the Bash branch guard narrows the gap meanwhile.
-- **Migration guard** — a PreToolUse deny on edits to applied migration files, once Drizzle exists.
-- **Slash commands and subagents** — which recurring workflows are worth encoding.
-- **Affected tests in `stop-check`** — once Vitest lands. Playwright already runs in CI and stays out of hooks.
-- **TMDB attribution** — required by their terms for non-commercial use. Needs a home in the UI once there is one.
+- **Search combobox**: the deliverable. Sauel's build, explain-first. The static shell (input anatomy, result-row CSS) is already in place to inherit.
+- **Commit the design doc**: Design System v2.0 governs all UI work but lives only in chat history. It belongs in the repo, likely `docs/design-system.md`.
+- **Theme toggle and anti-flash script**: the pair that unlocks the `[data-theme]` selectors. Deliberately deferred; see the theming decision.
+- **Lighthouse**: planned for CI (never hooks). The landing page now gives it something real to audit, so it can be wired in.
+- **Sandbox hardening**: CodeRabbit flagged on PR #3 that `Read`/`Edit` deny rules don't stop Bash subprocesses from reading `.env`. The real fix needs OS-level sandboxing (`sandbox.filesystem.denyRead`), which changes how every shell command runs and would also block `next build`'s legitimate env loading. Deferred as Sauel's call; the Bash branch guard narrows the gap meanwhile.
+- **Migration guard**: a PreToolUse deny on edits to applied migration files, once Drizzle exists.
+- **Slash commands and subagents**: which recurring workflows are worth encoding.
+- **Affected tests in `stop-check`**: once Vitest lands. Playwright already runs in CI and stays out of hooks.
+- **TMDB logo attribution**: the footer text line shipped in PR #8, but TMDB's terms also want their logo once actual TMDB data is displayed. Revisit when the data layer lands.
 
 ---
 
@@ -61,6 +70,9 @@ live. No application code written yet. Next phase: system design.
 - [x] Learned the hard way that `next typegen` must run before `tsc --noEmit` on a never-built tree — Next 16 generates `LayoutProps` and friends into `.next/types`.
 - [x] Shipped PR #4 (`621f070`) — the harness session's progress log; worked both CodeRabbit findings (scoped the hooks claims to what actually runs).
 - [x] Shipped PR #5 (`b8fddbe`) — Playwright e2e setup (pinned 1.61.0, `e2e/` directory, smoke test green locally on Chromium + Firefox) and the full CI workflow, which ran its first gate on its own PR. "Wait for green CI" now means a real test/lint/typecheck gate, not CodeRabbit alone.
+- [x] Shipped PR #6 (`1ac66ae`): the Playwright and CI session's progress log.
+- [x] Received Design System v2.0 and shipped PR #7 (`ddd8c25`): the styles foundation. Tokens, hand-written reset, typography, layout, and base styles transcribed into `src/styles/`; the three §9 fonts wired through `next/font/google`; the scaffold's `globals.css` deleted.
+- [x] Shipped PR #8 (`030313b`): the landing page. Six landmark sections as components plus the §7 Lucide icon sprite, full-height snap rhythm, static §5 search shell, Tier-1 result preview, TMDB attribution text in the footer, branded metadata, and the e2e smoke test tightened to match. In-PR iterations from Sauel's review: wordmark sized as the logo, em dashes stripped from copy, and the header switched from absolute to a fixed bar with matching scroll-padding after the snap carried it off-screen.
 
 ---
 
