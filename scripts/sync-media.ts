@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
-import { db } from "../src/db";
+import { getDb } from "../src/db";
 import { media, type NewMedia } from "../src/db/schema";
+import { normalizeSearchText } from "../src/lib/normalize";
 import { fetchTmdbList, type TmdbListItem } from "../src/lib/tmdb";
 
 /**
@@ -49,6 +50,7 @@ function toMediaRow(
     tmdbId: item.id,
     mediaType,
     title,
+    titleSearch: normalizeSearchText(title),
     releaseDate:
       (mediaType === "movie" ? item.release_date : item.first_air_date) || null,
     popularity: item.popularity ?? 0,
@@ -59,6 +61,7 @@ function toMediaRow(
 }
 
 async function main() {
+  const db = getDb();
   const rows = new Map<string, NewMedia>();
 
   for (const source of SOURCES) {
@@ -82,6 +85,7 @@ async function main() {
       target: [media.mediaType, media.tmdbId],
       set: {
         title: sql`excluded.title`,
+        titleSearch: sql`excluded.title_search`,
         releaseDate: sql`excluded.release_date`,
         popularity: sql`excluded.popularity`,
         voteAverage: sql`excluded.vote_average`,
