@@ -1,6 +1,11 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "../src/db";
-import { media, type NewMedia } from "../src/db/schema";
+import {
+  type MediaListRow,
+  media,
+  mediaList,
+  type NewMedia,
+} from "../src/db/schema";
 import { normalizeSearchText } from "../src/lib/normalize";
 import { fetchTmdbList, type TmdbListItem } from "../src/lib/tmdb";
 
@@ -8,23 +13,62 @@ import { fetchTmdbList, type TmdbListItem } from "../src/lib/tmdb";
  * A TMDB list to ingest: the endpoint, how many pages, and which media
  * type its items are when the payload doesn't say (`/trending` includes
  * `media_type` per item; single-type lists imply it).
+ *
+ * `slug` marks a list whose membership and ordering the site shows as
+ * a category rail; slugless sources only feed the catalog. Slugs are
+ * the contract with /api/rails and the landing page.
  */
 type ListSource = {
   path: string;
   pages: number;
   impliedType?: "movie" | "tv";
+  slug?: string;
 };
 
 /**
- * The catalog recipe: trending for breadth, popular for depth per type,
- * upcoming/on-the-air so the hero rotation has fresh material.
+ * The catalog recipe: trending for breadth, then TMDB's own category
+ * lists for movies and TV, mirroring the rails under the hero.
  */
 const SOURCES: ListSource[] = [
   { path: "/trending/all/week", pages: 3 },
-  { path: "/movie/popular", pages: 3, impliedType: "movie" },
-  { path: "/tv/popular", pages: 3, impliedType: "tv" },
-  { path: "/movie/upcoming", pages: 2, impliedType: "movie" },
-  { path: "/tv/on_the_air", pages: 2, impliedType: "tv" },
+  {
+    path: "/movie/popular",
+    pages: 2,
+    impliedType: "movie",
+    slug: "movie-popular",
+  },
+  {
+    path: "/movie/now_playing",
+    pages: 2,
+    impliedType: "movie",
+    slug: "movie-now-playing",
+  },
+  {
+    path: "/movie/upcoming",
+    pages: 2,
+    impliedType: "movie",
+    slug: "movie-upcoming",
+  },
+  {
+    path: "/movie/top_rated",
+    pages: 2,
+    impliedType: "movie",
+    slug: "movie-top-rated",
+  },
+  { path: "/tv/popular", pages: 2, impliedType: "tv", slug: "tv-popular" },
+  {
+    path: "/tv/airing_today",
+    pages: 2,
+    impliedType: "tv",
+    slug: "tv-airing-today",
+  },
+  {
+    path: "/tv/on_the_air",
+    pages: 2,
+    impliedType: "tv",
+    slug: "tv-on-the-air",
+  },
+  { path: "/tv/top_rated", pages: 2, impliedType: "tv", slug: "tv-top-rated" },
 ];
 
 /**
@@ -63,17 +107,25 @@ function toMediaRow(
 async function main() {
   const db = getDb();
   const rows = new Map<string, NewMedia>();
+  // Per slug, the ordered member keys exactly as TMDB ranked them.
+  const memberships = new Map<string, string[]>();
 
   for (const source of SOURCES) {
+    const members: string[] = [];
     for (let page = 1; page <= source.pages; page++) {
       const { results } = await fetchTmdbList(source.path, page);
       for (const item of results) {
         const row = toMediaRow(item, source.impliedType);
+        if (!row) continue;
+        const key = `${row.mediaType}:${row.tmdbId}`;
         // Last write wins on duplicates across lists; the payloads for the
         // same (type, id) are identical, so order doesn't matter.
-        if (row) rows.set(`${row.mediaType}:${row.tmdbId}`, row);
+        rows.set(key, row);
+        // Within one list, first sighting keeps TMDB's rank.
+        if (source.slug && !members.includes(key)) members.push(key);
       }
     }
+    if (source.slug) memberships.set(source.slug, members);
     console.log(`${source.path}: ${rows.size} rows accumulated`);
   }
 
@@ -94,6 +146,31 @@ async function main() {
         updatedAt: sql`now()`,
       },
     });
+
+  // Membership needs database ids, which the upsert doesn't return for
+  // conflicting rows, so read the whole (small) catalog back once.
+  const idRows = await db
+    .select({ id: media.id, mediaType: media.mediaType, tmdbId: media.tmdbId })
+    .from(media);
+  const idByKey = new Map(
+    idRows.map((r) => [`${r.mediaType}:${r.tmdbId}`, r.id]),
+  );
+
+  // Replace each list wholesale: membership reflects this sync only.
+  for (const [slug, members] of memberships) {
+    const listRows: MediaListRow[] = [];
+    for (const [position, key] of members.entries()) {
+      const id = idByKey.get(key);
+      if (id !== undefined) {
+        listRows.push({ listSlug: slug, mediaId: id, position });
+      }
+    }
+    await db.delete(mediaList).where(eq(mediaList.listSlug, slug));
+    if (listRows.length > 0) {
+      await db.insert(mediaList).values(listRows);
+    }
+    console.log(`${slug}: ${listRows.length} members`);
+  }
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)::int` })

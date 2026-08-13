@@ -1,12 +1,17 @@
-/* The "latest and upcoming" rail, its own section under the hero the
-   way Prime stacks rows: a snap-scrolling track paged by arrow buttons.
+/* TMDB category rails stacked under the hero the way Prime stacks
+   rows: each is a snap-scrolling track paged by arrow buttons.
    Horizontal snap on the track is unrelated to the page snap the
    landing dropped; it only settles cards after a fling. */
+
+.tc-rails {
+  display: grid;
+  gap: var(--space-8);
+  padding-block: var(--space-7);
+}
 
 .tc-carousel {
   display: grid;
   gap: var(--space-4);
-  padding-block: var(--space-7);
 }
 
 .tc-carousel-head {

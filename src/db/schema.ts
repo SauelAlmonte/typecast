@@ -6,6 +6,7 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
   real,
   text,
   timestamp,
@@ -48,3 +49,27 @@ export const media = pgTable(
 
 export type Media = typeof media.$inferSelect;
 export type NewMedia = typeof media.$inferInsert;
+
+/**
+ * Which TMDB category lists a title belongs to, with its rank inside
+ * each. A title sits in many lists at once (popular AND top rated), so
+ * membership is a join table, not a column on `media`. The sync
+ * replaces each list wholesale, so rows never go stale.
+ */
+export const mediaList = pgTable(
+  "media_list",
+  {
+    listSlug: text("list_slug").notNull(),
+    mediaId: bigint("media_id", { mode: "number" })
+      .notNull()
+      .references(() => media.id, { onDelete: "cascade" }),
+    // Rank within the list, straight from TMDB's ordering.
+    position: integer("position").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.listSlug, table.mediaId] }),
+    index("media_list_slug_position_idx").on(table.listSlug, table.position),
+  ],
+);
+
+export type MediaListRow = typeof mediaList.$inferInsert;

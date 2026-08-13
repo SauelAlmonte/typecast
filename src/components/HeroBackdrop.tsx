@@ -11,7 +11,7 @@ const BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
 const POSTER_BASE = "https://image.tmdb.org/t/p/w780";
 
 /** How long each featured title holds the background. */
-const ROTATE_MS = 10_000;
+const ROTATE_MS = 5_000;
 
 /** The rotation stays at six titles so the dot row stays readable;
  * the rail below the hero shows the endpoint's full list. */
