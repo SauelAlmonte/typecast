@@ -84,25 +84,43 @@ export default function SearchBox() {
     setActiveIndex(-1);
   }
 
+  /** Stop both pending kinds of work: the armed timer and the live request. */
+  function cancelPending() {
+    if (timer.current) clearTimeout(timer.current);
+    controller.current?.abort();
+    controller.current = null;
+  }
+
   function closePanel() {
+    cancelPending();
     setIsOpen(false);
     setActiveIndex(-1);
   }
 
   async function fetchSuggestions(key: string) {
     controller.current?.abort();
-    controller.current = new AbortController();
+    const requestController = new AbortController();
+    controller.current = requestController;
     try {
       const res = await fetch(`/api/suggest?q=${encodeURIComponent(key)}`, {
-        signal: controller.current.signal,
+        signal: requestController.signal,
       });
       const data: SuggestResult[] = await res.json();
+      // The response is valid data for its key even if the user has moved
+      // on, so it may enter the cache; it may not touch the screen unless
+      // this request is still the current one.
       cache.current.set(key, data);
       if (cache.current.size > CACHE_MAX) {
         const oldest = cache.current.keys().next().value;
         if (oldest !== undefined) {
           cache.current.delete(oldest);
         }
+      }
+      if (
+        requestController.signal.aborted ||
+        controller.current !== requestController
+      ) {
+        return;
       }
       showResults(key, data);
     } catch (error) {
@@ -124,7 +142,10 @@ export default function SearchBox() {
 
   function handleChange(value: string) {
     setQuery(value);
-    if (timer.current) clearTimeout(timer.current);
+    // Every keystroke invalidates whatever the previous keystroke started,
+    // in-flight requests included; aborting only when the next fetch began
+    // left a window where a stale response could repaint the panel.
+    cancelPending();
     const key = normalizeSearchText(value);
     if (key === "") {
       setResults([]);
@@ -156,7 +177,7 @@ export default function SearchBox() {
 
   function selectRecent(title: string) {
     setQuery(title);
-    if (timer.current) clearTimeout(timer.current);
+    cancelPending();
     runSearch(normalizeSearchText(title));
   }
 

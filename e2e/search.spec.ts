@@ -94,6 +94,40 @@ test("no matches shows the empty state", async ({ page }) => {
   await expect(page.getByRole("listbox")).toBeHidden();
 });
 
+test("a slow stale response never overwrites a newer query", async ({
+  page,
+}) => {
+  // Replace the instant mock: the first query's response crawls, the
+  // second answers immediately, and the slow one must never paint.
+  await page.unroute("**/api/suggest*");
+  await page.route("**/api/suggest*", async (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q") ?? "";
+    try {
+      if (q.startsWith("stran")) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        await route.fulfill({ json: FIXTURE });
+      } else {
+        await route.fulfill({ json: [] });
+      }
+    } catch {
+      // The client aborted this request mid-delay; exactly the point.
+    }
+  });
+
+  const input = page.getByRole("combobox", { name: /search movies/i });
+  await input.fill("stran");
+  await page.waitForRequest("**/api/suggest?q=stran*");
+  await input.fill("zzz");
+  await expect(page.getByText(/no matches for/i)).toBeVisible();
+
+  // Outlive the delayed response, then confirm it never painted.
+  await page.waitForTimeout(1200);
+  await expect(page.getByText(/no matches for/i)).toBeVisible();
+  await expect(
+    page.getByRole("option", { name: /stranger things/i }),
+  ).toBeHidden();
+});
+
 test("a selection becomes a recent search offered on empty focus", async ({
   page,
 }) => {
