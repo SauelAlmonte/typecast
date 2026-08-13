@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { db } from "../src/db";
+import { getDb } from "../src/db";
 import { media, type NewMedia } from "../src/db/schema";
 import { normalizeSearchText } from "../src/lib/normalize";
 import { fetchTmdbList, type TmdbListItem } from "../src/lib/tmdb";
@@ -61,6 +61,7 @@ function toMediaRow(
 }
 
 async function main() {
+  const db = getDb();
   const rows = new Map<string, NewMedia>();
 
   for (const source of SOURCES) {

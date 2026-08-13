@@ -1,5 +1,5 @@
 import { desc, like, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { media } from "@/db/schema";
 import { normalizeSearchText } from "@/lib/normalize";
 
@@ -48,6 +48,8 @@ export async function GET(request: Request): Promise<Response> {
   if (q === "") {
     return json([]);
   }
+
+  const db = getDb();
 
   if (q.length < 3) {
     // Escape LIKE wildcards so a literal % or _ in the fragment can't
