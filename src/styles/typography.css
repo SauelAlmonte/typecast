@@ -1,0 +1,69 @@
+/* Design System v2.0 §2 — the type scale applied. Sizes and line-heights
+   come from tokens.css; nothing here declares a raw value.
+   CJK line-height overrides are deferred until a CJK locale ships. */
+
+h1,
+.tc-h1 {
+  font-size: var(--type-h1);
+  line-height: var(--leading-h1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h2,
+.tc-h2 {
+  font-size: var(--type-h2);
+  line-height: var(--leading-h2);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+h3,
+.tc-h3 {
+  font-size: var(--type-h3);
+  line-height: var(--leading-h3);
+  font-weight: 500;
+}
+
+/* Home statement only — use sparingly, results stay quieter. */
+.tc-display {
+  font-size: var(--type-display);
+  line-height: var(--leading-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.tc-body-lg {
+  font-size: var(--type-body-lg);
+  line-height: var(--leading-body-lg);
+}
+
+p,
+.tc-body {
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+}
+
+.tc-ui {
+  font-size: var(--type-ui);
+  line-height: var(--leading-ui);
+}
+
+/* Metadata: year, media type, count, caption. Uppercase only for very
+   short category tags — opt in with .tc-meta-caps, never by default. */
+.tc-meta {
+  font-size: var(--type-meta);
+  line-height: var(--leading-meta);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.tc-meta-caps {
+  text-transform: uppercase;
+}
+
+/* Metadata rows carry years, counts, and runtimes — lock the digits. */
+.tc-meta,
+.tc-result-subtitle {
+  font-variant-numeric: tabular-nums;
+}

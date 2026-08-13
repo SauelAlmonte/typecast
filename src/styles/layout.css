@@ -1,0 +1,31 @@
+/* Design System v2.0 §4 — containers. Logical properties only; physical
+   properties are what makes RTL a rewrite instead of a config change. */
+
+.tc-container-search,
+.tc-container-content,
+.tc-container-wide,
+.tc-container-full {
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+  inline-size: 100%;
+}
+
+/* Search tops out here deliberately: at full page width it reads as a
+   site-wide filter rather than an instrument. */
+.tc-container-search {
+  max-inline-size: var(--container-search);
+}
+
+.tc-container-content {
+  max-inline-size: var(--container-content);
+}
+
+/* The ceiling for everything that isn't full-bleed. */
+.tc-container-wide {
+  max-inline-size: var(--container-wide);
+}
+
+.tc-container-full {
+  max-inline-size: var(--container-full);
+  padding-inline: 0;
+}
