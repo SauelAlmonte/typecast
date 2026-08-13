@@ -89,6 +89,13 @@
   --icon: 20px;
   --icon-lg: 24px;
 
+  /* --- Control anatomy (§5) --- */
+  --size-header: 5rem;
+  --size-input: 56px;
+  --size-input-mobile: 52px;
+  --size-row: 72px;
+  --size-row-mobile: 64px;
+
   /* --- Motion (§8) --- */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   /* Overshoots — wordmark and empty-state gestures only, never controls. */
@@ -97,4 +104,5 @@
   --duration-fast: 150ms; /* hover, focus, color change */
   --duration-base: 200ms; /* panel open/close, card lift */
   --duration-slow: 320ms; /* page-level and campaign transitions */
+  --duration-caret: 1.1s; /* caret blink cadence — brand gesture, not UI motion */
 }

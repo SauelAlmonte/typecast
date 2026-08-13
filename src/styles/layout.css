@@ -29,3 +29,33 @@
   max-inline-size: var(--container-full);
   padding-inline: 0;
 }
+
+/* Landing rhythm: every section fills the viewport below the fixed header
+   (svh dodges the mobile URL-bar jump) and the page snaps between them.
+   scroll-padding pushes every snap target below the bar. min-block-size,
+   never height: a snap area taller than the snapport stays freely
+   scrollable, so zoomed or reflowed content is never trapped
+   (WCAG 1.4.4 / 1.4.10). */
+:root {
+  scroll-snap-type: y mandatory;
+  scroll-padding-block-start: var(--size-header);
+}
+
+main {
+  padding-block-start: var(--size-header);
+}
+
+.tc-section {
+  display: grid;
+  align-content: center;
+  min-block-size: calc(100svh - var(--size-header));
+  padding-block: var(--space-8);
+  scroll-snap-align: start;
+}
+
+/* Shared eyebrow + title + lede stack at the top of each section. */
+.tc-section-header {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-end: var(--space-7);
+}

@@ -1,0 +1,38 @@
+/* Fixed bar. Safe under mandatory snap because the scroll container's
+   scroll-padding (layout.css) shifts every snap target below the bar, so
+   no section content or focused control ever hides beneath it (WCAG
+   2.4.11). Solid canvas: content scrolling underneath must never show
+   through the wordmark. */
+
+.tc-header {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 1;
+  block-size: var(--size-header);
+  background-color: var(--color-canvas);
+  border-block-end: 1px solid var(--color-line);
+}
+
+.tc-header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: 100%;
+}
+
+/* The wordmark is the logo, sized to read as one, not as a nav label. */
+.tc-header-brand {
+  font-size: var(--type-h2);
+  line-height: var(--leading-h2);
+}
+
+/* Text link with a padded hit area comfortably over the 24px floor (2.5.8). */
+.tc-header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-2);
+  color: var(--color-ink);
+}
