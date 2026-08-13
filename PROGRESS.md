@@ -2,9 +2,12 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** System design landed (Design System v2.0) and the first application
-code shipped: the styles foundation (PR #7) and the landing page (PR #8).
-Next: the search combobox, which is Sauel's build, explain-first.
+**Phase:** The deliverable works end to end. Backend: TMDB catalog synced
+into Neon, trigram-indexed, served by a ranked suggest endpoint whose
+ranking SQL Sauel wrote. Frontend: the hand-built combobox with debounce,
+cancellation, cache, keyboard, ARIA, recents, and an e2e suite. Next:
+productization (deploy, rate limiting, server cache, scheduled sync) and
+the landing redesign with the hero rotation.
 
 ---
 
@@ -35,20 +38,30 @@ Next: the search combobox, which is Sauel's build, explain-first.
 | 2026-08-13 | Landing shape | Every section is a labelled landmark region filling the viewport below a fixed header: `min-block-size: calc(100svh - var(--size-header))` with mandatory scroll snap (Sauel's call over the proximity recommendation) and `scroll-padding` keeping snap targets clear of the bar. The hero search field is the §5 static shell only, with no combobox ARIA until the real component exists. |
 | 2026-08-13 | No em dashes | Anywhere Sauel reads: UI copy, metadata, commits, PR bodies, replies. Use periods, commas, or colons. |
 | 2026-08-13 | pnpm pin policy | `packageManager` must exactly match the globally installed pnpm on every machine. pnpm 11.20.0 added a fail-closed identity check when delegating to a different pinned version, and Intel macOS has no published 11.x binary package after 11.0.4, so any mismatch kills every pnpm command in the repo with a misleading "missing from pnpm-lock.yaml" error. An exact match skips delegation entirely. Keep the pin and both globals in lockstep until upstream resolves pnpm/pnpm#13622. CI is immune: `pnpm/action-setup` installs the exact pinned version. |
+| 2026-08-13 | Catalog architecture | Option B, the local catalog: a sync script pulls TMDB lists into Neon and search runs against our own table and indexes. Owning ranking, latency, and indexing is the point of the project; TMDB is only touched by the background sync. |
+| 2026-08-13 | Search matching | Matching runs against `title_search`, filled by one `normalizeSearchText` function (lowercase, NFKD, strip marks, collapse whitespace) used identically at ingest, at query time, and as the client cache key. Fragments of 1 to 2 chars prefix-scan; 3+ use `pg_trgm` with `word_similarity`, because whole-title `similarity()` under-scores short fragments (measured: 0.294 for "stran" vs Stranger Things). Ranking is Sauel's three-key sort: exact prefix first, word similarity, popularity tiebreak, threshold 0.4. |
+| 2026-08-13 | TSDoc | Exported APIs get TSDoc comments documenting semantics. Never restate types the signature already carries. |
+| 2026-08-13 | Reply density | Sauel rejected fact-packed summary sentences mid-session. One idea per sentence, plain words, define terms on first use. Recorded alongside the existing concise-reply rule. |
+| 2026-08-13 | Combobox teaching build | The component was built naive-first on purpose: fetch per keystroke shipped, measured (8 requests for "stranger"), then fixed one layer at a time so every optimization answered a problem watched in the Network tab. Sauel typed debounce, cancellation, and cache himself. |
+| 2026-08-13 | Listbox markup | The suggestion listbox is divs with ARIA roles, not ul/li: Biome's a11y rules reject interactive roles on list tags and non-focusable options, and since a role replaces the tag's native semantics entirely, the neutral form is equivalent for assistive tech and lint-clean without carving exceptions into the a11y ruleset. |
 
 ---
 
 ## Open
 
-- **Search combobox**: the deliverable. Sauel's build, explain-first. The static shell (input anatomy, result-row CSS) is already in place to inherit.
+- **Landing redesign with hero rotation**: Sauel wants a stronger design, and the hero background should cycle every minute through latest and upcoming titles from the catalog (`backdrop_path` is already stored for this).
+- **Productization of search**: Upstash Redis server cache and rate limiting on the suggest endpoint, a scheduled sync (Vercel cron) replacing the manual `pnpm db:sync`, and a deploy to Vercel so the CDN cache headers actually meet a CDN.
+- **Selection destination**: Enter currently just fills the input with the chosen title. Where selection should lead (detail page, TMDB link) is undecided.
+- **Vitest unit tests**: `normalizeSearchText` and the ranking query are the first candidates. Also unlocks affected tests in `stop-check`.
+- **px-to-rem pass**: type and containers are already rem; whether spacing and control-size tokens should convert too is an open design decision from Sauel's responsiveness rule.
 - **Commit the design doc**: Design System v2.0 governs all UI work but lives only in chat history. It belongs in the repo, likely `docs/design-system.md`.
 - **Theme toggle and anti-flash script**: the pair that unlocks the `[data-theme]` selectors. Deliberately deferred; see the theming decision.
 - **Lighthouse**: planned for CI (never hooks). The landing page now gives it something real to audit, so it can be wired in.
 - **Sandbox hardening**: CodeRabbit flagged on PR #3 that `Read`/`Edit` deny rules don't stop Bash subprocesses from reading `.env.local`. The real fix needs OS-level sandboxing (`sandbox.filesystem.denyRead`), which changes how every shell command runs and would also block `next build`'s legitimate env loading. Deferred as Sauel's call; the Bash branch guard narrows the gap meanwhile.
-- **Migration guard**: a PreToolUse deny on edits to applied migration files, once Drizzle exists.
+- **Migration guard**: a PreToolUse deny on edits to applied migration files, now that Drizzle exists and `src/db/migrations/` holds applied SQL.
 - **Slash commands and subagents**: which recurring workflows are worth encoding.
 - **Affected tests in `stop-check`**: once Vitest lands. Playwright already runs in CI and stays out of hooks.
-- **TMDB logo attribution**: the footer text line shipped in PR #8, but TMDB's terms also want their logo once actual TMDB data is displayed. Revisit when the data layer lands.
+- **TMDB logo attribution**: now due. TMDB data and poster art render in the suggestion panel, so their terms want the logo displayed, not just the footer text line from PR #8. Fold into the landing redesign.
 - **Older MacBook pnpm**: still broken until it runs `npm i -g pnpm@11.21.0`, then `git pull` and `pnpm install`. Every pnpm command there fails until the global matches the pin.
 
 ---
@@ -78,6 +91,15 @@ Next: the search combobox, which is Sauel's build, explain-first.
 - [x] Diagnosed the pnpm failure Sauel hit on the older MacBook and reproduced it locally: not the lockfile, but pnpm 11.20.0's new delegation identity check, unpassable on Intel macOS. Confirmed the root cause against pnpm's own triage of pnpm/pnpm#13622 and the npm registry (no darwin-x64 binary published for any 11.x after 11.0.4), then proved the exact-match escape hatch in a scratch project before touching the repo.
 - [x] Shipped PR #10 (`49a43a2`): `packageManager` bumped to pnpm 11.21.0 to match the installed global, plus the AGENTS.md stack line. Every pnpm command in the repo works again, hooks included.
 - [x] Shipped PR #11 (`ebcb2dc`): nanoid 3.3.17 to 3.3.18 for CVE-2026-67213, a high-severity Dependabot alert GitHub surfaced during the PR #10 cleanup push. Transitive via next and postcss, exposure theoretical, lockfile-only patch bump. Alert closed on merge.
+- [x] Provisioned the stack's external halves: TMDB read access token (v4 Bearer, header auth) and a Neon Postgres database created through the Vercel marketplace integration, both in `.env.local` (renamed from `.env`; the `Read(./.env.*)` deny rule already covered it). Neon Auth toggled off, Better Auth owns authentication later.
+- [x] Shipped PR #13 (`d249ab3`): the data layer. Drizzle + Neon HTTP driver, one `media` table for movies and TV with the `(media_type, tmdb_id)` natural key, `pg_trgm` GIN index, migration applied and verified live. Biome skips generated migration meta; pnpm-workspace allows esbuild's postinstall.
+- [x] Shipped PR #14 (`74b8ede`): scoped esbuild override clearing Dependabot alert #2 (moderate, dev-server CORS, unreachable code path via drizzle-kit's deprecated @esbuild-kit internals).
+- [x] Shipped PR #15 (`a2d6369`): the sync job. Five TMDB lists into the catalog, normalized row shape, in-memory dedupe, excluded.* upsert. 195 titles landed on first run; trigram search verified against real data.
+- [x] Shipped PR #16 (`d8b910e`): suggest endpoint scaffold. `title_search` column and shared normalize function, prefix branch under 3 chars, trigram branch above, lean payload, CDN cache headers. Includes the lazy `getDb()` fix after CI's databaseless build exposed the import-time env check. Merged as scaffold with ranking deliberately left as a marked slot.
+- [x] Shipped PR #17 (`2ba4b23`): Sauel's ranking, his first hand-written SQL in the project, committed without the Claude trailer. Prefix matches first, `word_similarity` second, popularity tiebreak, 0.4 threshold. Acceptance test: "stran" returns Stranger Things first where the placeholder buried it entirely.
+- [x] Set up WebStorm's database tooling along the way: Neon as a data source (the URL-overrides-fields trap: it must end in `/neondb`), PostgreSQL dialect for `sql` template strings, real schema-aware SQL assistance in the editor.
+- [x] Shipped PR #18 (`ad28534`): the combobox. Built naive-first with Sauel typing debounce, cancellation, and cache; then keyboard and ARIA (activedescendant pattern), localStorage recents, empty state, TMDB poster rows via next/image, and 8 Playwright tests (16 runs across Chromium and Firefox) driven purely by ARIA semantics with the API mocked so CI needs no database. CodeRabbit's one finding (stale responses during the debounce window) verified, fixed with `cancelPending()` plus a request-identity guard, regression-tested, thread resolved.
+- [x] The founding doc's efficiency stack is now fully implemented and measured: 8 requests for "stranger" became 1 to 2 (debounce), stale responses provably never paint (abort + identity guard, e2e-tested), and repeats render synchronously from a 50-entry normalized-key cache.
 
 ---
 
