@@ -1,16 +1,148 @@
-.tc-hero-inner {
-  display: grid;
-  gap: var(--space-5);
-  justify-items: center;
-  text-align: center;
+/* Prime-style media hero: a rotating catalog backdrop fills the section,
+   the pitch and search bar pin to the bottom-left corner over a scrim,
+   and dots mark the rotation. Without a backdrop (failed fetch, empty
+   catalog, databaseless CI) the same layout sits on the themed canvas. */
+
+.tc-hero {
+  position: relative;
+  align-content: end;
+  overflow: hidden;
+  padding-block-end: var(--space-8);
 }
 
-/* Measure in ch: a comfortable line is 45–65 characters, and ch counts
-   characters of the lede's own font. The browser wraps naturally at any
-   width, which is what manual <br> breaks could never do on mobile. */
+.tc-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-5);
+  justify-items: start;
+  text-align: start;
+}
+
+/* Wraps "Half a title" / "is enough." as two stacked lines, the way
+   Prime's title art sits as a block in the corner. */
+.tc-hero-inner .tc-display {
+  max-inline-size: 12ch;
+}
+
 .tc-hero-lede {
-  max-inline-size: 55ch;
+  max-inline-size: var(--measure-lede);
   color: var(--color-ink-muted);
+}
+
+.tc-hero .tc-search-field {
+  max-inline-size: var(--container-hero-copy);
+}
+
+/* Text flips to the theme-independent media colors only when a backdrop
+   layer actually rendered; the fallback hero keeps theme ink. */
+.tc-hero:has(.tc-hero-backdrop) .tc-hero-inner {
+  color: var(--color-on-media);
+}
+
+.tc-hero:has(.tc-hero-backdrop) .tc-hero-lede {
+  color: var(--color-on-media-muted);
+}
+
+/* --- Backdrop layers --- */
+
+.tc-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-media-base);
+}
+
+.tc-hero-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.tc-hero-layer-img {
+  object-fit: cover;
+}
+
+/* Keyed remount per title restarts this fade; the previous layer stays
+   underneath, so the swap reads as a crossfade. The reduced-motion kill
+   switch in reset.css collapses it to an instant cut. */
+.tc-hero-layer-current {
+  animation: tc-backdrop-fade var(--duration-crossfade) var(--ease-out) both;
+}
+
+@keyframes tc-backdrop-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Preload slot: invisible, but the browser still fetches the image. */
+.tc-hero-layer-hidden {
+  opacity: 0;
+}
+
+/* Darkens the corner the copy sits in; the photo stays readable on the
+   right, the text stays readable on the left. */
+.tc-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, var(--color-scrim-strong), transparent 60%),
+    linear-gradient(to right, var(--color-scrim-soft), transparent 65%);
+}
+
+/* --- Rotation furniture --- */
+
+.tc-hero-featured {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 1;
+  color: var(--color-on-media-muted);
+}
+
+/* On phones the caption would collide with the dots; the dots carry the
+   same titles in their labels, so the caption yields. */
+@media (width <= 48rem) {
+  .tc-hero-featured {
+    display: none;
+  }
+}
+
+.tc-hero-dots {
+  position: absolute;
+  inset-block-end: var(--space-3);
+  inset-inline: 0;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-1);
+  justify-content: center;
+}
+
+/* The button is the 24px hit area (2.5.8); the mark is the visual dot. */
+.tc-hero-dot {
+  display: grid;
+  place-items: center;
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}
+
+.tc-hero-dot-mark {
+  inline-size: 0.5em;
+  block-size: 0.5em;
+  background-color: var(--color-on-media-muted);
+  border-radius: var(--radius-pill);
+  opacity: 0.55;
+  transition:
+    inline-size var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+}
+
+.tc-hero-dot:hover .tc-hero-dot-mark {
+  opacity: 0.8;
+}
+
+.tc-hero-dot-active .tc-hero-dot-mark {
+  inline-size: 1.5em;
+  opacity: 1;
 }
 
 /* The brand symbol: a caret still typing. em-relative so it tracks the

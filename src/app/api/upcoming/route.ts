@@ -2,28 +2,28 @@ import { and, desc, isNotNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { media } from "@/db/schema";
 
-/** One carousel card; posterPath is non-null by query construction. */
+/** One hero-backdrop rotation entry; backdropPath is non-null by query. */
 export type UpcomingItem = {
   id: number;
   mediaType: string;
   title: string;
   year: number | null;
-  posterPath: string;
+  backdropPath: string;
 };
 
-/** The rail changes at sync cadence, once a day; let the CDN hold it. */
+/** The rotation changes at sync cadence, once a day; let the CDN hold it. */
 const CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400";
 
-const LIMIT = 18;
+const LIMIT = 6;
 
 /**
- * Latest and upcoming titles for the hero carousel.
+ * Latest and upcoming titles for the hero's rotating backdrop.
  *
  * The catalog has no origin-list column, so "latest and upcoming" is
  * derived from dates: anything released in the last 90 days or dated in
  * the future. Descending release date puts unreleased titles first,
- * then the freshest, with popularity breaking ties. Posterless rows are
- * excluded because the card IS the poster.
+ * then the freshest, with popularity breaking ties. Backdropless rows
+ * are excluded because the backdrop IS the feature.
  *
  * @returns JSON array of {@link UpcomingItem}, newest first.
  */
@@ -35,12 +35,12 @@ export async function GET(): Promise<Response> {
       mediaType: media.mediaType,
       title: media.title,
       year: sql<number | null>`extract(year from ${media.releaseDate})::int`,
-      posterPath: sql<string>`${media.posterPath}`,
+      backdropPath: sql<string>`${media.backdropPath}`,
     })
     .from(media)
     .where(
       and(
-        isNotNull(media.posterPath),
+        isNotNull(media.backdropPath),
         sql`${media.releaseDate} >= current_date - interval '90 days'`,
       ),
     )

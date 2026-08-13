@@ -1,10 +1,11 @@
+import HeroBackdrop from "@/components/HeroBackdrop";
 import SearchBox from "@/components/SearchBox";
-import UpcomingCarousel from "@/components/UpcomingCarousel";
 
 export default function Hero() {
   return (
     <section aria-labelledby="hero-title" className="tc-section tc-hero">
-      <div className="tc-container-content tc-hero-inner">
+      <HeroBackdrop />
+      <div className="tc-container-wide tc-hero-inner">
         <h1 className="tc-display" id="hero-title">
           Half a title is enough.
           <span aria-hidden="true" className="tc-caret" />
@@ -15,7 +16,6 @@ export default function Hero() {
         </p>
         <SearchBox />
       </div>
-      <UpcomingCarousel />
     </section>
   );
 }

@@ -1,0 +1,138 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import type { UpcomingItem } from "@/app/api/upcoming/route";
+
+/** w1280 is TMDB's largest sized backdrop; the hero fills the viewport. */
+const BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
+
+/** How long each featured title holds the background. */
+const ROTATE_MS = 60_000;
+
+function backdropSrc(item: UpcomingItem): string {
+  return `${BACKDROP_BASE}${item.backdropPath}`;
+}
+
+/**
+ * Prime-style rotating hero background: one latest-or-upcoming backdrop
+ * fills the section, crossfades to the next every minute, and dots let
+ * the viewer jump the rotation (which also restarts the minute).
+ *
+ * Three layers render at a time: the previous image stays underneath
+ * while the current one fades in over it, and the next one sits at
+ * opacity 0 purely so the browser fetches it before its turn. The
+ * backdrop is decorative, so a failed fetch renders nothing and the
+ * hero falls back to the plain themed canvas.
+ */
+export default function HeroBackdrop() {
+  const [items, setItems] = useState<UpcomingItem[]>([]);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch("/api/upcoming", {
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          throw new Error(`upcoming request failed: ${res.status}`);
+        }
+        setItems(await res.json());
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        console.error(error);
+      }
+    })();
+    return () => controller.abort();
+  }, []);
+
+  // One timeout per shown title instead of an interval: every index
+  // change re-arms it, so a manual dot pick naturally gets a full minute.
+  useEffect(() => {
+    if (items.length < 2) return;
+    const id = setTimeout(() => {
+      setIndex((index + 1) % items.length);
+    }, ROTATE_MS);
+    return () => clearTimeout(id);
+  }, [index, items.length]);
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  const n = items.length;
+  const current = items[index];
+  const previous = items[(index - 1 + n) % n];
+  const next = items[(index + 1) % n];
+
+  return (
+    <>
+      <div aria-hidden="true" className="tc-hero-backdrop">
+        <div className="tc-hero-layer" key={`p-${previous.id}`}>
+          <Image
+            alt=""
+            className="tc-hero-layer-img"
+            fill
+            sizes="100vw"
+            src={backdropSrc(previous)}
+          />
+        </div>
+        {/* The key remounts this layer per title, restarting the fade. */}
+        <div
+          className="tc-hero-layer tc-hero-layer-current"
+          key={`c-${current.id}`}
+        >
+          <Image
+            alt=""
+            className="tc-hero-layer-img"
+            fill
+            priority
+            sizes="100vw"
+            src={backdropSrc(current)}
+          />
+        </div>
+        {n > 2 && (
+          <div
+            className="tc-hero-layer tc-hero-layer-hidden"
+            key={`n-${next.id}`}
+          >
+            <Image
+              alt=""
+              className="tc-hero-layer-img"
+              fill
+              sizes="100vw"
+              src={backdropSrc(next)}
+            />
+          </div>
+        )}
+        <div className="tc-hero-scrim" />
+      </div>
+      <p className="tc-meta tc-hero-featured">
+        Featured: {current.title}
+        {current.year ? ` (${current.year})` : ""}
+      </p>
+      {n > 1 && (
+        <div className="tc-hero-dots">
+          {items.map((item, i) => (
+            <button
+              aria-current={i === index || undefined}
+              aria-label={`Show ${item.title}`}
+              className={
+                i === index ? "tc-hero-dot tc-hero-dot-active" : "tc-hero-dot"
+              }
+              key={`${item.mediaType}-${item.id}`}
+              onClick={() => setIndex(i)}
+              type="button"
+            >
+              <span className="tc-hero-dot-mark" />
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}

@@ -1,9 +1,11 @@
 // §7 — Lucide glyphs (MIT) inlined as one sprite: every icon on one request,
 // no component package. Symbols carry the 24×24 grid; stroke styling lives
 // on .tc-icon consumers (see icon.css for why).
+// Inline style, not the display attribute: reset.css sets svg to block,
+// and CSS beats presentation attributes, which left a ghost 150px box.
 export default function IconSprite() {
   return (
-    <svg aria-hidden="true" display="none">
+    <svg aria-hidden="true" style={{ display: "none" }}>
       <defs>
         <symbol id="icon-search" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8" />
