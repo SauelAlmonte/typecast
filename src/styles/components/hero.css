@@ -10,11 +10,25 @@
 .tc-hero {
   position: relative;
   align-content: end;
+  /* Landscape stays screen-shaped: an aspect-ratio here transfers
+     through min-block-size into a minimum WIDTH (900px tall at 16:9
+     demands 1600px wide) and shoves the layout off screen. Portrait
+     below is where the ratio genuinely fits. */
   min-block-size: 100svh;
   margin-block-start: calc(-1 * var(--size-header));
   padding-block-start: var(--size-header);
   padding-block-end: var(--space-8);
   overflow: hidden;
+}
+
+/* Portrait screens show the 2:3 poster, so the box takes the poster's
+   shape and drops the full-screen floor: the art shows whole, nothing
+   cut, and the page simply continues to the footer below it. */
+@media (orientation: portrait) {
+  .tc-hero {
+    aspect-ratio: 2 / 3;
+    min-block-size: auto;
+  }
 }
 
 .tc-hero-inner {
