@@ -11,7 +11,7 @@ const BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
 const POSTER_BASE = "https://image.tmdb.org/t/p/w780";
 
 /** How long each featured title holds the background. */
-const ROTATE_MS = 60_000;
+const ROTATE_MS = 10_000;
 
 /** The rotation stays at six titles so the dot row stays readable;
  * the rail below the hero shows the endpoint's full list. */
@@ -19,8 +19,8 @@ const ROTATION_MAX = 6;
 
 /**
  * Prime-style rotating hero background: one latest-or-upcoming backdrop
- * fills the section, crossfades to the next every minute, and dots let
- * the viewer jump the rotation (which also restarts the minute).
+ * fills the section, crossfades to the next every ROTATE_MS, and dots
+ * let the viewer jump the rotation (which also restarts the timer).
  *
  * Three layers render at a time: the previous image stays underneath
  * while the current one fades in over it, and the next one sits at
@@ -73,7 +73,7 @@ export default function HeroBackdrop() {
   }, []);
 
   // One timeout per shown title instead of an interval: every index
-  // change re-arms it, so a manual dot pick naturally gets a full minute.
+  // change re-arms it, so a manual dot pick gets its full stay too.
   useEffect(() => {
     if (items.length < 2) return;
     const id = setTimeout(() => {

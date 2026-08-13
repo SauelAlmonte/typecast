@@ -16,6 +16,9 @@ export default function Header() {
           <Link className="tc-ui tc-header-link" href="/search?type=person">
             People
           </Link>
+          <Link className="tc-ui tc-header-link" href="/search?type=award">
+            Awards
+          </Link>
         </div>
         <a
           className="tc-header-link"

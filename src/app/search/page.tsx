@@ -19,13 +19,24 @@ function readParam(params: SearchParams, name: string): string {
   return (Array.isArray(raw) ? raw[0] : raw)?.trim() ?? "";
 }
 
-/** The nav's type filter; anything unrecognized reads as no filter. */
-function readKind(params: SearchParams): MediaKind | "person" | undefined {
+/** The nav's type filter; anything unrecognized reads as no filter.
+ * person and award are nav destinations without catalog data yet, so
+ * they render an honest placeholder instead of a grid. */
+type NavKind = MediaKind | "person" | "award";
+
+function readKind(params: SearchParams): NavKind | undefined {
   const raw = readParam(params, "type");
-  return raw === "movie" || raw === "tv" || raw === "person" ? raw : undefined;
+  return raw === "movie" || raw === "tv" || raw === "person" || raw === "award"
+    ? raw
+    : undefined;
 }
 
-const KIND_TITLE = { movie: "Movies", tv: "TV Shows", person: "People" };
+const KIND_TITLE = {
+  movie: "Movies",
+  tv: "TV Shows",
+  person: "People",
+  award: "Awards",
+};
 
 export async function generateMetadata({
   searchParams,
@@ -45,7 +56,7 @@ export async function generateMetadata({
  * - `q` with `type`: the same ranking scoped to movies or TV.
  * - `type` alone: that kind's most popular titles, the Movies and
  *   TV Shows nav destinations.
- * - `type=person`: an honest empty state; people aren't synced yet.
+ * - `type=person` / `type=award`: honest empty states; not synced yet.
  */
 export default async function SearchPage({
   searchParams,
@@ -53,10 +64,11 @@ export default async function SearchPage({
   const params = await searchParams;
   const q = readParam(params, "q");
   const kind = readKind(params);
-  const scope = kind === "person" ? undefined : kind;
+  const scope = kind === "movie" || kind === "tv" ? kind : undefined;
+  const placeholder = kind === "person" || kind === "award";
 
   let results: Awaited<ReturnType<typeof searchMedia>> = [];
-  if (kind !== "person") {
+  if (!placeholder) {
     if (q !== "") {
       results = await searchMedia(q, RESULTS_LIMIT, scope);
     } else if (scope) {
@@ -82,18 +94,18 @@ export default async function SearchPage({
         <div className="tc-container-wide tc-results">
           <SearchBox />
           <h1 className="tc-h2">{heading}</h1>
-          {kind === "person" && (
+          {placeholder && (
             <p className="tc-results-empty">
-              People aren&rsquo;t in the catalog yet; movies and TV shows are
-              searchable today.
+              {kind === "person" ? "People aren’t" : "Awards aren’t"} in the
+              catalog yet; movies and TV shows are searchable today.
             </p>
           )}
-          {kind !== "person" && q === "" && !scope && (
+          {!placeholder && q === "" && !scope && (
             <p className="tc-results-empty">
               Type a title above to search the catalog.
             </p>
           )}
-          {kind !== "person" && q !== "" && results.length === 0 && (
+          {!placeholder && q !== "" && results.length === 0 && (
             <p className="tc-results-empty">
               No matches for &ldquo;{q}&rdquo;. Try a shorter fragment.
             </p>
