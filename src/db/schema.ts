@@ -23,6 +23,10 @@ export const media = pgTable(
     // TMDB calls this `title` for movies and `name` for TV; normalized here
     // so search never cares which kind of row it's matching.
     title: text("title").notNull(),
+    // Filled by normalizeSearchText at sync time; all matching runs against
+    // this column while `title` stays untouched for display. The default
+    // covers rows from before the column existed until the next sync.
+    titleSearch: text("title_search").notNull().default(""),
     releaseDate: date("release_date"),
     popularity: real("popularity").notNull().default(0),
     voteAverage: real("vote_average"),
@@ -35,9 +39,9 @@ export const media = pgTable(
   (table) => [
     unique("media_media_type_tmdb_id_unique").on(table.mediaType, table.tmdbId),
     check("media_media_type_check", sql`${table.mediaType} in ('movie', 'tv')`),
-    index("media_title_trgm_idx").using(
+    index("media_title_search_trgm_idx").using(
       "gin",
-      sql`${table.title} gin_trgm_ops`,
+      sql`${table.titleSearch} gin_trgm_ops`,
     ),
   ],
 );
