@@ -37,7 +37,7 @@ scratch on purpose.
 ## Stack
 
 Next.js 16.3.0 · React 19.2.8 (React Compiler enabled) · TypeScript · pnpm
-11.20.0 · Biome 2.5.7
+11.21.0 · Biome 2.5.7
 
 Planned but not yet installed: Neon + Drizzle, Better Auth, Zod, Upstash Redis,
 Vitest, Testing Library, Playwright, MSW.
