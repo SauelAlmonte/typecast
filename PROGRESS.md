@@ -34,6 +34,7 @@ Next: the search combobox, which is Sauel's build, explain-first.
 | 2026-08-13 | Component layout | Flat `src/components/` with PascalCase files; each component's CSS lives in `src/styles/components/*.css`, imported by `main.css` in §9 order. First structure decision made after the system design, per the config-phase rule. |
 | 2026-08-13 | Landing shape | Every section is a labelled landmark region filling the viewport below a fixed header: `min-block-size: calc(100svh - var(--size-header))` with mandatory scroll snap (Sauel's call over the proximity recommendation) and `scroll-padding` keeping snap targets clear of the bar. The hero search field is the §5 static shell only, with no combobox ARIA until the real component exists. |
 | 2026-08-13 | No em dashes | Anywhere Sauel reads: UI copy, metadata, commits, PR bodies, replies. Use periods, commas, or colons. |
+| 2026-08-13 | pnpm pin policy | `packageManager` must exactly match the globally installed pnpm on every machine. pnpm 11.20.0 added a fail-closed identity check when delegating to a different pinned version, and Intel macOS has no published 11.x binary package after 11.0.4, so any mismatch kills every pnpm command in the repo with a misleading "missing from pnpm-lock.yaml" error. An exact match skips delegation entirely. Keep the pin and both globals in lockstep until upstream resolves pnpm/pnpm#13622. CI is immune: `pnpm/action-setup` installs the exact pinned version. |
 
 ---
 
@@ -48,6 +49,7 @@ Next: the search combobox, which is Sauel's build, explain-first.
 - **Slash commands and subagents**: which recurring workflows are worth encoding.
 - **Affected tests in `stop-check`**: once Vitest lands. Playwright already runs in CI and stays out of hooks.
 - **TMDB logo attribution**: the footer text line shipped in PR #8, but TMDB's terms also want their logo once actual TMDB data is displayed. Revisit when the data layer lands.
+- **Older MacBook pnpm**: still broken until it runs `npm i -g pnpm@11.21.0`, then `git pull` and `pnpm install`. Every pnpm command there fails until the global matches the pin.
 
 ---
 
@@ -73,6 +75,9 @@ Next: the search combobox, which is Sauel's build, explain-first.
 - [x] Shipped PR #6 (`1ac66ae`): the Playwright and CI session's progress log.
 - [x] Received Design System v2.0 and shipped PR #7 (`ddd8c25`): the styles foundation. Tokens, hand-written reset, typography, layout, and base styles transcribed into `src/styles/`; the three §9 fonts wired through `next/font/google`; the scaffold's `globals.css` deleted.
 - [x] Shipped PR #8 (`030313b`): the landing page. Six landmark sections as components plus the §7 Lucide icon sprite, full-height snap rhythm, static §5 search shell, Tier-1 result preview, TMDB attribution text in the footer, branded metadata, and the e2e smoke test tightened to match. In-PR iterations from Sauel's review: wordmark sized as the logo, em dashes stripped from copy, and the header switched from absolute to a fixed bar with matching scroll-padding after the snap carried it off-screen.
+- [x] Diagnosed the pnpm failure Sauel hit on the older MacBook and reproduced it locally: not the lockfile, but pnpm 11.20.0's new delegation identity check, unpassable on Intel macOS. Confirmed the root cause against pnpm's own triage of pnpm/pnpm#13622 and the npm registry (no darwin-x64 binary published for any 11.x after 11.0.4), then proved the exact-match escape hatch in a scratch project before touching the repo.
+- [x] Shipped PR #10 (`49a43a2`): `packageManager` bumped to pnpm 11.21.0 to match the installed global, plus the AGENTS.md stack line. Every pnpm command in the repo works again, hooks included.
+- [x] Shipped PR #11 (`ebcb2dc`): nanoid 3.3.17 to 3.3.18 for CVE-2026-67213, a high-severity Dependabot alert GitHub surfaced during the PR #10 cleanup push. Transitive via next and postcss, exposure theoretical, lockfile-only patch bump. Alert closed on merge.
 
 ---
 
