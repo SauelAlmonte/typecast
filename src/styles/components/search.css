@@ -40,6 +40,41 @@
   }
 }
 
+/* Suggestion panel: floats over the page below the input, so the field
+   itself never grows — the icon's 50% centering depends on that height
+   staying fixed. text-align resets the hero's centering. */
+.tc-search-panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline: 0;
+  z-index: 10;
+  overflow: hidden;
+  text-align: start;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+/* Poster thumb: fixed 2:3 box; object-fit crops any odd source instead of
+   squashing it. The empty-span fallback keeps rows aligned when a title
+   has no poster. */
+.tc-result-thumb {
+  flex-shrink: 0;
+  inline-size: var(--size-thumb-inline);
+  block-size: var(--size-thumb-block);
+  object-fit: cover;
+  background-color: var(--color-raised);
+  border-radius: var(--radius-control);
+}
+
+/* Title above, year below, in the space right of the thumb. */
+.tc-result-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
 /* --- Result rows (Tier 1: title + media-type tag reads as finished) --- */
 
 .tc-result-list {
