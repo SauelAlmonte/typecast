@@ -1,0 +1,100 @@
+/* Design System v2.0 §2–§4, §7–§8 — every raw value in the system lives here.
+   Component files consume these tokens and never declare raw values. */
+
+:root {
+  /* Dark wins when the user has no stated OS preference.
+     The [data-theme] override selectors are deliberately absent: per the
+     design doc they must not ship without a toggle control and a blocking
+     anti-flash script in <head>, and neither exists yet. */
+  color-scheme: dark light;
+}
+
+:root {
+  /* --- Brand accents: shared across themes, kept inside sRGB --- */
+  --tc-chartreuse: oklch(0.88 0.175 105);
+  --tc-chartreuse-strong: oklch(0.78 0.155 105);
+  --tc-coral: oklch(0.65 0.21 30);
+  --tc-lilac: oklch(0.72 0.11 300);
+  --tc-sky: oklch(0.7 0.13 245);
+  --tc-success: oklch(0.72 0.16 150);
+  --tc-warning: oklch(0.8 0.16 82);
+  --tc-danger: oklch(0.61 0.22 28);
+
+  /* --- Surfaces: warm paper in light, blue-charcoal in dark, never pure black --- */
+  --color-canvas: light-dark(oklch(0.975 0.012 90), oklch(0.16 0.02 260));
+  --color-surface: light-dark(oklch(0.945 0.014 90), oklch(0.205 0.024 260));
+  --color-raised: light-dark(oklch(0.995 0.004 90), oklch(0.255 0.025 260));
+
+  /* --- Text --- */
+  --color-ink: light-dark(oklch(0.19 0.025 260), oklch(0.945 0.012 90));
+  --color-ink-muted: light-dark(oklch(0.47 0.025 260), oklch(0.7 0.02 90));
+
+  /* --- Lines: two tokens, two jobs --- */
+  /* Decorative separators only. Not permitted to be the sole definition of a control. */
+  --color-line: light-dark(oklch(0.86 0.018 260), oklch(0.32 0.024 260));
+  /* Control boundaries. Meets 3:1 against --color-surface in both themes. */
+  --color-border: light-dark(oklch(0.63 0.022 260), oklch(0.5 0.026 260));
+
+  /* --- Accent application --- */
+  --color-focus: light-dark(oklch(0.56 0.11 105), var(--tc-chartreuse));
+  --color-on-accent: oklch(0.19 0.025 260);
+
+  /* --- Elevation (light-dark() takes colors, not whole shadow values) --- */
+  --shadow-popover: 0 18px 48px
+    light-dark(oklch(0.25 0.02 260 / 0.12), oklch(0.1 0.02 260 / 0.18));
+
+  /* --- Type scale (§2) — size / line-height pairs --- */
+  --type-display: clamp(3.25rem, 7vw, 6.5rem);
+  --leading-display: 0.91;
+  --type-h1: clamp(2.25rem, 4vw, 4.5rem);
+  --leading-h1: 0.98;
+  --type-h2: clamp(1.75rem, 2.7vw, 2.75rem);
+  --leading-h2: 1.04;
+  --type-h3: 1.25rem;
+  --leading-h3: 1.15;
+  --type-body-lg: 1.125rem;
+  --leading-body-lg: 1.55;
+  --type-body: 1rem;
+  --leading-body: 1.5;
+  --type-ui: 0.9375rem;
+  --leading-ui: 1.25;
+  --type-meta: 0.75rem;
+  --leading-meta: 1.25;
+
+  /* --- Spacing scale (§4) — 4px base, no arbitrary values --- */
+  --space-1: 4px; /* 1x  — icon-to-label, tight inline gaps */
+  --space-2: 8px; /* 2x  — input-to-panel gap, chip padding */
+  --space-3: 12px; /* 3x  — result row internal spacing */
+  --space-4: 16px; /* 4x  — control padding, card padding */
+  --space-5: 24px; /* 6x  — between related blocks */
+  --space-6: 32px; /* 8x  — between sections within a block */
+  --space-7: 48px; /* 12x — section separation */
+  --space-8: 64px; /* 16x — major section separation */
+  --space-9: 96px; /* 24x — page-level rhythm */
+  --space-10: 128px; /* 32x — hero and campaign surfaces */
+
+  /* --- Container widths (§4) --- */
+  --container-search: 48rem; /* 768px  — the search column */
+  --container-content: 64rem; /* 1024px — article and detail pages */
+  --container-wide: 80rem; /* 1280px — grids, discovery, max content */
+  --container-full: 100%; /*        — campaign and full-bleed */
+
+  /* --- Radius (§4) --- */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
+
+  /* --- Icon sizes (§7) --- */
+  --icon-sm: 16px;
+  --icon: 20px;
+  --icon-lg: 24px;
+
+  /* --- Motion (§8) --- */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Overshoots — wordmark and empty-state gestures only, never controls. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-fast: 150ms; /* hover, focus, color change */
+  --duration-base: 200ms; /* panel open/close, card lift */
+  --duration-slow: 320ms; /* page-level and campaign transitions */
+}

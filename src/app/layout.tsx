@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import { Bricolage_Grotesque, Gochi_Hand, Onest } from "next/font/google";
+import "@/styles/main.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Bricolage_Grotesque({
   subsets: ["latin"],
+  axes: ["opsz"], // wght is always included; opsz drives headline vs. small-text rendering
+  display: "swap",
+  variable: "--font-display",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const text = Onest({
   subsets: ["latin"],
+  display: "swap",
+  variable: "--font-text",
+});
+
+const brand = Gochi_Hand({
+  subsets: ["latin"],
+  weight: "400", // static family — weight is required
+  display: "swap",
+  variable: "--font-brand",
 });
 
 export const metadata: Metadata = {
@@ -19,7 +29,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${display.variable} ${text.variable} ${brand.variable}`}
+    >
       <body>{children}</body>
     </html>
   );
