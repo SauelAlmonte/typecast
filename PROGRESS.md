@@ -2,8 +2,8 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** Claude Code configuration — harness implemented and live. No
-application code written yet. Next phase: system design.
+**Phase:** Configuration complete — harness, e2e scaffolding, and CI are all
+live. No application code written yet. Next phase: system design.
 
 ---
 
@@ -25,16 +25,19 @@ application code written yet. Next phase: system design.
 | 2026-08-12 | Hooks implemented | Five scripts, all live: `branch-guard` and `bash-branch-guard` (PreToolUse) deny edits and mutating shell commands on `main`; `post-edit` (PostToolUse) formats then lints every supported written file (TS/JS/JSON/CSS), feeding lint errors back to Claude; `stop-check` (Stop) runs typecheck + lint before a turn can end, failing closed on discovery errors; `reply-style` (UserPromptSubmit) re-injects the reply rule every prompt. |
 | 2026-08-12 | Commit signing | SSH signing with `~/.ssh/id_ed25519`, key registered on GitHub as a Signing Key. Verified end to end — GitHub reports `verified: true` on PR #3's commits. |
 | 2026-08-12 | Contributor listing | The `Co-Authored-By` trailer makes Claude show under Contributors on GitHub. Kept deliberately: it marks which commits were Claude-authored, part of demonstrating the harness. |
+| 2026-08-13 | Playwright pin | `@playwright/test` pinned exactly to 1.61.0 — the last release whose Chromium/Firefox builds support macOS 12, which this machine runs. A caret range would let a routine `pnpm update` silently break local e2e. WebKit has no usable macOS 12 build at any version (1.49–1.55 all serve one frozen late-2024 binary), so the webkit project is gated to CI, where WebKit is current. Unpin when the Mac is upgraded. |
+| 2026-08-13 | E2E layout | Tests live in `e2e/` at the repo root, `@playwright/test` only — no MCP, no SDKs, no screenshot config. Locally the webServer starts or reuses the dev server; in CI it serves the production build, per the Next.js 16 testing guide. |
+| 2026-08-13 | CI shape | One workflow, two parallel jobs on push/PR to `main`: lint + typecheck (`next typegen` before `tsc`, the PR #3 lesson) and build + Playwright e2e. Node 24 to match local, pnpm from the `packageManager` field, frozen lockfile, concurrency cancels superseded runs. |
 
 ---
 
 ## Open
 
-- **No GitHub Actions workflow yet.** CodeRabbit does review PRs — it's a GitHub App configured on the account rather than in the repo — so there *is* a review gate, just not a test/lint/typecheck one. "Wait for green CI" currently means CodeRabbit alone.
+- **Lighthouse** — planned for CI (never hooks), not yet wired in. Needs a real UI to audit first.
 - **Sandbox hardening** — CodeRabbit flagged on PR #3 that `Read`/`Edit` deny rules don't stop Bash subprocesses from reading `.env`. The real fix needs OS-level sandboxing (`sandbox.filesystem.denyRead`), which changes how every shell command runs and would also block `next build`'s legitimate env loading. Deferred as Sauel's call; the Bash branch guard narrows the gap meanwhile.
 - **Migration guard** — a PreToolUse deny on edits to applied migration files, once Drizzle exists.
 - **Slash commands and subagents** — which recurring workflows are worth encoding.
-- **Affected tests in `stop-check`** — once Vitest lands. Playwright and Lighthouse go to CI, never to hooks.
+- **Affected tests in `stop-check`** — once Vitest lands. Playwright already runs in CI and stays out of hooks.
 - **TMDB attribution** — required by their terms for non-commercial use. Needs a home in the UI once there is one.
 
 ---
@@ -56,6 +59,8 @@ application code written yet. Next phase: system design.
 - [x] Shipped PR #3 (`af13c48`) — the harness: permissions (MCP and `.env` denied, verification commands allowed) plus five hooks, each pipe-tested on allow/deny/malformed-input paths and proven live in-session (MCP tools vanished on reload; the formatter rewrote a mis-spaced file through the real pipeline).
 - [x] Worked CodeRabbit's four findings on PR #3: fail-closed discovery in `stop-check`, surfaced `next typegen` failures, new Bash branch guard closing the shell escape on `main`; skipped sandbox denies with the reason in the thread. All threads replied to and resolved.
 - [x] Learned the hard way that `next typegen` must run before `tsc --noEmit` on a never-built tree — Next 16 generates `LayoutProps` and friends into `.next/types`.
+- [x] Shipped PR #4 (`621f070`) — the harness session's progress log; worked both CodeRabbit findings (scoped the hooks claims to what actually runs).
+- [x] Shipped PR #5 (`b8fddbe`) — Playwright e2e setup (pinned 1.61.0, `e2e/` directory, smoke test green locally on Chromium + Firefox) and the full CI workflow, which ran its first gate on its own PR. "Wait for green CI" now means a real test/lint/typecheck gate, not CodeRabbit alone.
 
 ---
 
