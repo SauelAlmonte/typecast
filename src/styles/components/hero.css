@@ -59,6 +59,9 @@
 
 .tc-hero-layer-img {
   object-fit: cover;
+  /* Bias the crop upward: faces and titles live in the upper half of
+     both TMDB backdrops and posters, so the bottom is what cover trims. */
+  object-position: center 25%;
 }
 
 /* Keyed remount per title restarts this fade; the previous layer stays

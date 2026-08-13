@@ -7,12 +7,11 @@ import type { UpcomingItem } from "@/app/api/upcoming/route";
 /** w1280 is TMDB's largest sized backdrop; the hero fills the viewport. */
 const BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
 
+/** Portrait viewports get the portrait art instead; w780 covers phones. */
+const POSTER_BASE = "https://image.tmdb.org/t/p/w780";
+
 /** How long each featured title holds the background. */
 const ROTATE_MS = 60_000;
-
-function backdropSrc(item: UpcomingItem): string {
-  return `${BACKDROP_BASE}${item.backdropPath}`;
-}
 
 /**
  * Prime-style rotating hero background: one latest-or-upcoming backdrop
@@ -28,6 +27,24 @@ function backdropSrc(item: UpcomingItem): string {
 export default function HeroBackdrop() {
   const [items, setItems] = useState<UpcomingItem[]>([]);
   const [index, setIndex] = useState(0);
+  // Art direction, not scaling: a widescreen backdrop cropped into a
+  // tall viewport loses its subject, so portrait screens swap to the
+  // portrait poster, which is composed for exactly that shape.
+  const [isPortrait, setIsPortrait] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(orientation: portrait)");
+    setIsPortrait(query.matches);
+    const onChange = (e: MediaQueryListEvent) => setIsPortrait(e.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+
+  function artSrc(item: UpcomingItem): string {
+    return isPortrait
+      ? `${POSTER_BASE}${item.posterPath}`
+      : `${BACKDROP_BASE}${item.backdropPath}`;
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -78,7 +95,7 @@ export default function HeroBackdrop() {
             className="tc-hero-layer-img"
             fill
             sizes="100vw"
-            src={backdropSrc(previous)}
+            src={artSrc(previous)}
           />
         </div>
         {/* The key remounts this layer per title, restarting the fade. */}
@@ -92,7 +109,7 @@ export default function HeroBackdrop() {
             fill
             priority
             sizes="100vw"
-            src={backdropSrc(current)}
+            src={artSrc(current)}
           />
         </div>
         {n > 2 && (
@@ -105,7 +122,7 @@ export default function HeroBackdrop() {
               className="tc-hero-layer-img"
               fill
               sizes="100vw"
-              src={backdropSrc(next)}
+              src={artSrc(next)}
             />
           </div>
         )}
