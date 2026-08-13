@@ -1,22 +1,27 @@
-/* Absolute over the hero, deliberately not fixed or sticky: the header snaps
-   away with the first section, so it can never obscure a focused control
-   further down the page (WCAG 2.4.11). */
+/* Fixed bar. Safe under mandatory snap because the scroll container's
+   scroll-padding (layout.css) shifts every snap target below the bar, so
+   no section content or focused control ever hides beneath it (WCAG
+   2.4.11). Solid canvas: content scrolling underneath must never show
+   through the wordmark. */
 
 .tc-header {
-  position: absolute;
+  position: fixed;
   inset-block-start: 0;
   inset-inline: 0;
   z-index: 1;
+  block-size: var(--size-header);
+  background-color: var(--color-canvas);
+  border-block-end: 1px solid var(--color-line);
 }
 
 .tc-header-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: var(--space-4);
+  block-size: 100%;
 }
 
-/* The wordmark is the logo — sized to read as one, not as a nav label. */
+/* The wordmark is the logo, sized to read as one, not as a nav label. */
 .tc-header-brand {
   font-size: var(--type-h2);
   line-height: var(--leading-h2);

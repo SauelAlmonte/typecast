@@ -90,6 +90,7 @@
   --icon-lg: 24px;
 
   /* --- Control anatomy (§5) --- */
+  --size-header: 5rem;
   --size-input: 56px;
   --size-input-mobile: 52px;
   --size-row: 72px;
