@@ -1,4 +1,4 @@
-import Icon from "@/components/Icon";
+import SearchBox from "@/components/SearchBox";
 
 // The search field is the static §5 shell only. The combobox — roles,
 // suggestion panel, clear control, behavior — is a separate build and
@@ -15,20 +15,7 @@ export default function Hero() {
           TypeCast turns unfinished typing into the exact film. Suggestions
           settle as you pause, not on every keystroke.
         </p>
-        <div className="tc-search-field">
-          <label className="tc-visually-hidden" htmlFor="tc-search">
-            Search movies
-          </label>
-          <Icon className="tc-search-icon" name="search" size="sm" />
-          <input
-            autoComplete="off"
-            className="tc-search-input"
-            id="tc-search"
-            placeholder="Search titles, people, studios…"
-            spellCheck={false}
-            type="text"
-          />
-        </div>
+        <SearchBox />
       </div>
     </section>
   );

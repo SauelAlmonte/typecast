@@ -95,6 +95,10 @@
   --size-input-mobile: 52px;
   --size-row: 72px;
   --size-row-mobile: 64px;
+  /* Poster thumbnail in result rows, 2:3 like TMDB poster art. Rem so it
+     scales with the user's font-size preference alongside the row text. */
+  --size-thumb-inline: 2.5rem;
+  --size-thumb-block: 3.75rem;
 
   /* --- Motion (§8) --- */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
