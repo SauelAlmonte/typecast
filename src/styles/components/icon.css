@@ -1,0 +1,26 @@
+/* Design System v2.0 §7 — sizes and the single stroke voice. The stroke
+   properties live on the consuming svg, not the sprite root: inherited
+   presentation properties flow into <use> shadow content from the use
+   element's host, so styling the hidden sprite would never reach a
+   rendered icon. */
+
+.tc-icon {
+  inline-size: var(--icon);
+  block-size: var(--icon);
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tc-icon-sm {
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+}
+
+.tc-icon-lg {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}

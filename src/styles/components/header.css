@@ -1,0 +1,32 @@
+/* Absolute over the hero, deliberately not fixed or sticky: the header snaps
+   away with the first section, so it can never obscure a focused control
+   further down the page (WCAG 2.4.11). */
+
+.tc-header {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 1;
+}
+
+.tc-header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--space-4);
+}
+
+.tc-header-brand {
+  font-size: var(--type-h3);
+  line-height: var(--leading-h3);
+}
+
+/* Text link with a padded hit area comfortably over the 24px floor (2.5.8). */
+.tc-header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-2);
+  color: var(--color-ink);
+}

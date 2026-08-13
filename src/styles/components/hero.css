@@ -1,0 +1,31 @@
+.tc-hero-inner {
+  display: grid;
+  gap: var(--space-5);
+  justify-items: center;
+  text-align: center;
+}
+
+.tc-hero-lede {
+  max-inline-size: var(--container-search);
+  color: var(--color-ink-muted);
+}
+
+/* The brand symbol: a caret still typing. em-relative so it tracks the
+   clamped display size — spacing tokens are for layout gaps, not glyph
+   geometry. currentColor, not chartreuse: the accent budget (§3, 2 uses)
+   is spent on the search field and the preview's active row. The
+   reduced-motion kill switch in reset.css stops the blink. */
+.tc-caret {
+  display: inline-block;
+  inline-size: 0.045em;
+  block-size: 0.72em;
+  margin-inline-start: 0.06em;
+  background-color: currentColor;
+  animation: tc-blink var(--duration-caret) steps(1) infinite;
+}
+
+@keyframes tc-blink {
+  50% {
+    opacity: 0;
+  }
+}

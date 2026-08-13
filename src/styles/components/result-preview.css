@@ -1,0 +1,9 @@
+/* Section framing only — the rows themselves live in search.css (§9). */
+
+.tc-preview-panel {
+  max-inline-size: var(--container-search);
+  overflow: hidden;
+  background-color: var(--color-raised);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-popover);
+}

@@ -1,0 +1,87 @@
+/* Design System v2.0 §5 — input anatomy and result rows. Today this styles
+   the hero's static shell and the landing preview; the real combobox
+   inhabits these same classes when it's built. */
+
+.tc-search-field {
+  position: relative;
+  inline-size: 100%;
+  max-inline-size: var(--container-search);
+}
+
+.tc-search-icon {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: var(--space-4);
+  translate: 0 -50%;
+  color: var(--color-ink-muted);
+  pointer-events: none;
+}
+
+/* The 1px border is the identifying cue and carries the 3:1 requirement —
+   the surface-to-canvas fill difference is decorative only. */
+.tc-search-input {
+  inline-size: 100%;
+  block-size: var(--size-input);
+  padding-inline-start: calc(var(--space-4) + var(--icon-sm) + var(--space-2));
+  padding-inline-end: var(--space-4);
+  font-size: var(--type-body); /* 16px — never below 16 on mobile */
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.tc-search-input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+@media (width <= 48rem) {
+  .tc-search-input {
+    block-size: var(--size-input-mobile);
+  }
+}
+
+/* --- Result rows (Tier 1: title + media-type tag reads as finished) --- */
+
+.tc-result-list {
+  list-style: none;
+}
+
+.tc-result-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: var(--size-row);
+  padding-inline: var(--space-4);
+  /* Transparent by default so the active rule never shifts the row. */
+  border-inline-start: 3px solid transparent;
+  border-block-end: 1px solid var(--color-line);
+}
+
+.tc-result-row:last-child {
+  border-block-end: none;
+}
+
+.tc-result-row-active {
+  background-color: var(--color-raised);
+  border-inline-start-color: var(--tc-chartreuse);
+}
+
+.tc-result-title {
+  flex: 1;
+  font-size: var(--type-ui);
+  line-height: var(--leading-ui);
+}
+
+.tc-result-hint {
+  color: var(--color-ink-muted);
+}
+
+.tc-result-more {
+  color: var(--color-ink-muted);
+}
+
+@media (width <= 48rem) {
+  .tc-result-row {
+    min-block-size: var(--size-row-mobile);
+  }
+}
