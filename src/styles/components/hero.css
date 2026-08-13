@@ -10,13 +10,12 @@
 .tc-hero {
   position: relative;
   align-content: end;
-  /* A banner, not a full viewport: the vw term tracks window width
-     like a wide cinematic ratio, and the clamp floors and caps it, so
-     the row below the hero peeks above the fold the way Prime's does.
-     vw-based height, not aspect-ratio: a ratio would transfer through
-     the minimum height into a minimum WIDTH (900px tall at 16:9
-     demands 1600px wide) and shove the layout off screen. */
-  min-block-size: clamp(28rem, 45vw, 42rem);
+  /* The box takes the backdrop's own 16:9, so there is nothing for
+     object-fit to crop: the whole image always shows and the height
+     follows the width. No min-block-size here on purpose; pairing one
+     with a ratio transfers it into a minimum WIDTH and breaks the
+     layout, and any fixed floor would reintroduce the crop. */
+  aspect-ratio: 16 / 9;
   margin-block-start: calc(-1 * var(--size-header));
   padding-block-start: var(--size-header);
   padding-block-end: var(--space-8);
