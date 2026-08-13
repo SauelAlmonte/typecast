@@ -51,10 +51,11 @@ export async function GET(request: Request): Promise<Response> {
 
   const db = getDb();
 
+  // Escape LIKE wildcards so a literal % or _ in the fragment can't
+  // change the pattern's meaning. Both branches match against this.
+  const prefix = `${q.replace(/[\\%_]/g, "\\$&")}%`;
+
   if (q.length < 3) {
-    // Escape LIKE wildcards so a literal % or _ in the fragment can't
-    // change the pattern's meaning.
-    const prefix = `${q.replace(/[\\%_]/g, "\\$&")}%`;
     const rows = await db
       .select(selection)
       .from(media)
@@ -82,8 +83,15 @@ export async function GET(request: Request): Promise<Response> {
   const rows = await db
     .select(selection)
     .from(media)
-    .where(sql`word_similarity(${q}, ${media.titleSearch}) > 0.15`)
-    .orderBy(desc(media.popularity))
+    .where(
+      sql`${media.titleSearch} like ${prefix}
+          or word_similarity(${q}, ${media.titleSearch}) > 0.4`,
+    )
+    .orderBy(
+      sql`(${media.titleSearch} like ${prefix}) desc`,
+      sql`word_similarity(${q}, ${media.titleSearch}) desc`,
+      desc(media.popularity),
+    )
     .limit(limit);
   return json(rows);
 }
