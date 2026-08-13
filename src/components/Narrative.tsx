@@ -2,7 +2,7 @@ const beats = [
   {
     num: "01",
     name: "Search",
-    line: "Start typing — three letters is plenty.",
+    line: "Start typing. Three letters is plenty.",
   },
   {
     num: "02",

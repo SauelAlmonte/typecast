@@ -12,7 +12,7 @@ export default function Hero() {
           <span aria-hidden="true" className="tc-caret" />
         </h1>
         <p className="tc-body-lg tc-hero-lede">
-          TypeCast turns unfinished typing into the exact film — suggestions
+          TypeCast turns unfinished typing into the exact film. Suggestions
           settle as you pause, not on every keystroke.
         </p>
         <div className="tc-search-field">

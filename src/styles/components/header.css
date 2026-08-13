@@ -16,9 +16,10 @@
   padding-block: var(--space-4);
 }
 
+/* The wordmark is the logo — sized to read as one, not as a nav label. */
 .tc-header-brand {
-  font-size: var(--type-h3);
-  line-height: var(--leading-h3);
+  font-size: var(--type-h2);
+  line-height: var(--leading-h2);
 }
 
 /* Text link with a padded hit area comfortably over the 24px floor (2.5.8). */

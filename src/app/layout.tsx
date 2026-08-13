@@ -23,9 +23,9 @@ const brand = Gochi_Hand({
 });
 
 export const metadata: Metadata = {
-  title: "TypeCast — Search. Resolve. Watch.",
+  title: "TypeCast: Search. Resolve. Watch.",
   description:
-    "Search-as-you-type for film. Unfinished typing resolves into the exact movie — debounced, cancellable, cached, and fully keyboard-driven.",
+    "Search-as-you-type for film. Unfinished typing resolves into the exact movie, powered by hand-built debouncing, request cancellation, caching, and keyboard navigation.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

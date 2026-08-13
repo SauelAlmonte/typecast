@@ -16,8 +16,8 @@ export default function ResultPreview() {
           <p className="tc-meta tc-meta-caps tc-eyebrow">Tier 1</p>
           <h2 id="preview-title">Finished before the data arrives.</h2>
           <p className="tc-body-lg">
-            Rows read as complete with a title and media type alone — posters
-            and metadata hydrate later, or never.
+            Rows read as complete with a title and media type alone. Posters and
+            metadata hydrate later, or never.
           </p>
         </header>
         <div className="tc-preview-panel">
