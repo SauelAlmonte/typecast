@@ -13,6 +13,7 @@
       "!.next",
       "!dist",
       "!build",
+      "!src/db/migrations",
       "!!**/public"
     ]
   },
