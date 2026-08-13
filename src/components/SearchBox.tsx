@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import type { SuggestResult } from "@/app/api/suggest/route";
 import Icon from "@/components/Icon";
-
 import { normalizeSearchText } from "@/lib/normalize";
 
 const CACHE_MAX = 50;
@@ -15,18 +14,35 @@ const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w92";
 /** How long typing must pause before a request fires. */
 const DEBOUNCE_MS = 200;
 
+const LISTBOX_ID = "tc-search-listbox";
+
+function optionId(r: SuggestResult): string {
+  return `tc-option-${r.mediaType}-${r.id}`;
+}
+
 /**
- * Search-as-you-type input. Step 2: debounced. The input updates on every
- * keystroke, but the fetch waits for a typing pause; each keystroke kills
- * the previous pending timer, so only the last one in a burst survives.
- * Still to come: cancellation, cache, keyboard, ARIA.
+ * Search-as-you-type combobox. The efficiency stack is hand-built and
+ * layered: a trailing debounce collapses keystroke bursts to one request
+ * per pause, AbortController kills superseded requests so stale responses
+ * never paint, and a size-capped Map keyed by the normalized query serves
+ * repeats and backspaces synchronously. Keyboard and screen-reader
+ * behavior follow the WAI-ARIA combobox pattern: focus stays in the
+ * input while aria-activedescendant points at the highlighted option.
  */
 export default function SearchBox() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SuggestResult[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controller = useRef<AbortController | null>(null);
   const cache = useRef(new Map<string, SuggestResult[]>());
+
+  function showResults(data: SuggestResult[]) {
+    setResults(data);
+    setIsOpen(data.length > 0);
+    setActiveIndex(-1);
+  }
 
   async function fetchSuggestions(key: string) {
     controller.current?.abort();
@@ -43,7 +59,7 @@ export default function SearchBox() {
           cache.current.delete(oldest);
         }
       }
-      setResults(data);
+      showResults(data);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -57,16 +73,58 @@ export default function SearchBox() {
     if (timer.current) clearTimeout(timer.current);
     const key = normalizeSearchText(value);
     if (key === "") {
-      setResults([]);
+      showResults([]);
       return;
     }
     const cached = cache.current.get(key);
     if (cached) {
-      setResults(cached);
+      showResults(cached);
       return;
     }
     timer.current = setTimeout(() => fetchSuggestions(key), DEBOUNCE_MS);
   }
+
+  function selectResult(r: SuggestResult) {
+    setQuery(r.title);
+    setIsOpen(false);
+    setActiveIndex(-1);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!isOpen) {
+      // Closed panel: ArrowDown reopens the current results, per the
+      // ARIA combobox pattern.
+      if (e.key === "ArrowDown" && results.length > 0) {
+        e.preventDefault();
+        setIsOpen(true);
+        setActiveIndex(0);
+      }
+      return;
+    }
+    switch (e.key) {
+      case "ArrowDown":
+        // preventDefault stops the caret jumping to the line ends.
+        e.preventDefault();
+        setActiveIndex((activeIndex + 1) % results.length);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setActiveIndex(activeIndex <= 0 ? results.length - 1 : activeIndex - 1);
+        break;
+      case "Enter":
+        if (activeIndex >= 0) {
+          e.preventDefault();
+          selectResult(results[activeIndex]);
+        }
+        break;
+      case "Escape":
+        setIsOpen(false);
+        setActiveIndex(-1);
+        break;
+    }
+  }
+
+  const activeOption = isOpen && activeIndex >= 0 ? results[activeIndex] : null;
 
   return (
     <div className="tc-search-field">
@@ -75,19 +133,61 @@ export default function SearchBox() {
       </label>
       <Icon className="tc-search-icon" name="search" size="sm" />
       <input
+        aria-activedescendant={
+          activeOption ? optionId(activeOption) : undefined
+        }
+        aria-autocomplete="list"
+        aria-controls={LISTBOX_ID}
+        aria-expanded={isOpen}
         autoComplete="off"
         className="tc-search-input"
         id="tc-search"
+        onBlur={() => setIsOpen(false)}
         onChange={(e) => handleChange(e.target.value)}
+        onFocus={() => setIsOpen(results.length > 0)}
+        onKeyDown={handleKeyDown}
         placeholder="Search titles, people, studios…"
+        role="combobox"
         spellCheck={false}
         type="text"
         value={query}
       />
-      {results.length > 0 && (
-        <ul className="tc-search-panel tc-result-list">
-          {results.map((r) => (
-            <li className="tc-result-row" key={`${r.mediaType}-${r.id}`}>
+      <span aria-live="polite" className="tc-visually-hidden">
+        {isOpen ? `${results.length} suggestions available` : ""}
+      </span>
+      {isOpen && (
+        // Divs, not ul/li: the ARIA combobox pattern keeps focus in the
+        // input and marks the highlighted option via aria-activedescendant,
+        // so options are deliberately not tab-focusable. Roles replace the
+        // tags' native semantics for assistive tech, and neutral divs are
+        // the form Biome's a11y rules accept for that pattern.
+        <div
+          aria-label="Suggestions"
+          className="tc-search-panel tc-result-list"
+          id={LISTBOX_ID}
+          role="listbox"
+        >
+          {results.map((r, index) => (
+            <div
+              aria-selected={index === activeIndex}
+              className={
+                index === activeIndex
+                  ? "tc-result-row tc-result-row-active"
+                  : "tc-result-row"
+              }
+              id={optionId(r)}
+              key={`${r.mediaType}-${r.id}`}
+              onMouseDown={(e) => {
+                // mousedown fires before the input's blur, so selection
+                // beats the blur-close; preventDefault keeps focus in
+                // the input afterwards.
+                e.preventDefault();
+                selectResult(r);
+              }}
+              onMouseEnter={() => setActiveIndex(index)}
+              role="option"
+              tabIndex={-1}
+            >
               {r.posterPath ? (
                 <Image
                   alt=""
@@ -105,9 +205,9 @@ export default function SearchBox() {
                   <span className="tc-result-hint">Release Date: {r.year}</span>
                 )}
               </span>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

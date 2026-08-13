@@ -96,6 +96,11 @@
   border-block-end: none;
 }
 
+/* Only suggestion rows are clickable; the landing preview rows are not. */
+.tc-search-panel .tc-result-row {
+  cursor: pointer;
+}
+
 .tc-result-row-active {
   background-color: var(--color-raised);
   border-inline-start-color: var(--tc-chartreuse);
