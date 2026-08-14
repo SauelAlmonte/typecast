@@ -1,4 +1,5 @@
 import Image from "next/image";
+import CopyrightYear from "@/components/CopyrightYear";
 
 export default function Footer() {
   return (
@@ -30,7 +31,7 @@ export default function Footer() {
           TMDB.
         </p>
         <p className="tc-meta tc-footer-note">
-          © {new Date().getFullYear()} Sauel Almonte. All rights reserved.
+          © <CopyrightYear /> Sauel Almonte. All rights reserved.
         </p>
       </div>
     </footer>

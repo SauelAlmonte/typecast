@@ -22,10 +22,13 @@ const MAX_LIMIT = 20;
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") ?? "";
-  const limit = Math.min(
-    Number(searchParams.get("limit")) || DEFAULT_LIMIT,
-    MAX_LIMIT,
-  );
+  // Only a positive integer may reach SQL's LIMIT; anything else
+  // (missing, NaN, zero, negative, fractional) gets the default.
+  const parsed = Number(searchParams.get("limit"));
+  const limit =
+    Number.isInteger(parsed) && parsed > 0
+      ? Math.min(parsed, MAX_LIMIT)
+      : DEFAULT_LIMIT;
 
   const rows = await searchMedia(q, limit);
   return Response.json(rows, {

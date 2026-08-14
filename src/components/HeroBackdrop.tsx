@@ -76,8 +76,11 @@ export default function HeroBackdrop() {
 
   // One timeout per shown title instead of an interval: every index
   // change re-arms it, so a manual dot pick gets its full stay too.
+  // Reduced motion stops the automatic swap entirely, not just the
+  // fade; the dots keep manual rotation available.
   useEffect(() => {
     if (items.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setTimeout(() => {
       setIndex((index + 1) % items.length);
     }, ROTATE_MS);
