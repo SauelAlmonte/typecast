@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 import { getDb } from "../src/db";
 import {
   type MediaListRow,
@@ -156,7 +156,11 @@ async function main() {
     idRows.map((r) => [`${r.mediaType}:${r.tmdbId}`, r.id]),
   );
 
-  // Replace each list wholesale: membership reflects this sync only.
+  // Upsert-then-prune, not delete-then-insert: the neon-http driver
+  // has no transactions, but each statement is atomic on its own, so
+  // readers of /api/rails only ever see a complete list: the old one,
+  // briefly a merged one, or the new one. Never an empty one, even if
+  // the sync dies between the two statements.
   for (const [slug, members] of memberships) {
     const listRows: MediaListRow[] = [];
     for (const [position, key] of members.entries()) {
@@ -165,9 +169,25 @@ async function main() {
         listRows.push({ listSlug: slug, mediaId: id, position });
       }
     }
-    await db.delete(mediaList).where(eq(mediaList.listSlug, slug));
     if (listRows.length > 0) {
-      await db.insert(mediaList).values(listRows);
+      await db
+        .insert(mediaList)
+        .values(listRows)
+        .onConflictDoUpdate({
+          target: [mediaList.listSlug, mediaList.mediaId],
+          set: { position: sql`excluded.position` },
+        });
+      await db.delete(mediaList).where(
+        and(
+          eq(mediaList.listSlug, slug),
+          notInArray(
+            mediaList.mediaId,
+            listRows.map((r) => r.mediaId),
+          ),
+        ),
+      );
+    } else {
+      await db.delete(mediaList).where(eq(mediaList.listSlug, slug));
     }
     console.log(`${slug}: ${listRows.length} members`);
   }
