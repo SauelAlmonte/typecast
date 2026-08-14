@@ -66,3 +66,4 @@ next-env.d.ts
 # claude code (personal, not shared)
 .claude/settings.local.json
 CLAUDE.local.md
+.remember/
