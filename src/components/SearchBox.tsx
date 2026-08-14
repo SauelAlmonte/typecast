@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import type { SuggestResult } from "@/app/api/suggest/route";
 import Icon from "@/components/Icon";
@@ -56,6 +57,7 @@ function loadRecents(): string[] {
  * An empty focused field offers recent selections from localStorage.
  */
 export default function SearchBox() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SuggestResult[]>([]);
   const [recents, setRecents] = useState<string[]>([]);
@@ -169,6 +171,19 @@ export default function SearchBox() {
     }
   }
 
+  /**
+   * Leave the combobox for the full results page. Fired by the
+   * magnifying-glass button and by Enter with no suggestion highlighted,
+   * so a typed fragment like "spi" still goes somewhere useful.
+   */
+  function submitSearch() {
+    const trimmed = query.trim();
+    if (normalizeSearchText(trimmed) === "") return;
+    saveRecent(trimmed);
+    closePanel();
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+  }
+
   function selectResult(r: SuggestResult) {
     setQuery(r.title);
     saveRecent(r.title);
@@ -206,6 +221,8 @@ export default function SearchBox() {
         e.preventDefault();
         setIsOpen(true);
         setActiveIndex(0);
+      } else if (e.key === "Enter") {
+        submitSearch();
       }
       return;
     }
@@ -224,9 +241,11 @@ export default function SearchBox() {
         }
         break;
       case "Enter":
+        e.preventDefault();
         if (activeIndex >= 0) {
-          e.preventDefault();
           selectByIndex(activeIndex);
+        } else {
+          submitSearch();
         }
         break;
       case "Escape":
@@ -256,7 +275,17 @@ export default function SearchBox() {
       <label className="tc-visually-hidden" htmlFor="tc-search">
         Search movies
       </label>
-      <Icon className="tc-search-icon" name="search" size="sm" />
+      {/* mousedown preventDefault keeps focus in the input, so the
+          panel's blur-close never races the click. */}
+      <button
+        aria-label="Search"
+        className="tc-search-submit"
+        onClick={submitSearch}
+        onMouseDown={(e) => e.preventDefault()}
+        type="button"
+      >
+        <Icon name="search" size="sm" />
+      </button>
       <input
         aria-activedescendant={activeId || undefined}
         aria-autocomplete="list"

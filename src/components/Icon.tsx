@@ -1,4 +1,4 @@
-type IconName = "arrow-right" | "corner-down-left" | "github" | "search";
+type IconName = "chevron-left" | "chevron-right" | "github" | "search";
 
 type IconProps = {
   name: IconName;

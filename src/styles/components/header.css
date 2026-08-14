@@ -8,7 +8,7 @@
   position: fixed;
   inset-block-start: 0;
   inset-inline: 0;
-  z-index: 1;
+  z-index: 1000;
   block-size: var(--size-header);
   background-color: var(--color-canvas);
   border-block-end: 1px solid var(--color-line);
@@ -27,6 +27,19 @@
   line-height: var(--leading-h2);
 }
 
+/* Catalog sections between the brand and GitHub. Hidden on phones for
+   now; a collapsed mobile nav is a follow-up, not a squeeze. */
+.tc-header-links {
+  display: flex;
+  gap: var(--space-2);
+}
+
+@media (width <= 48rem) {
+  .tc-header-links {
+    display: none;
+  }
+}
+
 /* Text link with a padded hit area comfortably over the 24px floor (2.5.8). */
 .tc-header-link {
   display: inline-flex;
@@ -34,5 +47,36 @@
   gap: var(--space-1);
   padding-block: var(--space-2);
   padding-inline: var(--space-2);
+  color: var(--color-ink);
+}
+
+/* Over a live hero backdrop the bar starts see-through and its text
+   flips to the media colors; the hero's top scrim keeps it legible.
+   Pages without a backdrop (results, databaseless fallback) keep the
+   solid bar, where theme ink still contrasts. Last in the file on
+   purpose: these outrank the base rules above and must follow them. */
+body:has(.tc-hero-backdrop) .tc-header {
+  color: var(--color-on-media);
+  background-color: transparent;
+  border-block-end: none;
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out);
+}
+
+body:has(.tc-hero-backdrop) .tc-header-link {
+  color: var(--color-on-media);
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+/* Once the page scrolls, the bar solidifies again: past the hero it
+   would otherwise fight the rail posters for contrast. */
+body:has(.tc-hero-backdrop) .tc-header-scrolled {
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+  border-block-end: 1px solid var(--color-line);
+}
+
+body:has(.tc-hero-backdrop) .tc-header-scrolled .tc-header-link {
   color: var(--color-ink);
 }

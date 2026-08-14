@@ -1,0 +1,90 @@
+/* TMDB category rails stacked under the hero the way Prime stacks
+   rows: each is a snap-scrolling track paged by arrow buttons.
+   Horizontal snap on the track is unrelated to the page snap the
+   landing dropped; it only settles cards after a fling. */
+
+.tc-rails {
+  display: grid;
+  gap: var(--space-8);
+  padding-block: var(--space-2);
+}
+
+.tc-carousel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.tc-carousel-head {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-carousel-nav {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Icon plus padding lands the hit area at 40px, over the 24px floor. */
+.tc-carousel-arrow {
+  display: grid;
+  place-items: center;
+  padding: var(--space-2);
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+}
+
+.tc-carousel-arrow:hover {
+  color: var(--color-ink);
+  background-color: var(--color-raised);
+}
+
+/* The arrows are the visible affordance; the scrollbar would double it.
+   Wheel, drag, and the buttons all still scroll the track. */
+.tc-carousel-track {
+  display: flex;
+  gap: var(--space-3);
+  padding-block: var(--space-1);
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.tc-carousel-card {
+  display: grid;
+  flex-shrink: 0;
+  gap: var(--space-1);
+  inline-size: var(--size-card-inline);
+  scroll-snap-align: start;
+}
+
+/* 2:3 like TMDB poster art; the skeleton span holds the same box while
+   the rail loads so the hero never jumps. */
+.tc-carousel-poster {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background-color: var(--color-raised);
+  border-radius: var(--radius-card);
+}
+
+.tc-carousel-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tc-carousel-meta {
+  color: var(--color-ink-muted);
+}
+
+@media (width <= 48rem) {
+  .tc-carousel-card {
+    inline-size: var(--size-card-inline-mobile);
+  }
+}

@@ -8,35 +8,72 @@
   max-inline-size: var(--container-search);
 }
 
-.tc-search-icon {
+/* The magnifying glass is a real submit button now, layered inside the
+   pill at its start edge. Sized in em so it scales with the field text. */
+.tc-search-submit {
   position: absolute;
   inset-block-start: 50%;
-  inset-inline-start: var(--space-4);
-  translate: 0 -50%;
+  inset-inline-start: var(--search-icon-inset);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: var(--search-button-size);
+  block-size: var(--search-button-size);
   color: var(--color-ink-muted);
-  pointer-events: none;
+  border-radius: var(--radius-pill);
+  translate: 0 -50%;
+}
+
+.tc-search-submit:hover {
+  color: var(--color-ink);
 }
 
 /* The 1px border is the identifying cue and carries the 3:1 requirement —
-   the surface-to-canvas fill difference is decorative only. */
+   the surface-to-canvas fill difference is decorative only. Geometry is
+   em so padding and height ride the input's own font size; the start
+   padding clears the submit button plus a half-em gap. */
 .tc-search-input {
   inline-size: 100%;
   block-size: var(--size-input);
-  padding-inline-start: calc(var(--space-4) + var(--icon-sm) + var(--space-2));
-  padding-inline-end: var(--space-4);
-  font-size: var(--type-body); /* 16px — never below 16 on mobile */
+  padding-inline-start: calc(
+    var(--search-icon-inset) +
+    var(--search-button-size) +
+    0.5em
+  );
+  padding-inline-end: var(--search-pad-inline);
+  font-size: var(--type-body); /* 16px floor — never below 16 on mobile */
+  /* Explicit ink, not inherit: inside the hero the surrounding copy is
+     forced to the light media color, but this control sits on its own
+     themed surface, where that color can vanish (white on cream). */
+  color: var(--color-ink);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
 }
 
 .tc-search-input::placeholder {
   color: var(--color-ink-muted);
 }
 
-@media (width <= 48rem) {
+@media (width < 48rem) {
   .tc-search-input {
     block-size: var(--size-input-mobile);
+  }
+}
+
+/* From the tablet band up the 16px zoom floor no longer applies (only
+   touch browsers zoom into small inputs), so the control relaxes to
+   the ui size. Every dimension is em, so the whole pill scales down
+   with it: height, icon slot, and paddings together. The field
+   wrapper gets the same size so the submit button's em geometry
+   stays in lockstep with the input's padding. */
+@media (width >= 48rem) {
+  .tc-search-field {
+    font-size: var(--type-ui);
+  }
+
+  .tc-search-input {
+    font-size: var(--type-ui);
   }
 }
 
@@ -50,9 +87,13 @@
   z-index: 10;
   overflow: hidden;
   text-align: start;
+  /* Same opt-out as the input: the panel floats on a themed surface,
+     so it resets the hero's forced media color back to theme ink. */
+  color: var(--color-ink);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
+  /* Panel radius, not pill: rows need usable corners. */
+  border-radius: var(--radius-panel);
 }
 
 /* Poster thumb: fixed 2:3 box; object-fit crops any odd source instead of

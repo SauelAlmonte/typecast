@@ -10,4 +10,5 @@ test("landing page renders", async ({ page }) => {
   await expect(
     page.getByText(/not endorsed or certified by TMDB/i),
   ).toBeVisible();
+  await expect(page.getByText(/all rights reserved/i)).toBeVisible();
 });

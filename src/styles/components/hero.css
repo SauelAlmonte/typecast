@@ -1,13 +1,197 @@
+/* Prime-style media hero: a rotating catalog backdrop fills the section,
+   the pitch and search bar pin to the bottom-left corner over a scrim,
+   and dots mark the rotation. Without a backdrop (failed fetch, empty
+   catalog, databaseless CI) the same layout sits on the themed canvas. */
+
+/* The hero owns the full viewport: it pulls itself up under the fixed
+   header (cancelling main's offset) so the art runs edge to edge, and
+   the header floats transparent above it. The padding keeps the copy
+   itself out of the header zone. */
+
+.tc-section {
+  padding-block-end: var(--space-8);
+}
+
+.tc-hero {
+  position: relative;
+  display: grid;
+  align-content: end;
+  /* 2:1 trades a small controlled crop for a shorter hero: the 16:9
+       backdrop loses about a ninth of its height, and object-position
+       below decides which slice survives. */
+  aspect-ratio: 16 / 9;
+  margin-block-start: calc(-1 * var(--size-header));
+  padding-block-start: var(--size-header);
+  padding-block-end: var(--space-8);
+  /* No overflow: hidden here: the suggestion panel must hang below the
+     hero's edge when the bar sits near the bottom. The image layers
+     are inset-pinned, so nothing else can spill anyway. */
+}
+
+/* Poster-shaped box only where the screen is genuinely phone-narrow;
+   wider portrait viewports keep the wide backdrop so the section's
+   height stays sane (2:3 costs 1.5x the width in height). */
+@media (orientation: portrait) and (width <= 36rem) {
+  .tc-hero {
+    aspect-ratio: 2 / 3;
+  }
+}
+
 .tc-hero-inner {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: var(--space-5);
-  justify-items: center;
-  text-align: center;
+  justify-items: start;
+  text-align: start;
+}
+
+/* Wraps "Half a title" / "is enough." as two stacked lines, the way
+   Prime's title art sits as a block in the corner. */
+.tc-hero-inner .tc-display {
+  max-inline-size: 12ch;
 }
 
 .tc-hero-lede {
-  max-inline-size: var(--container-search);
+  max-inline-size: var(--measure-lede);
   color: var(--color-ink-muted);
+}
+
+.tc-hero .tc-search-field {
+  max-inline-size: var(--container-hero-copy);
+}
+
+/* Above the touch band only: the copy column tracks the window (50vw)
+   until the fixed caps win near 1100px wide. Phones never see this;
+   there the column is simply the full width. The paragraph shares the
+   bar's governor so it can never run wider than the bar. */
+@media (width >= 48rem) {
+  .tc-hero-lede {
+    max-inline-size: min(var(--measure-lede), 50vw);
+  }
+
+  .tc-hero .tc-search-field {
+    max-inline-size: min(var(--container-hero-copy), 50vw);
+  }
+}
+
+/* Text flips to the theme-independent media colors only when a backdrop
+   layer actually rendered; the fallback hero keeps theme ink. */
+.tc-hero:has(.tc-hero-backdrop) .tc-hero-inner {
+  color: var(--color-on-media);
+}
+
+.tc-hero:has(.tc-hero-backdrop) .tc-hero-lede {
+  color: var(--color-on-media-muted);
+}
+
+/* --- Backdrop layers --- */
+
+.tc-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-media-base);
+  width: 100%;
+}
+
+.tc-hero-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.tc-hero-layer-img {
+  object-fit: cover;
+  /* Bias the crop upward: faces and titles live in the upper half of
+     both TMDB backdrops and posters, so the bottom is what cover trims. */
+  object-position: center 25%;
+}
+
+/* Keyed remount per title restarts this fade; the previous layer stays
+   underneath, so the swap reads as a crossfade. The reduced-motion kill
+   switch in reset.css collapses it to an instant cut. */
+.tc-hero-layer-current {
+  animation: tc-backdrop-fade var(--duration-crossfade) var(--ease-out) both;
+}
+
+@keyframes tc-backdrop-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Preload slot: invisible, but the browser still fetches the image. */
+.tc-hero-layer-hidden {
+  opacity: 0;
+}
+
+/* Darkens the corner the copy sits in and the strip under the floating
+   header; the photo stays readable everywhere else. The left and
+   bottom runs both use the strong scrim and reach further in, so even
+   a pale foggy backdrop can't wash out the copy: where they overlap
+   in the copy corner the two multiply to near-opaque. */
+.tc-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, var(--color-scrim-soft), transparent 22%),
+    linear-gradient(to top, var(--color-scrim-strong) 10%, transparent 65%),
+    linear-gradient(to right, var(--color-scrim-strong) 35%, transparent 80%);
+}
+
+/* --- Rotation furniture --- */
+
+.tc-hero-featured {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 1;
+  color: var(--color-on-media-muted);
+}
+
+/* On phones the caption would collide with the dots; the dots carry the
+   same titles in their labels, so the caption yields. */
+@media (width <= 48rem) {
+  .tc-hero-featured {
+    display: none;
+  }
+}
+
+.tc-hero-dots {
+  position: absolute;
+  inset-block-end: var(--space-3);
+  inset-inline: 0;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-1);
+  justify-content: center;
+}
+
+/* The button is the 24px hit area (2.5.8); the mark is the visual dot. */
+.tc-hero-dot {
+  display: grid;
+  place-items: center;
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}
+
+.tc-hero-dot-mark {
+  inline-size: 0.5em;
+  block-size: 0.5em;
+  background-color: var(--color-on-media-muted);
+  border-radius: var(--radius-pill);
+  opacity: 0.55;
+  transition:
+    inline-size var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+}
+
+.tc-hero-dot:hover .tc-hero-dot-mark {
+  opacity: 0.8;
+}
+
+.tc-hero-dot-active .tc-hero-dot-mark {
+  inline-size: 1.5em;
+  opacity: 1;
 }
 
 /* The brand symbol: a caret still typing. em-relative so it tracks the
