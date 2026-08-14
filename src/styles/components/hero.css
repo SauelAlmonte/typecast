@@ -7,30 +7,33 @@
    header (cancelling main's offset) so the art runs edge to edge, and
    the header floats transparent above it. The padding keeps the copy
    itself out of the header zone. */
+
+.tc-section {
+  padding-block-end: var(--space-8);
+}
+
 .tc-hero {
   position: relative;
+  display: grid;
   align-content: end;
   /* 2:1 trades a small controlled crop for a shorter hero: the 16:9
-     backdrop loses about a ninth of its height, and object-position
-     below decides which slice survives. min-block-size: auto matters:
-     .tc-section's 100svh floor still applied here and, paired with a
-     ratio, a minimum height transfers into a minimum WIDTH and pushes
-     the layout off screen. */
-  aspect-ratio: 2 / 1;
-  min-block-size: auto;
+       backdrop loses about a ninth of its height, and object-position
+       below decides which slice survives. */
+  aspect-ratio: 16 / 9;
   margin-block-start: calc(-1 * var(--size-header));
   padding-block-start: var(--size-header);
   padding-block-end: var(--space-8);
-  overflow: hidden;
+  /* No overflow: hidden here: the suggestion panel must hang below the
+     hero's edge when the bar sits near the bottom. The image layers
+     are inset-pinned, so nothing else can spill anyway. */
 }
 
-/* Portrait screens show the 2:3 poster, so the box takes the poster's
-   shape and drops the full-screen floor: the art shows whole, nothing
-   cut, and the page simply continues to the footer below it. */
-@media (orientation: portrait) {
+/* Poster-shaped box only where the screen is genuinely phone-narrow;
+   wider portrait viewports keep the wide backdrop so the section's
+   height stays sane (2:3 costs 1.5x the width in height). */
+@media (orientation: portrait) and (width <= 36rem) {
   .tc-hero {
     aspect-ratio: 2 / 3;
-    min-block-size: auto;
   }
 }
 
@@ -58,6 +61,20 @@
   max-inline-size: var(--container-hero-copy);
 }
 
+/* Above the touch band only: the copy column tracks the window (50vw)
+   until the fixed caps win near 1100px wide. Phones never see this;
+   there the column is simply the full width. The paragraph shares the
+   bar's governor so it can never run wider than the bar. */
+@media (width >= 48rem) {
+  .tc-hero-lede {
+    max-inline-size: min(var(--measure-lede), 50vw);
+  }
+
+  .tc-hero .tc-search-field {
+    max-inline-size: min(var(--container-hero-copy), 50vw);
+  }
+}
+
 /* Text flips to the theme-independent media colors only when a backdrop
    layer actually rendered; the fallback hero keeps theme ink. */
 .tc-hero:has(.tc-hero-backdrop) .tc-hero-inner {
@@ -74,6 +91,7 @@
   position: absolute;
   inset: 0;
   background-color: var(--color-media-base);
+  width: 100%;
 }
 
 .tc-hero-layer {
@@ -107,14 +125,17 @@
 }
 
 /* Darkens the corner the copy sits in and the strip under the floating
-   header; the photo stays readable everywhere else. */
+   header; the photo stays readable everywhere else. The left and
+   bottom runs both use the strong scrim and reach further in, so even
+   a pale foggy backdrop can't wash out the copy: where they overlap
+   in the copy corner the two multiply to near-opaque. */
 .tc-hero-scrim {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(to bottom, var(--color-scrim-soft), transparent 22%),
-    linear-gradient(to top, var(--color-scrim-strong), transparent 60%),
-    linear-gradient(to right, var(--color-scrim-soft), transparent 65%);
+    linear-gradient(to top, var(--color-scrim-strong) 10%, transparent 65%),
+    linear-gradient(to right, var(--color-scrim-strong) 35%, transparent 80%);
 }
 
 /* --- Rotation furniture --- */

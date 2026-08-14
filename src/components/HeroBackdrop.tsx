@@ -37,7 +37,9 @@ export default function HeroBackdrop() {
   const [isPortrait, setIsPortrait] = useState(false);
 
   useEffect(() => {
-    const query = window.matchMedia("(orientation: portrait)");
+    const query = window.matchMedia(
+      "(orientation: portrait) and (max-width: 36rem)",
+    );
     setIsPortrait(query.matches);
     const onChange = (e: MediaQueryListEvent) => setIsPortrait(e.matches);
     query.addEventListener("change", onChange);

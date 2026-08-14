@@ -47,7 +47,7 @@
      so text above it uses these theme-independent colors, and the scrim
      gradients darken the photo's start corner for legibility. --- */
   --color-media-base: oklch(0.16 0.02 260);
-  --color-scrim-strong: oklch(0.16 0.02 260 / 0.92);
+  --color-scrim-strong: oklch(0.16 0.02 260 / 0.96);
   --color-scrim-soft: oklch(0.16 0.02 260 / 0.7);
   --color-on-media: oklch(0.95 0.012 90);
   --color-on-media-muted: oklch(0.84 0.015 90);
