@@ -2,12 +2,13 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** The deliverable works end to end. Backend: TMDB catalog synced
-into Neon, trigram-indexed, served by a ranked suggest endpoint whose
-ranking SQL Sauel wrote. Frontend: the hand-built combobox with debounce,
-cancellation, cache, keyboard, ARIA, recents, and an e2e suite. Next:
-productization (deploy, rate limiting, server cache, scheduled sync) and
-the landing redesign with the hero rotation.
+**Phase:** The product looks like one. The landing is a Prime-style
+media page: a rotating backdrop hero shaped to the artwork, TMDB
+category rails beneath it, a catalog nav, and a results page behind
+the search bar, all on top of the hand-built combobox stack. Sauel is
+deploying to Vercel manually (dashboard import; `DATABASE_URL` is the
+only secret the site needs). Next: rate limiting before wide sharing,
+server cache, scheduled sync, and the collapsed mobile nav.
 
 ---
 
@@ -43,17 +44,24 @@ the landing redesign with the hero rotation.
 | 2026-08-13 | TSDoc | Exported APIs get TSDoc comments documenting semantics. Never restate types the signature already carries. |
 | 2026-08-13 | Reply density | Sauel rejected fact-packed summary sentences mid-session. One idea per sentence, plain words, define terms on first use. Recorded alongside the existing concise-reply rule. |
 | 2026-08-13 | Combobox teaching build | The component was built naive-first on purpose: fetch per keystroke shipped, measured (8 requests for "stranger"), then fixed one layer at a time so every optimization answered a problem watched in the Network tab. Sauel typed debounce, cancellation, and cache himself. |
+| 2026-08-13 | Hero takes the art's shape | Cover-fit in a screen-shaped box must crop, so the box takes the image's own ratio instead: 16:9 landscape (the backdrop's shape, nothing cut), 2:3 poster box only on phone-narrow portrait screens, gated on width AND orientation because orientation alone reclassifies any tall desktop window. The CSS box and the JS art picker in `HeroBackdrop` share the identical media query so shape and artwork can never disagree. No svh anywhere: `.tc-section` is a semantic wrapper and height flows from the ratio. Sauel drove the section/hero restructure hands-on. |
+| 2026-08-13 | Category rails are real lists | A `media_list` join table (list slug, media id, TMDB's rank) records membership because a title sits in many lists at once and popularity can't fake "top rated". The sync ingests TMDB's eight Movies and TV menu lists; `/api/rails` serves all eight in one CDN-cached response. Replacement is upsert-then-prune, two individually-atomic statements, so rails readers never observe an empty category even mid-sync (neon-http has no transactions). |
+| 2026-08-13 | Search has destinations | The magnifying glass is a submit button; it or Enter with no suggestion highlighted lands on `/search?q=`, which reranks with the same shared query (`src/db/queries.ts`) so the panel and the page can't drift. Header nav (Movies, TV Shows, People, Awards) points at `/search?type=`: movie and tv browse popularity grids and scope the ranking; person and award state honestly that they aren't synced yet rather than 404. |
+| 2026-08-13 | Search bar scales by band | Above 48rem the copy column (bar and lede share one 50vw governor) tracks the window until the fixed caps win, and the control's font relaxes to the ui size, shrinking the whole em-driven pill together. The 16px input floor is touch-only law (iOS zoom), so phones keep it and the full-width column. Boundaries meet exactly at 48rem (`<` / `>=`) after a `>` query silently excluded the 768px preset itself. |
+| 2026-08-13 | Overlay legibility rules | The scrim's left and bottom runs hold at full strength across the copy corner before fading (0.96 alpha), so fog-pale backdrops can't wash out text. Controls sitting on themed surfaces (input, suggestion panel) set explicit theme ink and never inherit the hero's media color; inherited white-on-cream made light-theme text invisible. The header floats transparent over a live backdrop and solidifies after 24px of scroll so it never fights rail posters. |
 | 2026-08-13 | Listbox markup | The suggestion listbox is divs with ARIA roles, not ul/li: Biome's a11y rules reject interactive roles on list tags and non-focusable options, and since a role replaces the tag's native semantics entirely, the neutral form is equivalent for assistive tech and lint-clean without carving exceptions into the a11y ruleset. |
 
 ---
 
 ## Open
 
-- **Landing redesign with hero rotation**: Sauel wants a stronger design, and the hero background should cycle every minute through latest and upcoming titles from the catalog (`backdrop_path` is already stored for this).
-- **Productization of search**: Upstash Redis server cache and rate limiting on the suggest endpoint, a scheduled sync (Vercel cron) replacing the manual `pnpm db:sync`, and a deploy to Vercel so the CDN cache headers actually meet a CDN.
-- **Selection destination**: Enter currently just fills the input with the chosen title. Where selection should lead (detail page, TMDB link) is undecided.
+- **Deploy in progress**: Sauel is importing the repo at vercel.com/new himself. One env var (`DATABASE_URL`, production; optionally preview) or the Storage-tab Neon connect. TMDB token stays local; only the sync script uses it.
+- **Rate limiting before wide sharing**: the API routes have none. Fine for showing Jami; add Upstash rate limiting (and the Redis server cache) before the link travels.
+- **Scheduled sync**: a Vercel cron replacing manual `pnpm db:sync`, which now also maintains the eight category lists. Needs `TMDB_READ_ACCESS_TOKEN` on Vercel when it lands.
+- **Collapsed mobile nav**: the header's catalog links hide below 48rem, so phones can't reach the browse pages (CodeRabbit flagged it; deliberately deferred to its own PR).
+- **Hero art curation**: backdrop compositions vary per title and sometimes fight the copy despite the scrim. Options discussed: hand-picked rotation list, per-title focal-point hints, or living with the scrim. Sauel's call when it bothers him enough.
+- **Suggestion selection destination**: the submit paths lead to `/search`, but picking a suggestion still only fills the input. A title detail page is the natural next step.
 - **Vitest unit tests**: `normalizeSearchText` and the ranking query are the first candidates. Also unlocks affected tests in `stop-check`.
-- **px-to-rem pass**: type and containers are already rem; whether spacing and control-size tokens should convert too is an open design decision from Sauel's responsiveness rule.
 - **Commit the design doc**: Design System v2.0 governs all UI work but lives only in chat history. It belongs in the repo, likely `docs/design-system.md`.
 - **Theme toggle and anti-flash script**: the pair that unlocks the `[data-theme]` selectors. Deliberately deferred; see the theming decision.
 - **Lighthouse**: planned for CI (never hooks). The landing page now gives it something real to audit, so it can be wired in.
@@ -61,7 +69,6 @@ the landing redesign with the hero rotation.
 - **Migration guard**: a PreToolUse deny on edits to applied migration files, now that Drizzle exists and `src/db/migrations/` holds applied SQL.
 - **Slash commands and subagents**: which recurring workflows are worth encoding.
 - **Affected tests in `stop-check`**: once Vitest lands. Playwright already runs in CI and stays out of hooks.
-- **TMDB logo attribution**: now due. TMDB data and poster art render in the suggestion panel, so their terms want the logo displayed, not just the footer text line from PR #8. Fold into the landing redesign.
 - **Older MacBook pnpm**: still broken until it runs `npm i -g pnpm@11.21.0`, then `git pull` and `pnpm install`. Every pnpm command there fails until the global matches the pin.
 
 ---
@@ -100,6 +107,9 @@ the landing redesign with the hero rotation.
 - [x] Set up WebStorm's database tooling along the way: Neon as a data source (the URL-overrides-fields trap: it must end in `/neondb`), PostgreSQL dialect for `sql` template strings, real schema-aware SQL assistance in the editor.
 - [x] Shipped PR #18 (`ad28534`): the combobox. Built naive-first with Sauel typing debounce, cancellation, and cache; then keyboard and ARIA (activedescendant pattern), localStorage recents, empty state, TMDB poster rows via next/image, and 8 Playwright tests (16 runs across Chromium and Firefox) driven purely by ARIA semantics with the API mocked so CI needs no database. CodeRabbit's one finding (stale responses during the debounce window) verified, fixed with `cancelPending()` plus a request-identity guard, regression-tested, thread resolved.
 - [x] The founding doc's efficiency stack is now fully implemented and measured: 8 requests for "stranger" became 1 to 2 (debounce), stale responses provably never paint (abort + identity guard, e2e-tested), and repeats render synchronously from a 50-entry normalized-key cache.
+- [x] Shipped PR #20 (`fd4ba00`): the landing redesign, an all-evening joint build. The walkthrough sections gave way to a Prime-style media page: a rotating backdrop hero (crossfading layers with preload, dot controls that restart the timer, Featured caption, reduced-motion aware), pill search bar with a real submit button, a `/search` results and browse page reusing Sauel's ranking through shared `src/db/queries.ts`, catalog nav with honest placeholders for unsynced kinds, eight TMDB category rails backed by the new `media_list` table, and the footer's rights line with the required TMDB logo. Along the way: body type clamped, the lede's `<br>`s replaced by a `ch` measure, search geometry in em, and a ghost 150px layout box traced to the icon sprite's `display` attribute losing to the CSS reset.
+- [x] Worked all six CodeRabbit threads on PR #20: four verified and fixed (positive-integer `limit` validation probed live, build-frozen copyright year moved to a client component, rotation halted under reduced motion, sync replacement made upsert-then-prune so rails readers never see an empty category), two skipped with stated reasons (mobile nav deferred to its own PR; stylelint's calc style contradicts the Biome formatter this repo actually runs). All replied to with commits and resolved.
+- [x] Post-merge cleanup for PR #20 done by the book: `gh pr view` confirmed MERGED before anything was deleted.
 
 ---
 
