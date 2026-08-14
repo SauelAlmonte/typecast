@@ -55,7 +55,6 @@ server cache, scheduled sync, and the collapsed mobile nav.
 
 ## Open
 
-- **Deploy in progress**: Sauel is importing the repo at vercel.com/new himself. One env var (`DATABASE_URL`, production; optionally preview) or the Storage-tab Neon connect. TMDB token stays local; only the sync script uses it.
 - **Rate limiting before wide sharing**: the API routes have none. Fine for showing Jami; add Upstash rate limiting (and the Redis server cache) before the link travels.
 - **Scheduled sync**: a Vercel cron replacing manual `pnpm db:sync`, which now also maintains the eight category lists. Needs `TMDB_READ_ACCESS_TOKEN` on Vercel when it lands.
 - **Collapsed mobile nav**: the header's catalog links hide below 48rem, so phones can't reach the browse pages (CodeRabbit flagged it; deliberately deferred to its own PR).
@@ -110,6 +109,9 @@ server cache, scheduled sync, and the collapsed mobile nav.
 - [x] Shipped PR #20 (`fd4ba00`): the landing redesign, an all-evening joint build. The walkthrough sections gave way to a Prime-style media page: a rotating backdrop hero (crossfading layers with preload, dot controls that restart the timer, Featured caption, reduced-motion aware), pill search bar with a real submit button, a `/search` results and browse page reusing Sauel's ranking through shared `src/db/queries.ts`, catalog nav with honest placeholders for unsynced kinds, eight TMDB category rails backed by the new `media_list` table, and the footer's rights line with the required TMDB logo. Along the way: body type clamped, the lede's `<br>`s replaced by a `ch` measure, search geometry in em, and a ghost 150px layout box traced to the icon sprite's `display` attribute losing to the CSS reset.
 - [x] Worked all six CodeRabbit threads on PR #20: four verified and fixed (positive-integer `limit` validation probed live, build-frozen copyright year moved to a client component, rotation halted under reduced motion, sync replacement made upsert-then-prune so rails readers never see an empty category), two skipped with stated reasons (mobile nav deferred to its own PR; stylelint's calc style contradicts the Biome formatter this repo actually runs). All replied to with commits and resolved.
 - [x] Post-merge cleanup for PR #20 done by the book: `gh pr view` confirmed MERGED before anything was deleted.
+- [x] Deployed. Sauel imported the repo through the Vercel dashboard with `DATABASE_URL` as the only secret; the site is live at typecast-sepia.vercel.app.
+- [x] Shipped PR #22 (`0e0f330`): social preview card. A 1200x630 hero screenshot via Next's `opengraph-image` file convention, twitter-image copy, alt text, and `metadataBase` pinning the production URL scrapers need. Pasting the link now unfurls a card.
+- [x] Gitignore audited after the tooling additions: Playwright's output directories, `.vercel`, and env files were already covered; `.remember/` added so the memory plugin's folder can't be committed from a machine without the global ignore.
 
 ---
 
