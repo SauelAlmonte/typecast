@@ -12,15 +12,15 @@
   background-color: var(--color-media-base);
 }
 
-/* The landing hero's lesson again: cover-fit in a content-shaped band
-   must crop and zoom, so the box takes the art's own 16:9 instead,
-   pinned to the end edge at full band height. The rest of the band is
-   the base color, and the scrim dissolves the art's start edge into
-   it so there's never a seam. */
+/* Three bands, one goal: the art at its own 16:9 with nothing cropped,
+   the copy readable everywhere. Tablets and phones run it as a
+   full-width strip on the band's top edge; wide screens pin it to the
+   end edge at band height. The scrim always dissolves the art's edges
+   into the base color so there is never a seam. */
 .tc-title-backdrop {
   position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
+  inset: 0;
+  inset-block-end: auto;
   aspect-ratio: 16 / 9;
 }
 
@@ -28,43 +28,62 @@
   object-fit: cover;
 }
 
-/* Solid at the art's start edge (the seam), dimmed through the middle
-   where copy can overlap on middling widths, clear at the end. */
+/* Tablet default: the wide band's ramp, just starting under the
+   headline corner: dark at the start, one long ease to fully clear at
+   the end, so the art's right side reads unveiled like on laptops.
+   The bottom layer hands the strip's lower edge to the base color the
+   overview sits on. */
 .tc-title-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to right,
-    var(--color-media-base),
-    var(--color-scrim-soft) 45%,
-    transparent 80%
-  );
+  background:
+    linear-gradient(to bottom, transparent 55%, var(--color-media-base)),
+    linear-gradient(
+      to right,
+      var(--color-scrim-strong) 25%,
+      var(--color-scrim-soft) 55%,
+      transparent 85%
+    );
 }
 
-/* Phone band: the copy stacks tall over the art, so the box reverts to
-   a cover fill under a near-solid dim; legibility beats the crop. */
-@media (width <= 48rem) {
+/* Wide band: the landing hero's lesson. Cover-fit in a content-shaped
+   band must crop and zoom, so the box takes the art's own 16:9, pinned
+   to the end edge at full band height; the rest of the band is the
+   base color and the scrim dissolves the seam into it. */
+@media (width >= 64rem) {
   .tc-title-backdrop {
-    inset: 0;
-    aspect-ratio: auto;
+    inset-block-end: 0;
+    inset-inline-start: auto;
   }
 
   .tc-title-scrim {
-    background: var(--color-scrim-strong);
+    background: linear-gradient(
+      to right,
+      var(--color-media-base),
+      var(--color-scrim-soft) 45%,
+      transparent 80%
+    );
   }
 }
 
+/* Tablet arrangement is the base: headline beside the poster, the
+   about block full-width underneath. Wide screens pull about up next
+   to the poster (below), phones stack everything (further below). */
 .tc-title-hero-inner {
   position: relative;
   z-index: 1;
-  display: flex;
-  gap: var(--space-6);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "poster headline"
+    "about about";
+  gap: var(--space-5) var(--space-6);
   align-items: start;
   padding-block: var(--space-7);
 }
 
 .tc-title-poster {
-  flex-shrink: 0;
+  grid-area: poster;
   inline-size: var(--size-poster-detail);
   block-size: auto;
   aspect-ratio: 2 / 3;
@@ -73,10 +92,54 @@
   border-radius: var(--radius-card);
 }
 
-.tc-title-copy {
+.tc-title-headline {
   display: grid;
+  grid-area: headline;
   gap: var(--space-4);
   justify-items: start;
+}
+
+.tc-title-about {
+  display: grid;
+  grid-area: about;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+@media (width >= 64rem) {
+  .tc-title-hero-inner {
+    grid-template-areas:
+      "poster headline"
+      "poster about";
+  }
+}
+
+/* Phone-narrow only (the landing hero's 36rem line, so a 768px tablet
+   keeps the side-by-side row): the copy stacks under the poster and
+   the scrim turns vertical, soft where only the poster sits and
+   near-solid by the time the copy starts. After the base rules on
+   purpose: the override shares their specificity, so only source
+   order lets it win. */
+@media (width <= 36rem) {
+  .tc-title-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "poster"
+      "headline"
+      "about";
+  }
+
+  /* Nothing overlaps the art's upper half here (the poster rides its
+     lower edge), so it stays clear and only the hand-off into the
+     base color dims it. */
+  .tc-title-scrim {
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--color-scrim-soft) 60%,
+      var(--color-media-base)
+    );
+  }
 }
 
 .tc-title-year {
@@ -281,13 +344,10 @@
   border: none;
 }
 
-/* --- Phone band --- */
+/* --- Compact bands --- */
 
+/* Tablets keep the row; the poster just yields width to the copy. */
 @media (width <= 48rem) {
-  .tc-title-hero-inner {
-    flex-direction: column;
-  }
-
   .tc-title-poster {
     inline-size: var(--size-poster-detail-mobile);
   }
