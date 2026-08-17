@@ -162,11 +162,16 @@
   }
 }
 
-/* Tablet band only: the full viewport reads oversized between the
-   strip and the copy, so the band gives some of it back. */
+/* Tablet band only: content-sized like the phone, so no dead ground
+   opens between the copy and the dot row on tall windows; the end
+   padding is the caption and dot rows' reserved space. */
 @media (36rem < width < 64rem) {
   .tc-hero {
-    min-block-size: calc(85svh - var(--size-header));
+    min-block-size: auto;
+  }
+
+  .tc-hero-inner {
+    padding-block-end: var(--space-9);
   }
 }
 
