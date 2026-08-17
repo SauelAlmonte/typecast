@@ -4,7 +4,9 @@ import Navbar from "@/components/Header/Navbar/Navbar";
 export default function Header() {
   return (
     <header className="tc-header">
-      <Navbar />
+      <div className="tc-container tc-header__container">
+        <Navbar />
+      </div>
     </header>
   );
 }

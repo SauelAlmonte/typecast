@@ -1,6 +1,37 @@
 /* Design System v2.0 §4 — containers. Logical properties only; physical
    properties are what makes RTL a rewrite instead of a config change. */
 
+/* The global container: max width, centering, shared gutter. Horizontal
+   only; each section owns its own height. Full-bleed art stays outside.
+   Replaces the tc-container-* family below as sections migrate. */
+.tc-container {
+  inline-size: 100%;
+  max-inline-size: var(--container-wide);
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+
+  /* 1024 laptops sit below every cap, so the gutter alone spaces
+     them; 2.5rem = 40px softens the drop from 1440's frame. */
+  @media (64rem <= width < 90rem) {
+    padding-inline: 2.5rem;
+  }
+
+  /* 1440 laptops: 84rem = 1344px. */
+  @media (width >= 90rem) {
+    max-inline-size: 84rem;
+  }
+
+  /* 1920 monitors: 112rem = 1792px. */
+  @media (width >= 120rem) {
+    max-inline-size: 112rem;
+  }
+
+  /* 2560 and up: 150rem = 2400px. */
+  @media (width >= 160rem) {
+    max-inline-size: 150rem;
+  }
+}
+
 .tc-container-search,
 .tc-container-content,
 .tc-container-wide,
@@ -30,11 +61,7 @@
   padding-inline: 0;
 }
 
-/* The landing is a single hero between header and footer, so the old
-   section-snap rhythm is gone. The hero still fills the viewport below
-   the fixed header (svh dodges the mobile URL-bar jump). min-block-size,
-   never height: content taller than the viewport stays freely scrollable,
-   so zoomed or reflowed content is never trapped (WCAG 1.4.4 / 1.4.10). */
+/* Every page's content starts below the fixed header (header.css). */
 main {
   padding-block-start: var(--size-header);
 }
