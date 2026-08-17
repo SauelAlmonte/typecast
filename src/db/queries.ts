@@ -6,9 +6,12 @@ import { normalizeSearchText } from "@/lib/normalize";
 /** The two kinds the catalog holds; used to scope search and browse. */
 export type MediaKind = "movie" | "tv";
 
-/** One catalog match, the shape every search surface renders. */
+/** One catalog match, the shape every search surface renders.
+ * tmdbId rides along because every match is now a link to the title
+ * page, whose route speaks TMDB's ids, not our identity column. */
 export type MediaMatch = {
   id: number;
+  tmdbId: number;
   mediaType: string;
   title: string;
   year: number | null;
@@ -17,6 +20,7 @@ export type MediaMatch = {
 
 const selection = {
   id: media.id,
+  tmdbId: media.tmdbId,
   mediaType: media.mediaType,
   title: media.title,
   year: sql<number | null>`extract(year from ${media.releaseDate})::int`,

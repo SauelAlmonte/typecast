@@ -1,0 +1,274 @@
+/* Title detail page: a dark media hero band (poster and copy over the
+   backdrop) above a two-column body, rails on the main track and facts
+   in the aside. The band is theme-independent like the landing hero:
+   the photograph is always dark, so the text keeps the media colors
+   even when no backdrop exists and the band is just the media base. */
+
+.tc-title-hero {
+  position: relative;
+  color: var(--color-on-media);
+  background-color: var(--color-media-base);
+}
+
+.tc-title-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.tc-title-backdrop-img {
+  object-fit: cover;
+  /* Faces and titles live in the upper half of TMDB backdrops. */
+  object-position: center 25%;
+}
+
+/* Start-heavy: the copy column hugs the start edge, and even the soft
+   end keeps enough scrim that a pale backdrop can't wash the meta row. */
+.tc-title-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    var(--color-scrim-strong) 30%,
+    var(--color-scrim-soft)
+  );
+}
+
+.tc-title-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-6);
+  align-items: start;
+  padding-block: var(--space-7);
+}
+
+.tc-title-poster {
+  flex-shrink: 0;
+  inline-size: var(--size-poster-detail);
+  block-size: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background-color: var(--color-raised);
+  border-radius: var(--radius-card);
+}
+
+.tc-title-copy {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+.tc-title-year {
+  font-weight: 400;
+  color: var(--color-on-media-muted);
+}
+
+.tc-title-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  color: var(--color-on-media-muted);
+}
+
+.tc-title-cert {
+  padding-block: 0;
+  padding-inline: var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-control);
+}
+
+.tc-title-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.tc-title-score {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* §6 button height: 12px paddings around the ui line land on 44px. */
+.tc-trailer-button {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-5);
+  font-size: var(--type-ui);
+  line-height: var(--leading-ui);
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+}
+
+.tc-trailer-button:hover {
+  color: var(--color-on-media-muted);
+}
+
+.tc-title-tagline {
+  font-style: italic;
+  color: var(--color-on-media-muted);
+}
+
+.tc-title-overview {
+  color: var(--color-on-media);
+}
+
+.tc-title-makers {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
+}
+
+.tc-title-makers-role {
+  color: var(--color-on-media-muted);
+}
+
+/* --- Body: rails main track, facts aside --- */
+
+.tc-title-body {
+  display: grid;
+  gap: var(--space-7);
+  padding-block: var(--space-7);
+}
+
+/* minmax(0, ...) lets the carousels scroll inside the column instead
+   of blowing the grid track out to their content width. */
+@media (width >= 64rem) {
+  .tc-title-body {
+    grid-template-columns: minmax(0, 1fr) var(--container-aside);
+    align-items: start;
+  }
+}
+
+.tc-title-main {
+  display: grid;
+  gap: var(--space-7);
+  min-inline-size: 0;
+}
+
+.tc-title-aside {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+.tc-title-facts {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.tc-title-facts dt {
+  color: var(--color-ink-muted);
+}
+
+.tc-title-facts dd {
+  margin-block-end: var(--space-2);
+}
+
+.tc-title-keywords-heading {
+  color: var(--color-ink-muted);
+}
+
+.tc-title-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.tc-title-keyword {
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+/* --- Current season card --- */
+
+.tc-title-season {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.tc-title-season-card {
+  display: flex;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.tc-title-season-poster {
+  flex-shrink: 0;
+  inline-size: var(--size-card-inline);
+  block-size: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background-color: var(--color-raised);
+}
+
+.tc-title-season-text {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-4);
+}
+
+.tc-title-season-overview {
+  color: var(--color-ink-muted);
+}
+
+/* --- Trailer dialog --- */
+
+.tc-trailer-dialog {
+  inline-size: min(100%, var(--container-content));
+  padding: 0;
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+  border: none;
+  border-radius: var(--radius-panel);
+}
+
+.tc-trailer-dialog::backdrop {
+  background-color: var(--color-scrim-strong);
+}
+
+.tc-trailer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+}
+
+.tc-trailer-close {
+  display: inline-flex;
+  padding: var(--space-2);
+  color: inherit;
+}
+
+.tc-trailer-frame {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+}
+
+/* --- Phone band --- */
+
+@media (width <= 48rem) {
+  .tc-title-hero-inner {
+    flex-direction: column;
+  }
+
+  .tc-title-poster {
+    inline-size: var(--size-poster-detail-mobile);
+  }
+}

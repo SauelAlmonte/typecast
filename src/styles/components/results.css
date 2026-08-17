@@ -34,6 +34,20 @@
   gap: var(--space-1);
 }
 
+/* Same contract as the rail cards: one link per card, underline on
+   hover carried by the title. */
+.tc-result-card-link {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.tc-result-card-link:hover .tc-result-card-title,
+.tc-result-card-link:focus-visible .tc-result-card-title {
+  text-decoration: underline;
+}
+
 /* 2:3 like TMDB poster art; object-fit crops odd sources instead of
    squashing, and the empty-span fallback keeps cards aligned. */
 .tc-result-card-poster {

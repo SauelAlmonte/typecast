@@ -2,9 +2,11 @@ import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { media, mediaList } from "@/db/schema";
 
-/** One card in a category rail; posterPath is non-null by query. */
+/** One card in a category rail; posterPath is non-null by query.
+ * tmdbId is the card's link target: title routes speak TMDB ids. */
 export type RailItem = {
   id: number;
+  tmdbId: number;
   mediaType: string;
   title: string;
   year: number | null;
@@ -56,6 +58,7 @@ export async function GET(): Promise<Response> {
       items: await db
         .select({
           id: media.id,
+          tmdbId: media.tmdbId,
           mediaType: media.mediaType,
           title: media.title,
           year: sql<

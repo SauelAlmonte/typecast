@@ -79,6 +79,20 @@
   white-space: nowrap;
 }
 
+/* The whole card is one link; the poster is the affordance, so the
+   anchor drops the underline and hover restates it on the title. */
+.tc-carousel-card-link {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.tc-carousel-card-link:hover .tc-carousel-title,
+.tc-carousel-card-link:focus-visible .tc-carousel-title {
+  text-decoration: underline;
+}
+
 .tc-carousel-meta {
   color: var(--color-ink-muted);
 }

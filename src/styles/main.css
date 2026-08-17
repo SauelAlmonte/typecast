@@ -12,6 +12,7 @@
 @import "./components/search.css";
 @import "./components/carousel.css";
 @import "./components/results.css";
+@import "./components/title.css";
 @import "./components/footer.css";
 
 html {
@@ -42,6 +43,12 @@ h3,
 :focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/* The page behind any open modal (phone menu, trailer) must not
+   scroll under it; every modal here is a native dialog. */
+body:has(dialog[open]) {
+  overflow: hidden;
 }
 
 .tc-visually-hidden {
