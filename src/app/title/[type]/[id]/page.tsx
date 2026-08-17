@@ -238,7 +238,11 @@ export default async function TitlePage({
               ) : (
                 <span aria-hidden="true" className="tc-title-poster" />
               )}
-              <div className="tc-title-copy">
+              {/* The headline rides beside the poster at every width
+                  above the phone stack; the about block joins it there
+                  only on wide screens and drops below on tablets. The
+                  grid areas in title.css do the moving. */}
+              <div className="tc-title-headline">
                 <h1 className="tc-h2" id="tc-title-heading">
                   {title}
                   {year && <span className="tc-title-year"> ({year})</span>}
@@ -265,21 +269,25 @@ export default async function TitlePage({
                 {detail.tagline && (
                   <p className="tc-title-tagline">{detail.tagline}</p>
                 )}
-                {detail.overview && (
-                  <>
-                    <h2 className="tc-h3">Overview</h2>
-                    <p className="tc-title-overview">{detail.overview}</p>
-                  </>
-                )}
-                {credit && (
-                  <p className="tc-title-makers">
-                    <span className="tc-ui">{credit.names.join(", ")}</span>
-                    <span className="tc-meta tc-title-makers-role">
-                      {credit.role}
-                    </span>
-                  </p>
-                )}
               </div>
+              {(detail.overview || credit) && (
+                <div className="tc-title-about">
+                  {detail.overview && (
+                    <>
+                      <h2 className="tc-h3">Overview</h2>
+                      <p className="tc-title-overview">{detail.overview}</p>
+                    </>
+                  )}
+                  {credit && (
+                    <p className="tc-title-makers">
+                      <span className="tc-ui">{credit.names.join(", ")}</span>
+                      <span className="tc-meta tc-title-makers-role">
+                        {credit.role}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </section>
           <div className="tc-container-wide tc-title-body">

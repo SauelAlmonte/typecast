@@ -58,14 +58,67 @@
   }
 }
 
+/* Tablet arrangement is the base: headline beside the poster, the
+   about block full-width underneath. Wide screens pull about up next
+   to the poster (below), phones stack everything (further below). */
+.tc-title-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "poster headline"
+    "about about";
+  gap: var(--space-5) var(--space-6);
+  align-items: start;
+  padding-block: var(--space-7);
+}
+
+.tc-title-poster {
+  grid-area: poster;
+  inline-size: var(--size-poster-detail);
+  block-size: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background-color: var(--color-raised);
+  border-radius: var(--radius-card);
+}
+
+.tc-title-headline {
+  display: grid;
+  grid-area: headline;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+.tc-title-about {
+  display: grid;
+  grid-area: about;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+@media (width >= 64rem) {
+  .tc-title-hero-inner {
+    grid-template-areas:
+      "poster headline"
+      "poster about";
+  }
+}
+
 /* Phone-narrow only (the landing hero's 36rem line, so a 768px tablet
    keeps the side-by-side row): the copy stacks under the poster and
    the scrim turns vertical, soft where only the poster sits and
-   near-solid by the time the copy starts. A flat strong scrim here
-   buried the art completely. */
+   near-solid by the time the copy starts. After the base rules on
+   purpose: the override shares their specificity, so only source
+   order lets it win. */
 @media (width <= 36rem) {
   .tc-title-hero-inner {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "poster"
+      "headline"
+      "about";
   }
 
   .tc-title-scrim {
@@ -75,31 +128,6 @@
       var(--color-scrim-strong) 55%
     );
   }
-}
-
-.tc-title-hero-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  gap: var(--space-6);
-  align-items: start;
-  padding-block: var(--space-7);
-}
-
-.tc-title-poster {
-  flex-shrink: 0;
-  inline-size: var(--size-poster-detail);
-  block-size: auto;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  background-color: var(--color-raised);
-  border-radius: var(--radius-card);
-}
-
-.tc-title-copy {
-  display: grid;
-  gap: var(--space-4);
-  justify-items: start;
 }
 
 .tc-title-year {
