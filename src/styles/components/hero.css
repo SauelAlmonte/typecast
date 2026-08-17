@@ -134,11 +134,18 @@
   text-align: start;
 }
 
-/* Phone-narrow: the copy clears the full-width strip (100vw at 16:9)
-   and sits on the base color below it, like the title page's stack. */
+/* Phone-narrow: no viewport minimum and no bottom anchor, which put a
+   dead gap between strip and copy and drove the search bar into the
+   caption. The band is its content: strip, copy right below it, and
+   end padding reserving the caption and dot rows' ground. */
 @media (width <= 36rem) {
+  .tc-hero {
+    min-block-size: auto;
+  }
+
   .tc-hero-inner {
     padding-block-start: calc(100vw * 9 / 16 + var(--space-5));
+    padding-block-end: var(--space-9);
   }
 }
 
@@ -152,6 +159,14 @@
 
   .tc-hero-inner {
     padding-block-end: var(--space-10);
+  }
+}
+
+/* Tablet band only: the full viewport reads oversized between the
+   strip and the copy, so the band gives some of it back. */
+@media (36rem < width < 64rem) {
+  .tc-hero {
+    min-block-size: calc(85svh - var(--size-header));
   }
 }
 
