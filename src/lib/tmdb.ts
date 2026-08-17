@@ -52,6 +52,12 @@ export type TmdbSeason = {
   poster_path?: string | null;
 };
 export type TmdbKeyword = { id: number; name: string };
+export type TmdbImage = {
+  file_path: string;
+  /** Language of any text burned into the image; null means textless. */
+  iso_639_1?: string | null;
+  vote_count?: number;
+};
 
 /**
  * A movie or TV detail response with the appended sub-resources the
@@ -83,6 +89,7 @@ export type TmdbTitleDetail = {
   videos?: { results?: TmdbVideo[] };
   recommendations?: { results?: TmdbListItem[] };
   keywords?: { keywords?: TmdbKeyword[]; results?: TmdbKeyword[] };
+  images?: { backdrops?: TmdbImage[] };
   release_dates?: {
     results?: {
       iso_3166_1: string;
@@ -94,8 +101,8 @@ export type TmdbTitleDetail = {
 
 /** One TMDB request covers everything a title page shows. */
 const DETAIL_APPEND = {
-  movie: "credits,videos,recommendations,keywords,release_dates",
-  tv: "credits,videos,recommendations,keywords,content_ratings",
+  movie: "credits,videos,recommendations,keywords,release_dates,images",
+  tv: "credits,videos,recommendations,keywords,content_ratings,images",
 } as const;
 
 /** Details drift about as fast as the catalog: a day of cache is fine. */
@@ -123,6 +130,9 @@ export async function fetchTmdbDetail(
 
   const url = new URL(`${TMDB_BASE_URL}/${mediaType}/${tmdbId}`);
   url.searchParams.set("append_to_response", DETAIL_APPEND[mediaType]);
+  // Without this, appended images are filtered to the request language
+  // and the textless backdrops (iso_639_1 null) never arrive.
+  url.searchParams.set("include_image_language", "null,en");
 
   const res = await fetch(url, {
     headers: {

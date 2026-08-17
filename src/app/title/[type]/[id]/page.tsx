@@ -87,6 +87,19 @@ function makers(
   };
 }
 
+/**
+ * The backdrop worth a full-width band. TMDB's detail default is the
+ * highest vote average, which lets a 6-vote crop beat a 38-vote scene
+ * shot; consensus (vote count) across the textless backdrops picks the
+ * art people actually chose. Falls back to the default.
+ */
+function pickBackdrop(detail: TmdbTitleDetail): string | null {
+  const voted = (detail.images?.backdrops ?? [])
+    .filter((b) => b.iso_639_1 == null)
+    .sort((a, b) => (b.vote_count ?? 0) - (a.vote_count ?? 0));
+  return voted[0]?.file_path ?? detail.backdrop_path ?? null;
+}
+
 /** Best YouTube video: an official trailer, any trailer, then a teaser. */
 function pickTrailer(detail: TmdbTitleDetail): string | null {
   const videos = (detail.videos?.results ?? []).filter(
@@ -138,9 +151,10 @@ export async function generateMetadata({
   return {
     title: year ? `${displayTitle(detail)} (${year})` : displayTitle(detail),
     description: detail.overview || undefined,
-    openGraph: detail.backdrop_path
-      ? { images: [`${BACKDROP_BASE}${detail.backdrop_path}`] }
-      : undefined,
+    openGraph: (() => {
+      const backdrop = pickBackdrop(detail);
+      return backdrop ? { images: [`${BACKDROP_BASE}${backdrop}`] } : undefined;
+    })(),
   };
 }
 
@@ -158,6 +172,7 @@ export default async function TitlePage({
   if (!detail) notFound();
 
   const title = displayTitle(detail);
+  const backdropPath = pickBackdrop(detail);
   const year = releaseYear(detail);
   const cert = certification(detail);
   const runtime = kind === "movie" ? formatRuntime(detail.runtime) : null;
@@ -197,7 +212,7 @@ export default async function TitlePage({
       <main id="main" tabIndex={-1}>
         <article>
           <section aria-labelledby="tc-title-heading" className="tc-title-hero">
-            {detail.backdrop_path && (
+            {backdropPath && (
               <div aria-hidden="true" className="tc-title-backdrop">
                 <Image
                   alt=""
@@ -205,7 +220,7 @@ export default async function TitlePage({
                   fill
                   preload
                   sizes="100vw"
-                  src={`${BACKDROP_BASE}${detail.backdrop_path}`}
+                  src={`${BACKDROP_BASE}${backdropPath}`}
                 />
                 <div className="tc-title-scrim" />
               </div>
