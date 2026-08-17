@@ -1,7 +1,5 @@
-/* Fixed bar. Every band starts below it (main's padding-block-start in
-   layout.css), so no section content or focused control ever hides
-   beneath it (WCAG 2.4.11). Solid canvas: content scrolling underneath
-   must never show through the wordmark. */
+/* Fixed bar. Sections start below it (main's padding in layout.css),
+   so nothing hides beneath it (WCAG 2.4.11). */
 
 .tc-header {
   position: fixed;
@@ -13,11 +11,15 @@
   border-block-end: 1px solid var(--color-line);
 }
 
-/* The wordmark is the logo, sized to read as one, not as a nav label.
-   It links home, so the anchor voice (underline) is stripped: the mark
-   is brand first, and hover states the interactivity instead. Shared
-   with the phone menu's bar (MobileNav), so it lives here rather than
-   with either nav. */
+/* Passes the bar's height to the nav, which centers via block-size 100%.
+   A mix on the container div, so the rule stays flat and this block
+   never names the tc-container block. */
+.tc-header__container {
+  block-size: 100%;
+}
+
+/* The wordmark reads as the logo, not a nav label: no underline, hover
+   states the link. Shared with the phone menu's bar, so it lives here. */
 .tc-header__brand {
   font-size: var(--type-h2);
   line-height: var(--leading-h2);
@@ -29,7 +31,3 @@
     color: var(--color-ink-muted);
   }
 }
-
-/* The bar is solid on every page. It used to float transparent over
-   the landing hero, but the hero art no longer runs underneath it:
-   like the title pages, the band starts below the bar. */

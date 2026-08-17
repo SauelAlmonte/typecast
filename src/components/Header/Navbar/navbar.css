@@ -15,7 +15,8 @@
   gap: var(--space-2);
 }
 
-/* Text link with a padded hit area comfortably over the 24px floor (2.5.8). */
+/* Text link with a padded hit area comfortably over the 24px floor (2.5.8).
+   Quiet like the wordmark: decoration and the muted color only on hover. */
 .tc-navbar__link {
   display: inline-flex;
   align-items: center;
@@ -23,6 +24,8 @@
   padding-block: var(--space-2);
   padding-inline: var(--space-2);
   color: var(--color-ink);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 /* After .tc-navbar__link on purpose: the GitHub hide shares its
@@ -34,4 +37,11 @@
   .tc-navbar__link--github {
     display: none;
   }
+}
+
+/* Flat and last: higher specificity than the --github hide above, so
+   nesting it in the base rule would trip noDescendingSpecificity. */
+.tc-navbar__link:hover {
+  color: var(--color-ink-muted);
+  text-decoration: underline;
 }

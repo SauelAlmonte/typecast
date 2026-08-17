@@ -10,7 +10,7 @@ import Icon from "@/components/Icon/Icon";
  */
 export default function Navbar() {
   return (
-    <nav aria-label="Primary" className="tc-container-wide tc-navbar">
+    <nav aria-label="Primary" className="tc-navbar">
       <Link className="tc-wordmark tc-header__brand" href="/">
         TypeCast
       </Link>
@@ -25,7 +25,10 @@ export default function Navbar() {
           </Link>
         ))}
       </div>
-      <a className="tc-navbar__link tc-navbar__link--github" href={GITHUB_URL}>
+      <a
+        className="tc-ui tc-navbar__link tc-navbar__link--github"
+        href={GITHUB_URL}
+      >
         <Icon name="github" size="sm" />
         GitHub
       </a>
