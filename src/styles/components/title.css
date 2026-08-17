@@ -54,6 +54,10 @@
   .tc-title-backdrop {
     inset-block-end: 0;
     inset-inline-start: auto;
+    /* Same cap as the landing hero: on tall windows the box yields its
+       ratio and the image centers, instead of the overflow eating the
+       art's start side only. */
+    max-inline-size: 100%;
   }
 
   .tc-title-scrim {

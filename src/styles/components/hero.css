@@ -1,12 +1,9 @@
-/* Prime-style media hero: a rotating catalog backdrop fills the section,
-   the pitch and search bar pin to the bottom-left corner over a scrim,
-   and dots mark the rotation. Without a backdrop (failed fetch, empty
-   catalog, databaseless CI) the same layout sits on the themed canvas. */
-
-/* The hero owns the full viewport: it pulls itself up under the fixed
-   header (cancelling main's offset) so the art runs edge to edge, and
-   the header floats transparent above it. The padding keeps the copy
-   itself out of the header zone. */
+/* Landing hero, same treatment as the title pages: the band's height
+   comes from the copy, and the rotating art renders at its own 16:9
+   with nothing cropped: a full-width strip on the band's top edge in
+   compact bands, pinned to the end edge at band height on wide
+   screens. The band is theme-independent media ground like the title
+   hero, so the fallback without art is simply the base color. */
 
 .tc-section {
   padding-block-end: var(--space-8);
@@ -15,83 +12,39 @@
 .tc-hero {
   position: relative;
   display: grid;
+  /* The copy holds the bottom corner, Prime-style, and the band keeps
+     its original stature: the viewport below the fixed bar. min-, not
+     height, so taller content stays scrollable (WCAG 1.4.4/1.4.10);
+     svh dodges the phone URL-bar jump. On wide screens the art box
+     rides this height, so the taller the window, the more art. */
   align-content: end;
-  /* 2:1 trades a small controlled crop for a shorter hero: the 16:9
-       backdrop loses about a ninth of its height, and object-position
-       below decides which slice survives. */
-  aspect-ratio: 16 / 9;
-  margin-block-start: calc(-1 * var(--size-header));
-  padding-block-start: var(--size-header);
-  padding-block-end: var(--space-8);
-  /* No overflow: hidden here: the suggestion panel must hang below the
-     hero's edge when the bar sits near the bottom. The image layers
-     are inset-pinned, so nothing else can spill anyway. */
-}
-
-/* Poster-shaped box only where the screen is genuinely phone-narrow;
-   wider portrait viewports keep the wide backdrop so the section's
-   height stays sane (2:3 costs 1.5x the width in height). */
-@media (orientation: portrait) and (width <= 36rem) {
-  .tc-hero {
-    aspect-ratio: 2 / 3;
-  }
-}
-
-.tc-hero-inner {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: var(--space-5);
-  justify-items: start;
-  text-align: start;
-}
-
-/* Wraps "Half a title" / "is enough." as two stacked lines, the way
-   Prime's title art sits as a block in the corner. */
-.tc-hero-inner .tc-display {
-  max-inline-size: 12ch;
-}
-
-.tc-hero-lede {
-  max-inline-size: var(--measure-lede);
-  color: var(--color-ink-muted);
-}
-
-.tc-hero .tc-search-field {
-  max-inline-size: var(--container-hero-copy);
-}
-
-/* Above the touch band only: the copy column tracks the window (50vw)
-   until the fixed caps win near 1100px wide. Phones never see this;
-   there the column is simply the full width. The paragraph shares the
-   bar's governor so it can never run wider than the bar. */
-@media (width >= 48rem) {
-  .tc-hero-lede {
-    max-inline-size: min(var(--measure-lede), 50vw);
-  }
-
-  .tc-hero .tc-search-field {
-    max-inline-size: min(var(--container-hero-copy), 50vw);
-  }
-}
-
-/* Text flips to the theme-independent media colors only when a backdrop
-   layer actually rendered; the fallback hero keeps theme ink. */
-.tc-hero:has(.tc-hero-backdrop) .tc-hero-inner {
+  min-block-size: calc(100svh - var(--size-header));
+  /* Crops the backdrop box's excess width when the band runs tall. */
+  overflow: hidden;
   color: var(--color-on-media);
+  background-color: var(--color-media-base);
 }
 
-.tc-hero:has(.tc-hero-backdrop) .tc-hero-lede {
-  color: var(--color-on-media-muted);
-}
-
-/* --- Backdrop layers --- */
+/* --- Backdrop box --- */
 
 .tc-hero-backdrop {
   position: absolute;
   inset: 0;
+  inset-block-end: auto;
+  aspect-ratio: 16 / 9;
   background-color: var(--color-media-base);
-  width: 100%;
+}
+
+@media (width >= 64rem) {
+  .tc-hero-backdrop {
+    inset-block-end: 0;
+    inset-inline-start: auto;
+    /* Tall windows would make the 16:9 box wider than the band and
+       the overflow crop would eat the art's start side only. Capped,
+       the box loses its ratio instead and the image cover-crops from
+       its center, so the subject stays centered at any window shape. */
+    max-inline-size: 100%;
+  }
 }
 
 .tc-hero-layer {
@@ -99,11 +52,10 @@
   inset: 0;
 }
 
+/* The box already carries the art's ratio; cover is the guard for the
+   odd source that isn't exactly 16:9. */
 .tc-hero-layer-img {
   object-fit: cover;
-  /* Bias the crop upward: faces and titles live in the upper half of
-     both TMDB backdrops and posters, so the bottom is what cover trims. */
-  object-position: center 25%;
 }
 
 /* Keyed remount per title restarts this fade; the previous layer stays
@@ -124,18 +76,133 @@
   opacity: 0;
 }
 
-/* Darkens the corner the copy sits in and the strip under the floating
-   header; the photo stays readable everywhere else. The left and
-   bottom runs both use the strong scrim and reach further in, so even
-   a pale foggy backdrop can't wash out the copy: where they overlap
-   in the copy corner the two multiply to near-opaque. */
+/* --- Scrims: the title page's ramps, per band --- */
+
+/* Tablet default: dark under the copy's start corner, one long ease to
+   fully clear at the end, bottom edge handed to the base color. */
 .tc-hero-scrim {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to bottom, var(--color-scrim-soft), transparent 22%),
-    linear-gradient(to top, var(--color-scrim-strong) 10%, transparent 65%),
-    linear-gradient(to right, var(--color-scrim-strong) 35%, transparent 80%);
+    linear-gradient(to bottom, transparent 55%, var(--color-media-base)),
+    linear-gradient(
+      to right,
+      var(--color-scrim-strong) 25%,
+      var(--color-scrim-soft) 55%,
+      transparent 85%
+    );
+}
+
+/* Wide band: the art's start edge dissolves into the base color the
+   copy sits on, and a short bottom run keeps the dots and the
+   Featured caption readable when the art is pale. */
+@media (width >= 64rem) {
+  .tc-hero-scrim {
+    background:
+      linear-gradient(to top, var(--color-scrim-strong), transparent 18%),
+      linear-gradient(
+        to right,
+        var(--color-media-base),
+        var(--color-scrim-soft) 45%,
+        transparent 80%
+      );
+  }
+}
+
+/* Phone-narrow: nothing overlaps the strip, so it stays clear and only
+   the hand-off into the base color dims it. */
+@media (width <= 36rem) {
+  .tc-hero-scrim {
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--color-scrim-soft) 60%,
+      var(--color-media-base)
+    );
+  }
+}
+
+/* --- Copy --- */
+
+.tc-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-5);
+  justify-items: start;
+  padding-block: var(--space-7);
+  text-align: start;
+}
+
+/* Phone-narrow: no viewport minimum and no bottom anchor, which put a
+   dead gap between strip and copy and drove the search bar into the
+   caption. The band is its content: strip, copy right below it, and
+   end padding reserving the caption and dot rows' ground. */
+@media (width <= 36rem) {
+  .tc-hero {
+    min-block-size: auto;
+  }
+
+  .tc-hero-inner {
+    padding-block-start: calc(100vw * 9 / 16 + var(--space-5));
+    padding-block-end: var(--space-9);
+  }
+}
+
+/* Tablet and up: the copy rides above the dead middle, an optical
+   center. The end-heavy padding is what lifts it: center alignment
+   centers the padded box, so the extra bottom pushes the text up. */
+@media (width > 36rem) {
+  .tc-hero {
+    align-content: center;
+  }
+
+  .tc-hero-inner {
+    padding-block-end: var(--space-10);
+  }
+}
+
+/* Tablets through laptops: content-sized like the phone, so no dead
+   ground opens between the copy and the dot row on tall windows; the
+   end padding is the caption and dot rows' reserved space. Only
+   larger desktops keep the full-viewport band. */
+@media (36rem < width <= 90rem) {
+  .tc-hero {
+    min-block-size: auto;
+  }
+
+  .tc-hero-inner {
+    padding-block-end: var(--space-9);
+  }
+}
+
+/* Wraps "Half a title" / "is enough." as two stacked lines, the way
+   Prime's title art sits as a block in the corner. */
+.tc-hero-inner .tc-display {
+  max-inline-size: 12ch;
+}
+
+.tc-hero-lede {
+  max-inline-size: var(--measure-lede);
+  color: var(--color-on-media-muted);
+}
+
+.tc-hero .tc-search-field {
+  max-inline-size: var(--container-hero-copy);
+}
+
+/* Above the touch band only: the copy column tracks the window (50vw)
+   until the fixed caps win near 1100px wide. Phones never see this;
+   there the column is simply the full width. The paragraph shares the
+   bar's governor so it can never run wider than the bar. */
+@media (width >= 48rem) {
+  .tc-hero-lede {
+    max-inline-size: min(var(--measure-lede), 50vw);
+  }
+
+  .tc-hero .tc-search-field {
+    max-inline-size: min(var(--container-hero-copy), 50vw);
+  }
 }
 
 /* --- Rotation furniture --- */
@@ -148,11 +215,21 @@
   color: var(--color-on-media-muted);
 }
 
-/* On phones the caption would collide with the dots; the dots carry the
-   same titles in their labels, so the caption yields. */
+/* Below the tablet band the caption steps above the dot row so the
+   two never share a line. */
 @media (width <= 48rem) {
   .tc-hero-featured {
-    display: none;
+    inset-block-end: calc(var(--space-3) + var(--icon-lg) + var(--space-2));
+  }
+}
+
+/* Phone-narrow only: the copy sits below the strip, so the caption
+   anchors inside the strip near its lower edge, where the fade gives
+   it contrast. */
+@media (width <= 36rem) {
+  .tc-hero-featured {
+    inset-block-start: calc(100vw * 9 / 16 - var(--space-8));
+    inset-block-end: auto;
   }
 }
 

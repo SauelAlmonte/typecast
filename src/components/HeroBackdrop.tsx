@@ -4,11 +4,9 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import type { UpcomingItem } from "@/app/api/upcoming/route";
 
-/** w1280 is TMDB's largest sized backdrop; the hero fills the viewport. */
+/** w1280 is TMDB's largest sized backdrop; the hero box renders it at
+ * its own 16:9 in every band, so there is no portrait variant. */
 const BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
-
-/** Portrait viewports get the portrait art instead; w780 covers phones. */
-const POSTER_BASE = "https://image.tmdb.org/t/p/w780";
 
 /** How long each featured title holds the background. */
 const ROTATE_MS = 5_000;
@@ -31,25 +29,9 @@ const ROTATION_MAX = 6;
 export default function HeroBackdrop() {
   const [items, setItems] = useState<UpcomingItem[]>([]);
   const [index, setIndex] = useState(0);
-  // Art direction, not scaling: a widescreen backdrop cropped into a
-  // tall viewport loses its subject, so portrait screens swap to the
-  // portrait poster, which is composed for exactly that shape.
-  const [isPortrait, setIsPortrait] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia(
-      "(orientation: portrait) and (max-width: 36rem)",
-    );
-    setIsPortrait(query.matches);
-    const onChange = (e: MediaQueryListEvent) => setIsPortrait(e.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
 
   function artSrc(item: UpcomingItem): string {
-    return isPortrait
-      ? `${POSTER_BASE}${item.posterPath}`
-      : `${BACKDROP_BASE}${item.backdropPath}`;
+    return `${BACKDROP_BASE}${item.backdropPath}`;
   }
 
   useEffect(() => {

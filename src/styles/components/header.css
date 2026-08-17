@@ -126,43 +126,6 @@
   color: var(--color-ink);
 }
 
-/* Over a live hero backdrop the bar starts see-through and its text
-   flips to the media colors; the hero's top scrim keeps it legible.
-   Pages without a backdrop (results, databaseless fallback) keep the
-   solid bar, where theme ink still contrasts. Last in the file on
-   purpose: these outrank the base rules above and must follow them. */
-body:has(.tc-hero-backdrop) .tc-header {
-  color: var(--color-on-media);
-  background-color: transparent;
-  border-block-end: none;
-  transition:
-    background-color var(--duration-base) var(--ease-out),
-    color var(--duration-base) var(--ease-out);
-}
-
-body:has(.tc-hero-backdrop) .tc-header-link {
-  color: var(--color-on-media);
-  transition: color var(--duration-base) var(--ease-out);
-}
-
-/* Hover follows the same flip: muted media ink on the photo, muted
-   theme ink once the bar solidifies. */
-body:has(.tc-hero-backdrop) .tc-header-brand:hover {
-  color: var(--color-on-media-muted);
-}
-
-body:has(.tc-hero-backdrop) .tc-header-scrolled .tc-header-brand:hover {
-  color: var(--color-ink-muted);
-}
-
-/* Once the page scrolls, the bar solidifies again: past the hero it
-   would otherwise fight the rail posters for contrast. */
-body:has(.tc-hero-backdrop) .tc-header-scrolled {
-  color: var(--color-ink);
-  background-color: var(--color-canvas);
-  border-block-end: 1px solid var(--color-line);
-}
-
-body:has(.tc-hero-backdrop) .tc-header-scrolled .tc-header-link {
-  color: var(--color-ink);
-}
+/* The bar is solid on every page. It used to float transparent over
+   the landing hero, but the hero art no longer runs underneath it:
+   like the title pages, the band starts below the bar. */

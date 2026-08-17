@@ -4,9 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/Icon";
 
-/** Past this many pixels of scroll the bar drops its transparency. */
-const SOLID_AFTER_PX = 24;
-
 /** One source for both the inline links and the phone menu. */
 const CATALOG_LINKS = [
   { href: "/search?type=movie", label: "Movies" },
@@ -18,9 +15,7 @@ const CATALOG_LINKS = [
 const GITHUB_URL = "https://github.com/SauelAlmonte/typecast";
 
 /**
- * Fixed site bar. Over a live hero backdrop it starts see-through
- * (see header.css); once the page scrolls it turns solid again, so
- * the nav never fights the rail posters underneath for contrast.
+ * Fixed site bar, solid on every page.
  *
  * Below the tablet band the links collapse into a full-screen menu
  * behind a hamburger button. The menu is a native dialog: focus
@@ -28,16 +23,8 @@ const GITHUB_URL = "https://github.com/SauelAlmonte/typecast";
  * instead of hand-rolled listeners.
  */
 export default function Header() {
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > SOLID_AFTER_PX);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   // Growing the window past the breakpoint hides the hamburger, so the
   // menu must not be able to outlive its only opener.
@@ -60,7 +47,7 @@ export default function Header() {
   }
 
   return (
-    <header className={scrolled ? "tc-header tc-header-scrolled" : "tc-header"}>
+    <header className="tc-header">
       <nav aria-label="Primary" className="tc-container-wide tc-header-nav">
         <Link className="tc-wordmark tc-header-brand" href="/">
           TypeCast
