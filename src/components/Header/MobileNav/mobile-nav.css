@@ -54,6 +54,7 @@
   list-style: none;
 }
 
+/* Same voice as the desktop links: quiet until hovered. */
 .tc-mobile-nav__link {
   display: inline-flex;
   align-items: center;
@@ -62,4 +63,11 @@
   font-size: var(--type-h2);
   line-height: var(--leading-h2);
   color: var(--color-ink);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--color-ink-muted);
+    text-decoration: underline;
+  }
 }

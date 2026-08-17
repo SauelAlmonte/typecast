@@ -19,7 +19,10 @@ export default function MobileNav() {
   // Growing the window past the breakpoint hides the hamburger, so the
   // menu must not be able to outlive its only opener.
   useEffect(() => {
-    const query = window.matchMedia("(min-width: 48rem)");
+    // Exact complement of the CSS mobile range (width <= 48rem): with
+    // min-width both would match at exactly 48rem, so a menu opened
+    // there would outlive its opener.
+    const query = window.matchMedia("(width > 48rem)");
     const onChange = (e: MediaQueryListEvent) => {
       if (e.matches) menuRef.current?.close();
     };
