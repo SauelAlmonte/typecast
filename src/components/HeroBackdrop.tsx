@@ -100,8 +100,9 @@ export default function HeroBackdrop() {
     <>
       <div aria-hidden="true" className="tc-hero-backdrop">
         {/* Visible at first paint beneath the current layer's 900ms fade,
-            so it can be the LCP image; eager stops the lazy default without
-            priority's preload hint, which belongs to the current layer. */}
+            so it can be the LCP image; eager stops the lazy default. The
+            current layer alone adds fetchPriority: it wins the race among
+            the three concurrently mounted layers. */}
         <div className="tc-hero-layer" key={`p-${previous.id}`}>
           <Image
             alt=""
@@ -117,11 +118,15 @@ export default function HeroBackdrop() {
           className="tc-hero-layer tc-hero-layer-current"
           key={`c-${current.id}`}
         >
+          {/* Not the deprecated priority or its successor preload: a head
+              preload link can't get ahead of a client-fetched src, and the
+              keyed remount would inject one per rotated title. */}
           <Image
             alt=""
             className="tc-hero-layer-img"
+            fetchPriority="high"
             fill
-            priority
+            loading="eager"
             sizes="100vw"
             src={artSrc(current)}
           />
