@@ -58,14 +58,14 @@
   }
 }
 
-/* Phone band: the copy stacks tall over the art, so the box reverts to
-   a cover fill and the scrim turns vertical: soft up top where only
-   the poster sits, near-solid by the time the copy starts. A flat
-   strong scrim here buried the art completely. */
-@media (width <= 48rem) {
-  .tc-title-backdrop {
-    inset: 0;
-    aspect-ratio: auto;
+/* Phone-narrow only (the landing hero's 36rem line, so a 768px tablet
+   keeps the side-by-side row): the copy stacks under the poster and
+   the scrim turns vertical, soft where only the poster sits and
+   near-solid by the time the copy starts. A flat strong scrim here
+   buried the art completely. */
+@media (width <= 36rem) {
+  .tc-title-hero-inner {
+    flex-direction: column;
   }
 
   .tc-title-scrim {
@@ -304,13 +304,10 @@
   border: none;
 }
 
-/* --- Phone band --- */
+/* --- Compact bands --- */
 
+/* Tablets keep the row; the poster just yields width to the copy. */
 @media (width <= 48rem) {
-  .tc-title-hero-inner {
-    flex-direction: column;
-  }
-
   .tc-title-poster {
     inline-size: var(--size-poster-detail-mobile);
   }
