@@ -12,30 +12,35 @@
   background-color: var(--color-media-base);
 }
 
-/* Three bands, one goal: the art at its best while the copy stays
-   readable. Wide screens give the box the art's own 16:9 on the end
-   edge; tablets cover-fill under a start-heavy scrim, their band shape
-   being close enough to 16:9 that the crop stays honest; phones stack
-   the copy over the art under a vertical fade (below). */
+/* Three bands, one goal: the art at its own 16:9 with nothing cropped,
+   the copy readable everywhere. Tablets and phones run it as a
+   full-width strip on the band's top edge; wide screens pin it to the
+   end edge at band height. The scrim always dissolves the art's edges
+   into the base color so there is never a seam. */
 .tc-title-backdrop {
   position: absolute;
   inset: 0;
+  inset-block-end: auto;
+  aspect-ratio: 16 / 9;
 }
 
 .tc-title-backdrop-img {
   object-fit: cover;
 }
 
-/* Tablet default: the copy hugs the start edge but can reach the end,
-   so the scrim leans start-heavy and never fully clears. */
+/* Tablet default: the headline overlaps the art's start side, so that
+   corner darkens; the rest stays light, and the bottom edge fades
+   into the base color the overview sits on. */
 .tc-title-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to right,
-    var(--color-scrim-strong) 40%,
-    var(--color-scrim-soft) 85%
-  );
+  background:
+    linear-gradient(to bottom, transparent 55%, var(--color-media-base)),
+    linear-gradient(
+      to right,
+      var(--color-scrim-strong) 30%,
+      var(--color-scrim-soft) 75%
+    );
 }
 
 /* Wide band: the landing hero's lesson. Cover-fit in a content-shaped
@@ -44,8 +49,8 @@
    base color and the scrim dissolves the seam into it. */
 @media (width >= 64rem) {
   .tc-title-backdrop {
+    inset-block-end: 0;
     inset-inline-start: auto;
-    aspect-ratio: 16 / 9;
   }
 
   .tc-title-scrim {
@@ -121,19 +126,14 @@
       "about";
   }
 
-  /* The wide treatment rotated: instead of cover-cropping a zoomed
-     slice, the box takes the art's own 16:9 at full width on the
-     band's top edge, and the scrim dissolves its bottom edge into
-     the base color the stacked copy sits on. */
-  .tc-title-backdrop {
-    inset-block-end: auto;
-    aspect-ratio: 16 / 9;
-  }
-
+  /* Nothing overlaps the art's upper half here (the poster rides its
+     lower edge), so it stays clear and only the hand-off into the
+     base color dims it. */
   .tc-title-scrim {
     background: linear-gradient(
       to bottom,
-      var(--color-scrim-soft),
+      transparent,
+      var(--color-scrim-soft) 60%,
       var(--color-media-base)
     );
   }
