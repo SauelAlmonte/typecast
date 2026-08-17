@@ -3,6 +3,7 @@ type IconName =
   | "chevron-right"
   | "github"
   | "menu"
+  | "play"
   | "search"
   | "x";
 

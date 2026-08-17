@@ -30,6 +30,9 @@ export default function IconSprite() {
           <path d="M18 6 6 18" />
           <path d="m6 6 12 12" />
         </symbol>
+        <symbol id="icon-play" viewBox="0 0 24 24">
+          <polygon points="6 3 20 12 6 21 6 3" />
+        </symbol>
       </defs>
     </svg>
   );

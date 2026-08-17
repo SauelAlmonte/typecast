@@ -184,10 +184,13 @@ export default function SearchBox() {
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   }
 
+  /** Picking a suggestion goes straight to its title page; the query
+   * still lands in the box and the recents so Back feels continuous. */
   function selectResult(r: SuggestResult) {
     setQuery(r.title);
     saveRecent(r.title);
     closePanel();
+    router.push(`/title/${r.mediaType}/${r.tmdbId}`);
   }
 
   function selectRecent(title: string) {

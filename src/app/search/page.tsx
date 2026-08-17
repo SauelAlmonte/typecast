@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import IconSprite from "@/components/IconSprite";
@@ -114,25 +115,32 @@ export default async function SearchPage({
             <ul className="tc-results-grid">
               {results.map((r) => (
                 <li className="tc-result-card" key={`${r.mediaType}-${r.id}`}>
-                  {r.posterPath ? (
-                    <Image
-                      alt=""
-                      className="tc-result-card-poster"
-                      height={278}
-                      src={`${POSTER_BASE}${r.posterPath}`}
-                      width={185}
-                    />
-                  ) : (
-                    <span
-                      aria-hidden="true"
-                      className="tc-result-card-poster"
-                    />
-                  )}
-                  <span className="tc-ui tc-result-card-title">{r.title}</span>
-                  <span className="tc-meta tc-result-card-meta">
-                    {r.mediaType === "tv" ? "TV" : "Movie"}
-                    {r.year ? ` · ${r.year}` : ""}
-                  </span>
+                  <Link
+                    className="tc-result-card-link"
+                    href={`/title/${r.mediaType}/${r.tmdbId}`}
+                  >
+                    {r.posterPath ? (
+                      <Image
+                        alt=""
+                        className="tc-result-card-poster"
+                        height={278}
+                        src={`${POSTER_BASE}${r.posterPath}`}
+                        width={185}
+                      />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="tc-result-card-poster"
+                      />
+                    )}
+                    <span className="tc-ui tc-result-card-title">
+                      {r.title}
+                    </span>
+                    <span className="tc-meta tc-result-card-meta">
+                      {r.mediaType === "tv" ? "TV" : "Movie"}
+                      {r.year ? ` · ${r.year}` : ""}
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>

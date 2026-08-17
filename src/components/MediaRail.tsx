@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useId, useRef } from "react";
 import type { RailItem } from "@/app/api/rails/route";
 import Icon from "@/components/Icon";
@@ -80,18 +81,23 @@ export default function MediaRail({ title, items }: MediaRailProps) {
                 className="tc-carousel-card"
                 key={`${item.mediaType}-${item.id}`}
               >
-                <Image
-                  alt=""
-                  className="tc-carousel-poster"
-                  height={278}
-                  src={`${POSTER_BASE}${item.posterPath}`}
-                  width={185}
-                />
-                <span className="tc-ui tc-carousel-title">{item.title}</span>
-                <span className="tc-meta tc-carousel-meta">
-                  {item.mediaType === "tv" ? "TV" : "Movie"}
-                  {item.year ? ` · ${item.year}` : ""}
-                </span>
+                <Link
+                  className="tc-carousel-card-link"
+                  href={`/title/${item.mediaType}/${item.tmdbId}`}
+                >
+                  <Image
+                    alt=""
+                    className="tc-carousel-poster"
+                    height={278}
+                    src={`${POSTER_BASE}${item.posterPath}`}
+                    width={185}
+                  />
+                  <span className="tc-ui tc-carousel-title">{item.title}</span>
+                  <span className="tc-meta tc-carousel-meta">
+                    {item.mediaType === "tv" ? "TV" : "Movie"}
+                    {item.year ? ` · ${item.year}` : ""}
+                  </span>
+                </Link>
               </li>
             ))}
       </ul>

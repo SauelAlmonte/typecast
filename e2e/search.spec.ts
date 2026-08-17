@@ -3,9 +3,16 @@ import { expect, test } from "@playwright/test";
 // The suggest API is mocked so these tests exercise only the client:
 // debounce, keyboard navigation, ARIA wiring, empty state, and recents.
 // CI runs them without a database on purpose.
+
+// URL assertions outlive a dev-server cold compile of the destination
+// route plus its upstream round trip; the default 5s intermittently
+// lost that race locally. CI's production server needs none of this.
+const NAV_TIMEOUT_MS = 15_000;
+
 const FIXTURE = [
   {
     id: 1,
+    tmdbId: 101,
     mediaType: "tv",
     title: "Stranger Things",
     year: 2016,
@@ -13,6 +20,7 @@ const FIXTURE = [
   },
   {
     id: 2,
+    tmdbId: 102,
     mediaType: "tv",
     title: "Star Trek: Strange New Worlds",
     year: 2022,
@@ -20,6 +28,7 @@ const FIXTURE = [
   },
   {
     id: 3,
+    tmdbId: 103,
     mediaType: "movie",
     title: "Lucky Strike",
     year: 2026,
@@ -60,9 +69,11 @@ test("arrow keys walk the options and Enter selects", async ({ page }) => {
     page.getByRole("option", { name: /strange new worlds/i }),
   ).toHaveAttribute("aria-selected", "true");
 
+  // Selection navigates to the title page; the URL is the assertion
+  // because the destination server-renders from TMDB, which these
+  // client-only tests don't stub.
   await input.press("Enter");
-  await expect(input).toHaveValue("Star Trek: Strange New Worlds");
-  await expect(page.getByRole("listbox")).toBeHidden();
+  await expect(page).toHaveURL(/\/title\/tv\/102/, { timeout: NAV_TIMEOUT_MS });
 });
 
 test("ArrowUp wraps to the last option", async ({ page }) => {
@@ -134,7 +145,7 @@ test("the magnifying-glass button submits to the results page", async ({
   const input = page.getByRole("combobox", { name: /search movies/i });
   await input.fill("spi");
   await page.getByRole("button", { name: /^search$/i }).click();
-  await expect(page).toHaveURL(/\/search\?q=spi/);
+  await expect(page).toHaveURL(/\/search\?q=spi/, { timeout: NAV_TIMEOUT_MS });
 });
 
 test("Enter with no suggestion highlighted submits the query", async ({
@@ -143,7 +154,7 @@ test("Enter with no suggestion highlighted submits the query", async ({
   const input = page.getByRole("combobox", { name: /search movies/i });
   await input.fill("spi");
   await input.press("Enter");
-  await expect(page).toHaveURL(/\/search\?q=spi/);
+  await expect(page).toHaveURL(/\/search\?q=spi/, { timeout: NAV_TIMEOUT_MS });
 });
 
 test("a selection becomes a recent search offered on empty focus", async ({
@@ -154,9 +165,13 @@ test("a selection becomes a recent search offered on empty focus", async ({
   await expect(page.getByRole("option")).toHaveCount(3);
   await input.press("ArrowDown");
   await input.press("Enter");
-  await expect(input).toHaveValue("Stranger Things");
+  // Selection leaves for the title page; the recent is saved before
+  // navigation, so it must greet the next visit to the search box.
+  await expect(page).toHaveURL(/\/title\/tv\/101/, { timeout: NAV_TIMEOUT_MS });
 
-  await input.fill("");
+  await page.goBack();
+  const back = page.getByRole("combobox", { name: /search movies/i });
+  await back.click();
   const recents = page.getByRole("listbox", { name: /recent searches/i });
   await expect(recents).toBeVisible();
   await expect(

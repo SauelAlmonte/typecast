@@ -91,11 +91,6 @@
   border: none;
 }
 
-/* The page behind the open menu must not scroll under it. */
-body:has(.tc-nav-menu[open]) {
-  overflow: hidden;
-}
-
 /* Mirrors the bar's geometry so the close button sits where the
    hamburger was and the wordmark doesn't jump. */
 .tc-nav-menu-bar {

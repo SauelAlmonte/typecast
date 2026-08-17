@@ -92,6 +92,7 @@
   --measure-lede: 45ch;
   --container-search: 48rem; /* 768px  — the search column */
   --container-content: 64rem; /* 1024px — article and detail pages */
+  --container-aside: 16rem; /*  256px — the facts column on detail pages */
   --container-wide: 80rem; /* 1280px — grids, discovery, max content */
   --container-full: 100%; /*        — campaign and full-bleed */
 
@@ -127,6 +128,9 @@
   /* Carousel poster cards, 2:3; rem so the rail scales with text size. */
   --size-card-inline: 9.5rem;
   --size-card-inline-mobile: 7.5rem;
+  /* Title-page hero poster, 2:3; rem so it scales with text size. */
+  --size-poster-detail: 15rem;
+  --size-poster-detail-mobile: 9rem;
 
   /* --- Motion (§8) --- */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
