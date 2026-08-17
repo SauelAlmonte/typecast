@@ -2,13 +2,13 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** Every click leads somewhere. Suggestions, result cards, and
-rail posters all land on TMDB-powered title pages (hero, cast, season,
-recommendations, trailer), the header collapses to a full-screen phone
-menu, and a five-agent verification pass audited the whole codebase.
-Next: the combobox's loading and error states (the audit's top
-findings), rate limiting before wide sharing, server cache, and the
-scheduled sync.
+**Phase:** One visual language front to back. The landing hero now
+shares the title pages' backdrop system: art at its own 16:9 in every
+band, per-band scrim ramps, content-sized bands through laptops. Title
+selections land on TMDB-powered title pages, and the header collapses
+to a full-screen phone menu. Next: the combobox's loading and error
+states (the audit's top findings), rate limiting before wide sharing,
+server cache, and the scheduled sync.
 
 ---
 
@@ -57,6 +57,7 @@ scheduled sync.
 | 2026-08-16 | No stacked PRs | PR #26 was merged while its base was still the nav branch, so the title work landed there instead of `main` and had to be re-landed as #27. GitHub only retargets a stacked PR if its base branch is deleted first. Branch from `main`, PR against `main`, always. |
 | 2026-08-16 | E2E navigation timeouts | URL assertions get 15s (`NAV_TIMEOUT_MS`): the 5s default kept losing to dev-server cold route compiles plus an upstream round trip, which was the suite's long-standing submit flake. CI's production server never needed it. |
 | 2026-08-16 | Cascade order is load-bearing | Two shipped bugs were equal-specificity overrides sitting before their base rules (the header's GitHub hide, the title hero's phone stack). Overrides that share specificity with a base rule live after it in source, with a comment naming the dependency. |
+| 2026-08-16 | Landing hero joins the backdrop system | Supersedes "Hero takes the art's shape" and the header portion of "Overlay legibility rules": the rotating art uses the title pages' bands (end-pinned 16:9 capped at band width on wide screens, full-width top strip below 64rem, per-band scrim ramps). The portrait poster swap is gone (art is always the backdrop) and the header is a solid bar everywhere, retiring the transparent-scroll state. Sizing settled through Sauel's review: content-sized bands from phones through laptops (90rem), full viewport only beyond; caption in-strip on phones, above the dot row on tablets, bottom corner on wide. |
 
 ---
 
@@ -129,6 +130,7 @@ scheduled sync.
 - [x] Shipped PR #27 (`eaae5bb`): the title pages, re-landed after the #26 stacked-base mishap. TMDB-shaped detail page per title, trailer dialog, every poster and suggestion now a link, plus the 16:9 backdrop box and the consensus art picker, iterated live against Sauel's review of real titles.
 - [x] Shipped PR #28 (`ca5e067`): responsive backdrop bands, seven commits of Sauel-driven refinement across breakpoints. Art at its own ratio in every band, gradient ramps matched to the wide band's look, tablets pairing only the headline with the poster, and the phone-stack cascade bug fixed.
 - [x] Diagnosed the recurring e2e submit flake as URL assertions racing dev-server cold compiles, not a product bug; navigation asserts now allow 15s and the suite is 20/20 on both browsers.
+- [x] Shipped PR #30 (`1133ddb`): the landing hero adopted the title pages' backdrop system, ten commits of band-by-band refinement driven by Sauel's device review. Along the way: the wide-band width cap fixing off-center crops on tall windows (applied to title pages too), content-sized bands through laptops after the viewport minimum kept opening dead ground, and the Featured caption placement settled per band after one overcorrection got reverted on his call.
 
 ---
 
