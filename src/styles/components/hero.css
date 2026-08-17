@@ -223,10 +223,12 @@
   }
 }
 
+/* Tablet: back at the band's bottom, one row above the dots, which is
+   where it settled best; the copy rules out the strip's lower half
+   and the top corner read as a badge. */
 @media (36rem < width < 64rem) {
   .tc-hero-featured {
-    inset-block-start: var(--space-5);
-    inset-block-end: auto;
+    inset-block-end: calc(var(--space-3) + var(--icon-lg) + var(--space-2));
   }
 }
 
