@@ -21,6 +21,15 @@ export default function IconSprite() {
         <symbol id="icon-chevron-right" viewBox="0 0 24 24">
           <path d="m9 18 6-6-6-6" />
         </symbol>
+        <symbol id="icon-menu" viewBox="0 0 24 24">
+          <path d="M4 6h16" />
+          <path d="M4 12h16" />
+          <path d="M4 18h16" />
+        </symbol>
+        <symbol id="icon-x" viewBox="0 0 24 24">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </symbol>
       </defs>
     </svg>
   );
