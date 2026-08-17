@@ -12,33 +12,50 @@
   background-color: var(--color-media-base);
 }
 
-/* The landing hero's lesson again: cover-fit in a content-shaped band
-   must crop and zoom, so the box takes the art's own 16:9 instead,
-   pinned to the end edge at full band height. The rest of the band is
-   the base color, and the scrim dissolves the art's start edge into
-   it so there's never a seam. */
+/* Three bands, one goal: the art at its best while the copy stays
+   readable. Wide screens give the box the art's own 16:9 on the end
+   edge; tablets cover-fill under a start-heavy scrim, their band shape
+   being close enough to 16:9 that the crop stays honest; phones stack
+   the copy over the art under a vertical fade (below). */
 .tc-title-backdrop {
   position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
-  aspect-ratio: 16 / 9;
+  inset: 0;
 }
 
 .tc-title-backdrop-img {
   object-fit: cover;
 }
 
-/* Solid at the art's start edge (the seam), dimmed through the middle
-   where copy can overlap on middling widths, clear at the end. */
+/* Tablet default: the copy hugs the start edge but can reach the end,
+   so the scrim leans start-heavy and never fully clears. */
 .tc-title-scrim {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to right,
-    var(--color-media-base),
-    var(--color-scrim-soft) 45%,
-    transparent 80%
+    var(--color-scrim-strong) 40%,
+    var(--color-scrim-soft) 85%
   );
+}
+
+/* Wide band: the landing hero's lesson. Cover-fit in a content-shaped
+   band must crop and zoom, so the box takes the art's own 16:9, pinned
+   to the end edge at full band height; the rest of the band is the
+   base color and the scrim dissolves the seam into it. */
+@media (width >= 64rem) {
+  .tc-title-backdrop {
+    inset-inline-start: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .tc-title-scrim {
+    background: linear-gradient(
+      to right,
+      var(--color-media-base),
+      var(--color-scrim-soft) 45%,
+      transparent 80%
+    );
+  }
 }
 
 /* Phone band: the copy stacks tall over the art, so the box reverts to
