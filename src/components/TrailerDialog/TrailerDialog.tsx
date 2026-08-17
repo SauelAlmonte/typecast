@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Icon from "@/components/Icon";
+import Icon from "@/components/Icon/Icon";
 
 type TrailerDialogProps = {
   /** YouTube video key; the page only renders this component when one exists. */
@@ -28,7 +28,11 @@ export default function TrailerDialog({ videoKey, title }: TrailerDialogProps) {
 
   return (
     <>
-      <button className="tc-trailer-button" onClick={show} type="button">
+      <button
+        className="tc-trailer-dialog__button"
+        onClick={show}
+        type="button"
+      >
         <Icon name="play" size="sm" />
         Play Trailer
       </button>
@@ -38,11 +42,11 @@ export default function TrailerDialog({ videoKey, title }: TrailerDialogProps) {
         onClose={() => setOpen(false)}
         ref={dialogRef}
       >
-        <div className="tc-trailer-bar">
+        <div className="tc-trailer-dialog__bar">
           <span className="tc-ui">{title}</span>
           <button
             aria-label="Close trailer"
-            className="tc-trailer-close"
+            className="tc-trailer-dialog__close"
             onClick={() => dialogRef.current?.close()}
             type="button"
           >
@@ -52,7 +56,7 @@ export default function TrailerDialog({ videoKey, title }: TrailerDialogProps) {
         {open && (
           <iframe
             allow="autoplay; encrypted-media; fullscreen"
-            className="tc-trailer-frame"
+            className="tc-trailer-dialog__frame"
             src={`https://www.youtube-nocookie.com/embed/${videoKey}?autoplay=1`}
             title={`${title} trailer`}
           />

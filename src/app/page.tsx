@@ -1,8 +1,8 @@
-import CategoryRails from "@/components/CategoryRails";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
-import Hero from "@/components/Hero";
-import IconSprite from "@/components/IconSprite";
+import Footer from "@/components/Footer/Footer";
+import Header from "@/components/Header/Header";
+import IconSprite from "@/components/Icon/IconSprite/IconSprite";
+import LandingHero from "@/components/LandingHero/LandingHero";
+import CategoryRails from "@/components/Rails/CategoryRails/CategoryRails";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
       <Header />
       {/* tabIndex lets the skip link land focus here in every browser. */}
       <main id="main" tabIndex={-1}>
-        <Hero />
+        <LandingHero />
         <CategoryRails />
       </main>
       <Footer />

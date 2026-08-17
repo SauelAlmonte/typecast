@@ -2,17 +2,23 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { RailItem } from "@/app/api/rails/route";
-import CastRail, { type CastCard } from "@/components/CastRail";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
-import IconSprite from "@/components/IconSprite";
-import MediaRail from "@/components/MediaRail";
-import TrailerDialog from "@/components/TrailerDialog";
+import Footer from "@/components/Footer/Footer";
+import Header from "@/components/Header/Header";
+import IconSprite from "@/components/Icon/IconSprite/IconSprite";
+import CastRail, { type CastCard } from "@/components/Rails/CastRail/CastRail";
+import MediaRail from "@/components/Rails/MediaRail/MediaRail";
+import TrailerDialog from "@/components/TrailerDialog/TrailerDialog";
 import { fetchTmdbDetail, type TmdbTitleDetail } from "@/lib/tmdb";
 
 /** w1280 backdrop fills the hero band; w500 covers the poster at 2x. */
 const BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
 const POSTER_BASE = "https://image.tmdb.org/t/p/w500";
+
+/** Mirrors the backdrop box in title.css: a full-width strip in compact
+ * bands; from 64rem the box rides the band height at 16:9. The band is
+ * content-sized (poster plus paddings, more when the copy runs long),
+ * so 64rem is a ceiling on the box's usual width, not an exact value. */
+const BACKDROP_SIZES = "(min-width: 64rem) 64rem, 100vw";
 
 const CAST_MAX = 12;
 const RECOMMENDATIONS_MAX = 12;
@@ -219,7 +225,7 @@ export default async function TitlePage({
                   className="tc-title-backdrop-img"
                   fill
                   preload
-                  sizes="100vw"
+                  sizes={BACKDROP_SIZES}
                   src={`${BACKDROP_BASE}${backdropPath}`}
                 />
                 <div className="tc-title-scrim" />

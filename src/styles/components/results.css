@@ -10,7 +10,7 @@
 
 /* The shared search field centers itself in the hero; here it hugs the
    start edge with the heading and grid. */
-.tc-results > .tc-search-field {
+.tc-results > .tc-search-box {
   justify-self: stretch;
 }
 

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import type { SuggestResult } from "@/app/api/suggest/route";
-import Icon from "@/components/Icon";
+import Icon from "@/components/Icon/Icon";
 import { normalizeSearchText } from "@/lib/normalize";
 
 const CACHE_MAX = 50;
@@ -274,7 +274,7 @@ export default function SearchBox() {
   }
 
   return (
-    <div className="tc-search-field">
+    <div className="tc-search-box">
       <label className="tc-visually-hidden" htmlFor="tc-search">
         Search movies
       </label>
@@ -282,7 +282,7 @@ export default function SearchBox() {
           panel's blur-close never races the click. */}
       <button
         aria-label="Search"
-        className="tc-search-submit"
+        className="tc-search-box__submit"
         onClick={submitSearch}
         onMouseDown={(e) => e.preventDefault()}
         type="button"
@@ -295,7 +295,7 @@ export default function SearchBox() {
         aria-controls={LISTBOX_ID}
         aria-expanded={isOpen}
         autoComplete="off"
-        className="tc-search-input"
+        className="tc-search-box__input"
         id="tc-search"
         onBlur={closePanel}
         onChange={(e) => handleChange(e.target.value)}
@@ -311,19 +311,19 @@ export default function SearchBox() {
         {liveMessage}
       </span>
       {isOpen && showEmptyState && (
-        <div className="tc-search-panel tc-search-empty">
+        <div className="tc-search-box__panel tc-search-box__panel--empty">
           No matches for “{query.trim()}”
         </div>
       )}
       {isOpen && !showEmptyState && (
         <div
           aria-label={showingRecents ? "Recent searches" : "Suggestions"}
-          className="tc-search-panel tc-result-list"
+          className="tc-search-box__panel"
           id={LISTBOX_ID}
           role="listbox"
         >
           {showingRecents && (
-            <div aria-hidden="true" className="tc-search-heading">
+            <div aria-hidden="true" className="tc-search-box__heading">
               Recent searches
             </div>
           )}
@@ -333,8 +333,8 @@ export default function SearchBox() {
                   aria-selected={index === activeIndex}
                   className={
                     index === activeIndex
-                      ? "tc-result-row tc-result-row-active"
-                      : "tc-result-row"
+                      ? "tc-search-box__option tc-search-box__option--active"
+                      : "tc-search-box__option"
                   }
                   id={recentOptionId(index)}
                   key={title}
@@ -347,11 +347,11 @@ export default function SearchBox() {
                   tabIndex={-1}
                 >
                   <Icon
-                    className="tc-result-recent-icon"
+                    className="tc-search-box__recent-icon"
                     name="search"
                     size="sm"
                   />
-                  <span className="tc-result-title">{title}</span>
+                  <span className="tc-search-box__title">{title}</span>
                 </div>
               ))
             : results.map((r, index) => (
@@ -359,8 +359,8 @@ export default function SearchBox() {
                   aria-selected={index === activeIndex}
                   className={
                     index === activeIndex
-                      ? "tc-result-row tc-result-row-active"
-                      : "tc-result-row"
+                      ? "tc-search-box__option tc-search-box__option--active"
+                      : "tc-search-box__option"
                   }
                   id={resultOptionId(r)}
                   key={`${r.mediaType}-${r.id}`}
@@ -378,18 +378,18 @@ export default function SearchBox() {
                   {r.posterPath ? (
                     <Image
                       alt=""
-                      className="tc-result-thumb"
+                      className="tc-search-box__thumb"
                       height={60}
                       src={`${TMDB_IMAGE_BASE}${r.posterPath}`}
                       width={40}
                     />
                   ) : (
-                    <span aria-hidden="true" className="tc-result-thumb" />
+                    <span aria-hidden="true" className="tc-search-box__thumb" />
                   )}
-                  <span className="tc-result-text">
-                    <span className="tc-result-title">{r.title}</span>
+                  <span className="tc-search-box__text">
+                    <span className="tc-search-box__title">{r.title}</span>
                     {r.year && (
-                      <span className="tc-result-hint">
+                      <span className="tc-search-box__hint">
                         Release Date: {r.year}
                       </span>
                     )}

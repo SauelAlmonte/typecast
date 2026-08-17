@@ -1,16 +1,25 @@
-/* Design System v2.0 §5 — input anatomy and result rows. Today this styles
-   the hero's static shell and the landing preview; the real combobox
-   inhabits these same classes when it's built. */
+/* Design System v2.0 §5 — input anatomy and suggestion rows for the
+   combobox. */
 
-.tc-search-field {
+.tc-search-box {
   position: relative;
   inline-size: 100%;
   max-inline-size: var(--container-search);
+
+  /* From the tablet band up the 16px zoom floor no longer applies
+     (only touch browsers zoom into small inputs), so the control
+     relaxes to the ui size. Every dimension is em, so the whole pill
+     scales down with it: height, icon slot, and paddings together.
+     The wrapper gets the same size so the submit button's em geometry
+     stays in lockstep with the input's padding. */
+  @media (width >= 48rem) {
+    font-size: var(--type-ui);
+  }
 }
 
-/* The magnifying glass is a real submit button now, layered inside the
+/* The magnifying glass is a real submit button, layered inside the
    pill at its start edge. Sized in em so it scales with the field text. */
-.tc-search-submit {
+.tc-search-box__submit {
   position: absolute;
   inset-block-start: 50%;
   inset-inline-start: var(--search-icon-inset);
@@ -22,17 +31,17 @@
   color: var(--color-ink-muted);
   border-radius: var(--radius-pill);
   translate: 0 -50%;
-}
 
-.tc-search-submit:hover {
-  color: var(--color-ink);
+  &:hover {
+    color: var(--color-ink);
+  }
 }
 
 /* The 1px border is the identifying cue and carries the 3:1 requirement —
    the surface-to-canvas fill difference is decorative only. Geometry is
    em so padding and height ride the input's own font size; the start
    padding clears the submit button plus a half-em gap. */
-.tc-search-input {
+.tc-search-box__input {
   inline-size: 100%;
   block-size: var(--size-input);
   padding-inline-start: calc(
@@ -49,30 +58,16 @@
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-}
 
-.tc-search-input::placeholder {
-  color: var(--color-ink-muted);
-}
+  &::placeholder {
+    color: var(--color-ink-muted);
+  }
 
-@media (width < 48rem) {
-  .tc-search-input {
+  @media (width < 48rem) {
     block-size: var(--size-input-mobile);
   }
-}
 
-/* From the tablet band up the 16px zoom floor no longer applies (only
-   touch browsers zoom into small inputs), so the control relaxes to
-   the ui size. Every dimension is em, so the whole pill scales down
-   with it: height, icon slot, and paddings together. The field
-   wrapper gets the same size so the submit button's em geometry
-   stays in lockstep with the input's padding. */
-@media (width >= 48rem) {
-  .tc-search-field {
-    font-size: var(--type-ui);
-  }
-
-  .tc-search-input {
+  @media (width >= 48rem) {
     font-size: var(--type-ui);
   }
 }
@@ -80,13 +75,14 @@
 /* Suggestion panel: floats over the page below the input, so the field
    itself never grows — the icon's 50% centering depends on that height
    staying fixed. text-align resets the hero's centering. */
-.tc-search-panel {
+.tc-search-box__panel {
   position: absolute;
   inset-block-start: calc(100% + var(--space-2));
   inset-inline: 0;
   z-index: 10;
   overflow: hidden;
   text-align: start;
+  list-style: none;
   /* Same opt-out as the input: the panel floats on a themed surface,
      so it resets the hero's forced media color back to theme ink. */
   color: var(--color-ink);
@@ -96,10 +92,53 @@
   border-radius: var(--radius-panel);
 }
 
+.tc-search-box__panel--empty {
+  padding-block: var(--space-4);
+  padding-inline: var(--space-4);
+  font-size: var(--type-ui);
+  color: var(--color-ink-muted);
+}
+
+/* The "Recent searches" caption above the recents rows. */
+.tc-search-box__heading {
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  font-size: var(--type-meta);
+  color: var(--color-ink-muted);
+  border-block-end: 1px solid var(--color-line);
+}
+
+/* --- Suggestion rows --- */
+
+.tc-search-box__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: var(--size-row);
+  padding-inline: var(--space-4);
+  cursor: pointer;
+  /* Transparent by default so the active rule never shifts the row. */
+  border-inline-start: 3px solid transparent;
+  border-block-end: 1px solid var(--color-line);
+
+  &:last-child {
+    border-block-end: none;
+  }
+
+  @media (width <= 48rem) {
+    min-block-size: var(--size-row-mobile);
+  }
+}
+
+.tc-search-box__option--active {
+  background-color: var(--color-raised);
+  border-inline-start-color: var(--tc-chartreuse);
+}
+
 /* Poster thumb: fixed 2:3 box; object-fit crops any odd source instead of
    squashing it. The empty-span fallback keeps rows aligned when a title
    has no poster. */
-.tc-result-thumb {
+.tc-search-box__thumb {
   flex-shrink: 0;
   inline-size: var(--size-thumb-inline);
   block-size: var(--size-thumb-block);
@@ -108,81 +147,25 @@
   border-radius: var(--radius-control);
 }
 
+.tc-search-box__recent-icon {
+  flex-shrink: 0;
+  color: var(--color-ink-muted);
+}
+
 /* Title above, year below, in the space right of the thumb. */
-.tc-result-text {
+.tc-search-box__text {
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-/* --- Result rows (Tier 1: title + media-type tag reads as finished) --- */
-
-.tc-result-list {
-  list-style: none;
-}
-
-.tc-result-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-block-size: var(--size-row);
-  padding-inline: var(--space-4);
-  /* Transparent by default so the active rule never shifts the row. */
-  border-inline-start: 3px solid transparent;
-  border-block-end: 1px solid var(--color-line);
-}
-
-.tc-result-row:last-child {
-  border-block-end: none;
-}
-
-/* Only suggestion rows are clickable; the landing preview rows are not. */
-.tc-search-panel .tc-result-row {
-  cursor: pointer;
-}
-
-.tc-search-heading {
-  padding-block: var(--space-2);
-  padding-inline: var(--space-4);
-  font-size: var(--type-meta);
-  color: var(--color-ink-muted);
-  border-block-end: 1px solid var(--color-line);
-}
-
-.tc-search-empty {
-  padding-block: var(--space-4);
-  padding-inline: var(--space-4);
-  font-size: var(--type-ui);
-  color: var(--color-ink-muted);
-}
-
-.tc-result-recent-icon {
-  flex-shrink: 0;
-  color: var(--color-ink-muted);
-}
-
-.tc-result-row-active {
-  background-color: var(--color-raised);
-  border-inline-start-color: var(--tc-chartreuse);
-}
-
-.tc-result-title {
+.tc-search-box__title {
   flex: 1;
   font-size: var(--type-ui);
   line-height: var(--leading-ui);
 }
 
-.tc-result-hint {
+.tc-search-box__hint {
   color: var(--color-ink-muted);
-}
-
-.tc-result-more {
-  color: var(--color-ink-muted);
-}
-
-@media (width <= 48rem) {
-  .tc-result-row {
-    min-block-size: var(--size-row-mobile);
-  }
 }

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useId, useRef } from "react";
 import type { RailItem } from "@/app/api/rails/route";
-import Icon from "@/components/Icon";
+import Icon from "@/components/Icon/Icon";
 
 /** w342 covers the card width at 2x device pixel ratio. */
 const POSTER_BASE = "https://image.tmdb.org/t/p/w342";
@@ -46,14 +46,14 @@ export default function MediaRail({ title, items }: MediaRailProps) {
 
   return (
     <section aria-labelledby={headingId} className="tc-carousel">
-      <div className="tc-carousel-head">
+      <div className="tc-carousel__head">
         <h2 className="tc-h3" id={headingId}>
           {title}
         </h2>
-        <div className="tc-carousel-nav">
+        <div className="tc-carousel__nav">
           <button
             aria-label={`Scroll ${title} back`}
-            className="tc-carousel-arrow"
+            className="tc-carousel__arrow"
             onClick={() => page(-1)}
             type="button"
           >
@@ -61,7 +61,7 @@ export default function MediaRail({ title, items }: MediaRailProps) {
           </button>
           <button
             aria-label={`Scroll ${title} forward`}
-            className="tc-carousel-arrow"
+            className="tc-carousel__arrow"
             onClick={() => page(1)}
             type="button"
           >
@@ -69,31 +69,31 @@ export default function MediaRail({ title, items }: MediaRailProps) {
           </button>
         </div>
       </div>
-      <ul className="tc-carousel-track" ref={track}>
+      <ul className="tc-carousel__track" ref={track}>
         {items === null
           ? SKELETON_KEYS.map((key) => (
-              <li aria-hidden="true" className="tc-carousel-card" key={key}>
-                <span className="tc-carousel-poster" />
+              <li aria-hidden="true" className="tc-carousel__card" key={key}>
+                <span className="tc-carousel__poster" />
               </li>
             ))
           : items.map((item) => (
               <li
-                className="tc-carousel-card"
+                className="tc-carousel__card"
                 key={`${item.mediaType}-${item.id}`}
               >
                 <Link
-                  className="tc-carousel-card-link"
+                  className="tc-carousel__card-link"
                   href={`/title/${item.mediaType}/${item.tmdbId}`}
                 >
                   <Image
                     alt=""
-                    className="tc-carousel-poster"
+                    className="tc-carousel__poster"
                     height={278}
                     src={`${POSTER_BASE}${item.posterPath}`}
                     width={185}
                   />
-                  <span className="tc-ui tc-carousel-title">{item.title}</span>
-                  <span className="tc-meta tc-carousel-meta">
+                  <span className="tc-ui tc-carousel__title">{item.title}</span>
+                  <span className="tc-meta tc-carousel__meta">
                     {item.mediaType === "tv" ? "TV" : "Movie"}
                     {item.year ? ` · ${item.year}` : ""}
                   </span>
