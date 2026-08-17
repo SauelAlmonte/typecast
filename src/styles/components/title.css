@@ -28,9 +28,11 @@
   object-fit: cover;
 }
 
-/* Tablet default: the headline overlaps the art's start side, so that
-   corner darkens; the rest stays light, and the bottom edge fades
-   into the base color the overview sits on. */
+/* Tablet default: the wide band's ramp, just starting under the
+   headline corner: dark at the start, one long ease to fully clear at
+   the end, so the art's right side reads unveiled like on laptops.
+   The bottom layer hands the strip's lower edge to the base color the
+   overview sits on. */
 .tc-title-scrim {
   position: absolute;
   inset: 0;
@@ -38,8 +40,9 @@
     linear-gradient(to bottom, transparent 55%, var(--color-media-base)),
     linear-gradient(
       to right,
-      var(--color-scrim-strong) 30%,
-      var(--color-scrim-soft) 75%
+      var(--color-scrim-strong) 25%,
+      var(--color-scrim-soft) 55%,
+      transparent 85%
     );
 }
 
