@@ -201,34 +201,29 @@
 
 /* --- Rotation furniture --- */
 
-/* Wide bands: above the bottom scrim run, visibly on the picture
-   rather than in the dark bar the dots occupy. */
 .tc-hero-featured {
   position: absolute;
-  inset-block-end: 20%;
+  inset-block-end: var(--space-4);
   inset-inline-end: var(--space-4);
   z-index: 1;
   color: var(--color-on-media-muted);
 }
 
-/* Compact bands: the caption belongs to the picture, not the dot row.
-   On phones the copy sits below the strip, so the caption anchors
-   inside the strip near its lower edge, where the fade gives it
-   contrast. On tablets the copy overlays the strip's lower half, so
-   the caption takes the strip's clear top-end corner instead. */
+/* Below the tablet band the caption steps above the dot row so the
+   two never share a line. */
+@media (width <= 48rem) {
+  .tc-hero-featured {
+    inset-block-end: calc(var(--space-3) + var(--icon-lg) + var(--space-2));
+  }
+}
+
+/* Phone-narrow only: the copy sits below the strip, so the caption
+   anchors inside the strip near its lower edge, where the fade gives
+   it contrast. */
 @media (width <= 36rem) {
   .tc-hero-featured {
     inset-block-start: calc(100vw * 9 / 16 - var(--space-8));
     inset-block-end: auto;
-  }
-}
-
-/* Tablet: back at the band's bottom, one row above the dots, which is
-   where it settled best; the copy rules out the strip's lower half
-   and the top corner read as a badge. */
-@media (36rem < width < 64rem) {
-  .tc-hero-featured {
-    inset-block-end: calc(var(--space-3) + var(--icon-lg) + var(--space-2));
   }
 }
 
