@@ -1,8 +1,7 @@
-/* Fixed bar. Safe under mandatory snap because the scroll container's
-   scroll-padding (layout.css) shifts every snap target below the bar, so
-   no section content or focused control ever hides beneath it (WCAG
-   2.4.11). Solid canvas: content scrolling underneath must never show
-   through the wordmark. */
+/* Fixed bar. Every band starts below it (main's padding-block-start in
+   layout.css), so no section content or focused control ever hides
+   beneath it (WCAG 2.4.11). Solid canvas: content scrolling underneath
+   must never show through the wordmark. */
 
 .tc-header {
   position: fixed;
