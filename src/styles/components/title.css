@@ -121,11 +121,20 @@
       "about";
   }
 
+  /* The wide treatment rotated: instead of cover-cropping a zoomed
+     slice, the box takes the art's own 16:9 at full width on the
+     band's top edge, and the scrim dissolves its bottom edge into
+     the base color the stacked copy sits on. */
+  .tc-title-backdrop {
+    inset-block-end: auto;
+    aspect-ratio: 16 / 9;
+  }
+
   .tc-title-scrim {
     background: linear-gradient(
       to bottom,
       var(--color-scrim-soft),
-      var(--color-scrim-strong) 55%
+      var(--color-media-base)
     );
   }
 }
