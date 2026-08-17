@@ -4,9 +4,9 @@ Running log of where the project stands, what's been decided, and what's still o
 
 **Phase:** One visual language front to back. The landing hero now
 shares the title pages' backdrop system: art at its own 16:9 in every
-band, per-band scrim ramps, content-sized bands through laptops. Every
-click leads to a TMDB-powered title page, and the header collapses to
-a full-screen phone menu. Next: the combobox's loading and error
+band, per-band scrim ramps, content-sized bands through laptops. Title
+selections land on TMDB-powered title pages, and the header collapses
+to a full-screen phone menu. Next: the combobox's loading and error
 states (the audit's top findings), rate limiting before wide sharing,
 server cache, and the scheduled sync.
 
@@ -57,7 +57,7 @@ server cache, and the scheduled sync.
 | 2026-08-16 | No stacked PRs | PR #26 was merged while its base was still the nav branch, so the title work landed there instead of `main` and had to be re-landed as #27. GitHub only retargets a stacked PR if its base branch is deleted first. Branch from `main`, PR against `main`, always. |
 | 2026-08-16 | E2E navigation timeouts | URL assertions get 15s (`NAV_TIMEOUT_MS`): the 5s default kept losing to dev-server cold route compiles plus an upstream round trip, which was the suite's long-standing submit flake. CI's production server never needed it. |
 | 2026-08-16 | Cascade order is load-bearing | Two shipped bugs were equal-specificity overrides sitting before their base rules (the header's GitHub hide, the title hero's phone stack). Overrides that share specificity with a base rule live after it in source, with a comment naming the dependency. |
-| 2026-08-16 | Landing hero joins the backdrop system | Supersedes "Hero takes the art's shape": the rotating art uses the title pages' bands (end-pinned 16:9 capped at band width on wide screens, full-width top strip below 64rem, per-band scrim ramps). The portrait poster swap is gone (art is always the backdrop) and the header is a solid bar everywhere, retiring the transparent-scroll state. Sizing settled through Sauel's review: content-sized bands from phones through laptops (90rem), full viewport only beyond; caption in-strip on phones, above the dot row on tablets, bottom corner on wide. |
+| 2026-08-16 | Landing hero joins the backdrop system | Supersedes "Hero takes the art's shape" and the header portion of "Overlay legibility rules": the rotating art uses the title pages' bands (end-pinned 16:9 capped at band width on wide screens, full-width top strip below 64rem, per-band scrim ramps). The portrait poster swap is gone (art is always the backdrop) and the header is a solid bar everywhere, retiring the transparent-scroll state. Sizing settled through Sauel's review: content-sized bands from phones through laptops (90rem), full viewport only beyond; caption in-strip on phones, above the dot row on tablets, bottom corner on wide. |
 
 ---
 
