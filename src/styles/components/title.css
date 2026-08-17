@@ -42,7 +42,9 @@
 }
 
 /* Phone band: the copy stacks tall over the art, so the box reverts to
-   a cover fill under a near-solid dim; legibility beats the crop. */
+   a cover fill and the scrim turns vertical: soft up top where only
+   the poster sits, near-solid by the time the copy starts. A flat
+   strong scrim here buried the art completely. */
 @media (width <= 48rem) {
   .tc-title-backdrop {
     inset: 0;
@@ -50,7 +52,11 @@
   }
 
   .tc-title-scrim {
-    background: var(--color-scrim-strong);
+    background: linear-gradient(
+      to bottom,
+      var(--color-scrim-soft),
+      var(--color-scrim-strong) 55%
+    );
   }
 }
 
