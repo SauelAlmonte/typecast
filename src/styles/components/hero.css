@@ -162,10 +162,11 @@
   }
 }
 
-/* Tablet band only: content-sized like the phone, so no dead ground
-   opens between the copy and the dot row on tall windows; the end
-   padding is the caption and dot rows' reserved space. */
-@media (36rem < width < 64rem) {
+/* Tablets through laptops: content-sized like the phone, so no dead
+   ground opens between the copy and the dot row on tall windows; the
+   end padding is the caption and dot rows' reserved space. Only
+   larger desktops keep the full-viewport band. */
+@media (36rem < width <= 90rem) {
   .tc-hero {
     min-block-size: auto;
   }
