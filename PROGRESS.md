@@ -2,13 +2,13 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** The product looks like one. The landing is a Prime-style
-media page: a rotating backdrop hero shaped to the artwork, TMDB
-category rails beneath it, a catalog nav, and a results page behind
-the search bar, all on top of the hand-built combobox stack. Sauel is
-deploying to Vercel manually (dashboard import; `DATABASE_URL` is the
-only secret the site needs). Next: rate limiting before wide sharing,
-server cache, scheduled sync, and the collapsed mobile nav.
+**Phase:** Every click leads somewhere. Suggestions, result cards, and
+rail posters all land on TMDB-powered title pages (hero, cast, season,
+recommendations, trailer), the header collapses to a full-screen phone
+menu, and a five-agent verification pass audited the whole codebase.
+Next: the combobox's loading and error states (the audit's top
+findings), rate limiting before wide sharing, server cache, and the
+scheduled sync.
 
 ---
 
@@ -50,16 +50,27 @@ server cache, scheduled sync, and the collapsed mobile nav.
 | 2026-08-13 | Search bar scales by band | Above 48rem the copy column (bar and lede share one 50vw governor) tracks the window until the fixed caps win, and the control's font relaxes to the ui size, shrinking the whole em-driven pill together. The 16px input floor is touch-only law (iOS zoom), so phones keep it and the full-width column. Boundaries meet exactly at 48rem (`<` / `>=`) after a `>` query silently excluded the 768px preset itself. |
 | 2026-08-13 | Overlay legibility rules | The scrim's left and bottom runs hold at full strength across the copy corner before fading (0.96 alpha), so fog-pale backdrops can't wash out text. Controls sitting on themed surfaces (input, suggestion panel) set explicit theme ink and never inherit the hero's media color; inherited white-on-cream made light-theme text invisible. The header floats transparent over a live backdrop and solidifies after 24px of scroll so it never fights rail posters. |
 | 2026-08-13 | Listbox markup | The suggestion listbox is divs with ARIA roles, not ul/li: Biome's a11y rules reject interactive roles on list tags and non-focusable options, and since a role replaces the tag's native semantics entirely, the neutral form is equivalent for assistive tech and lint-clean without carving exceptions into the a11y ruleset. |
+| 2026-08-16 | Title page architecture | `/title/{movie\|tv}/{tmdbId}`: routes speak TMDB ids, so `tmdbId` rides in every click payload (`MediaMatch`, `RailItem`). One TMDB request per title (`append_to_response`, cached a day in the data cache) feeds the whole page; TMDB 404s become `notFound`, params are validated before any fetch. |
+| 2026-08-16 | Backdrop by consensus | TMDB's detail default is the highest vote average, which let a 6-vote crop headline over a 38-vote scene shot. The page picks the most-voted textless backdrop from the appended images instead (`include_image_language` required, or textless never arrives), falling back to the default. |
+| 2026-08-16 | Backdrop bands | The art always renders at its own 16:9, never cover-cropped: wide screens pin it to the end edge at band height, tablets and phones run it as a full-width strip on the top edge. Scrims are ramps that end clear (wide and tablet) or hand the bottom edge to the base color (compact); a flat strong scrim reads as no backdrop at all. |
+| 2026-08-16 | Native dialogs | The phone menu and the trailer modal are `<dialog>` elements: focus trap, Escape, and background inertness come from the platform, and `body:has(dialog[open])` locks page scroll. The trailer's YouTube iframe mounts only while open, so closing stops playback and nothing third-party loads until asked. |
+| 2026-08-16 | No stacked PRs | PR #26 was merged while its base was still the nav branch, so the title work landed there instead of `main` and had to be re-landed as #27. GitHub only retargets a stacked PR if its base branch is deleted first. Branch from `main`, PR against `main`, always. |
+| 2026-08-16 | E2E navigation timeouts | URL assertions get 15s (`NAV_TIMEOUT_MS`): the 5s default kept losing to dev-server cold route compiles plus an upstream round trip, which was the suite's long-standing submit flake. CI's production server never needed it. |
+| 2026-08-16 | Cascade order is load-bearing | Two shipped bugs were equal-specificity overrides sitting before their base rules (the header's GitHub hide, the title hero's phone stack). Overrides that share specificity with a base rule live after it in source, with a comment naming the dependency. |
 
 ---
 
 ## Open
 
+- **Combobox loading and error states**: the verification audit's two high findings. The empty state has no loading concept, so "No matches" paints during the debounce window and after clicking a recent; and `fetchSuggestions` has no `res.ok` check, so a 500 or offline fetch becomes an unhandled rejection with no user feedback. One fix: the panel needs loading and error states. Core territory, Sauel's build.
+- **Combobox keyboard findings** (audit, medium): `isComposing` is unguarded, so IME users committing a composition trigger submit; and ArrowDown-when-closed reopens stale results against a changed input, bypassing the guard `handleFocus` already enforces.
+- **Query length cap** (audit, medium): `q` reaches `word_similarity` unbounded, so one 14KB request trigram-scans the catalog twice; a cap in `searchMedia` covers suggest and `/search` at once.
+- **Server hardening** (audit, low): a sync crash between upsert and prune persists a merged rail until the next sync; postponed titles that drop off TMDB keep stale future dates atop the hero rotation; one failed rail query fails all eight in `/api/rails`.
+- **Design-audit paper cuts**: a few untokenized values in component CSS (3px active bar, hero `12ch`, dot and caret em sizes, `steps(1)`), a redundant physical `width` in hero.css, a stale chartreuse comment, and typography.css's header claiming no raw values while declaring font weights.
 - **Rate limiting before wide sharing**: the API routes have none. Fine for showing Jami; add Upstash rate limiting (and the Redis server cache) before the link travels.
 - **Scheduled sync**: a Vercel cron replacing manual `pnpm db:sync`, which now also maintains the eight category lists. Needs `TMDB_READ_ACCESS_TOKEN` on Vercel when it lands.
-- **Collapsed mobile nav**: the header's catalog links hide below 48rem, so phones can't reach the browse pages (CodeRabbit flagged it; deliberately deferred to its own PR).
-- **Hero art curation**: backdrop compositions vary per title and sometimes fight the copy despite the scrim. Options discussed: hand-picked rotation list, per-title focal-point hints, or living with the scrim. Sauel's call when it bothers him enough.
-- **Suggestion selection destination**: the submit paths lead to `/search`, but picking a suggestion still only fills the input. A title detail page is the natural next step.
+- **Full Cast & Crew subpage**: the title page's cast rail is top-billed only; the department-grouped `/title/{type}/{id}/cast` page was deliberately deferred to its own PR.
+- **Hero art curation**: the title page's consensus picker (most-voted textless backdrop) could serve the landing rotation too; today the rotation still uses the sync's stored default `backdrop_path`.
 - **Vitest unit tests**: `normalizeSearchText` and the ranking query are the first candidates. Also unlocks affected tests in `stop-check`.
 - **Commit the design doc**: Design System v2.0 governs all UI work but lives only in chat history. It belongs in the repo, likely `docs/design-system.md`.
 - **Theme toggle and anti-flash script**: the pair that unlocks the `[data-theme]` selectors. Deliberately deferred; see the theming decision.
@@ -112,6 +123,12 @@ server cache, scheduled sync, and the collapsed mobile nav.
 - [x] Deployed. Sauel imported the repo through the Vercel dashboard with `DATABASE_URL` as the only secret; the site is live at typecast-sepia.vercel.app.
 - [x] Shipped PR #22 (`0e0f330`): social preview card. A 1200x630 hero screenshot via Next's `opengraph-image` file convention, twitter-image copy, alt text, and `metadataBase` pinning the production URL scrapers need. Pasting the link now unfurls a card.
 - [x] Gitignore audited after the tooling additions: Playwright's output directories, `.vercel`, and env files were already covered; `.remember/` added so the memory plugin's folder can't be committed from a machine without the global ignore.
+- [x] Ran a five-agent verification fan-out over the merged codebase at Sauel's request: lint, typecheck, build, and e2e all green; adversarial reviews of the combobox, server layer, and design-system conformance produced the findings now itemized under Open. The hand-written core held: the stale-response guard, debounce and cancellation interplay, cache cap, recents hardening, and activedescendant wiring all verified correct, and the SQL layer showed zero injection surface.
+- [x] Shipped PR #24 (`6b36e55`): the hero crossfade's base layer eager-loaded, silencing the LCP console warning. Worked CodeRabbit's thread on it: verified Next 16 deprecates `priority`, but replaced it with `loading="eager"` + `fetchPriority="high"` instead of the suggested `preload`, since a head preload link can't get ahead of a client-fetched src and the keyed remount would inject one per rotated title.
+- [x] Shipped PR #25 (`0b839b2`): the collapsed mobile nav, closing the deferred PR #20 finding. Full-screen native-dialog menu behind a hamburger below 48rem, GitHub folded in, wordmark now a home link with hover states in all three header bar states.
+- [x] Shipped PR #27 (`eaae5bb`): the title pages, re-landed after the #26 stacked-base mishap. TMDB-shaped detail page per title, trailer dialog, every poster and suggestion now a link, plus the 16:9 backdrop box and the consensus art picker, iterated live against Sauel's review of real titles.
+- [x] Shipped PR #28 (`ca5e067`): responsive backdrop bands, seven commits of Sauel-driven refinement across breakpoints. Art at its own ratio in every band, gradient ramps matched to the wide band's look, tablets pairing only the headline with the poster, and the phone-stack cascade bug fixed.
+- [x] Diagnosed the recurring e2e submit flake as URL assertions racing dev-server cold compiles, not a product bug; navigation asserts now allow 15s and the suite is 20/20 on both browsers.
 
 ---
 
