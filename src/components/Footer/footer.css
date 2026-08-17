@@ -4,7 +4,7 @@
   border-block-start: 1px solid var(--color-line);
 }
 
-.tc-footer-inner {
+.tc-footer__inner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -13,13 +13,13 @@
   padding-block: var(--space-5);
 }
 
-.tc-footer-note {
+.tc-footer__note {
   color: var(--color-ink-muted);
 }
 
 /* Attribution and rights: a quiet left-aligned stack. space-between
    scattered these across the row and read as a broken layout. */
-.tc-footer-legal {
+.tc-footer__legal {
   display: grid;
   gap: var(--space-2);
   justify-items: start;
@@ -27,13 +27,13 @@
 }
 
 /* Padding lifts the link's hit area over the 24px floor (2.5.8). */
-.tc-footer-tmdb {
+.tc-footer__tmdb {
   display: block;
   padding-block: var(--space-2);
 }
 
 /* Padded hit area over the 24px floor (2.5.8). */
-.tc-footer-link {
+.tc-footer__link {
   padding-block: var(--space-2);
   padding-inline: var(--space-2);
   color: var(--color-ink);

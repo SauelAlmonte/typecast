@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Gochi_Hand, Onest } from "next/font/google";
-import "@/styles/main.css";
+import "@/styles/global.css";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],

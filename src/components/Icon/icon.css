@@ -15,12 +15,12 @@
   stroke-linejoin: round;
 }
 
-.tc-icon-sm {
+.tc-icon--sm {
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
 }
 
-.tc-icon-lg {
+.tc-icon--lg {
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
 }

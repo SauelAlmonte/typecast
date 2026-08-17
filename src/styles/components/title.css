@@ -179,24 +179,6 @@
   align-items: center;
 }
 
-/* §6 button height: 12px paddings around the ui line land on 44px. */
-.tc-trailer-button {
-  display: inline-flex;
-  gap: var(--space-2);
-  align-items: center;
-  padding-block: var(--space-3);
-  padding-inline: var(--space-5);
-  font-size: var(--type-ui);
-  line-height: var(--leading-ui);
-  color: inherit;
-  border: 1px solid currentColor;
-  border-radius: var(--radius-pill);
-}
-
-.tc-trailer-button:hover {
-  color: var(--color-on-media-muted);
-}
-
 .tc-title-tagline {
   font-style: italic;
   color: var(--color-on-media-muted);
@@ -310,42 +292,6 @@
 
 .tc-title-season-overview {
   color: var(--color-ink-muted);
-}
-
-/* --- Trailer dialog --- */
-
-.tc-trailer-dialog {
-  inline-size: min(100%, var(--container-content));
-  padding: 0;
-  color: var(--color-ink);
-  background-color: var(--color-canvas);
-  border: none;
-  border-radius: var(--radius-panel);
-}
-
-.tc-trailer-dialog::backdrop {
-  background-color: var(--color-scrim-strong);
-}
-
-.tc-trailer-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-block: var(--space-2);
-  padding-inline: var(--space-4);
-}
-
-.tc-trailer-close {
-  display: inline-flex;
-  padding: var(--space-2);
-  color: inherit;
-}
-
-.tc-trailer-frame {
-  display: block;
-  inline-size: 100%;
-  aspect-ratio: 16 / 9;
-  border: none;
 }
 
 /* --- Compact bands --- */

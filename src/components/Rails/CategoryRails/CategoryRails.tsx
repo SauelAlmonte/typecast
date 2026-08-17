@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Rail } from "@/app/api/rails/route";
-import MediaRail from "@/components/MediaRail";
+import MediaRail from "@/components/Rails/MediaRail/MediaRail";
 
 /**
  * The stack of TMDB category rails under the hero, Prime-row style.
@@ -38,7 +38,7 @@ export default function CategoryRails() {
   }
 
   return (
-    <div className="tc-container-wide tc-rails">
+    <div className="tc-container-wide tc-category-rails">
       {rails === null ? (
         <>
           <MediaRail items={null} title="Popular Movies" />

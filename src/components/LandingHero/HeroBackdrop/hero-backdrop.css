@@ -1,0 +1,159 @@
+/* The landing hero's rotating art plus its furniture (scrim, Featured
+   caption, dot row). Everything positions against the band
+   (.tc-landing-hero__band, landing-hero.css), the nearest positioned ancestor. */
+
+/* The art box: a full-width strip on the band's top edge in compact
+   bands, pinned to the end edge at band height on wide screens. */
+.tc-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  inset-block-end: auto;
+  aspect-ratio: 16 / 9;
+  background-color: var(--color-media-base);
+
+  @media (width >= 64rem) {
+    inset-block-end: 0;
+    inset-inline-start: auto;
+    /* Tall windows would make the 16:9 box wider than the band and
+       the overflow crop would eat the art's start side only. Capped,
+       the box loses its ratio instead and the image cover-crops from
+       its center, so the subject stays centered at any window shape. */
+    max-inline-size: 100%;
+  }
+}
+
+.tc-hero-backdrop__layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* Keyed remount per title restarts this fade; the previous layer stays
+   underneath, so the swap reads as a crossfade. The reduced-motion kill
+   switch in reset.css collapses it to an instant cut. */
+.tc-hero-backdrop__layer--current {
+  animation: tc-backdrop-fade var(--duration-crossfade) var(--ease-out) both;
+}
+
+@keyframes tc-backdrop-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Preload slot: invisible, but the browser still fetches the image. */
+.tc-hero-backdrop__layer--hidden {
+  opacity: 0;
+}
+
+/* The box already carries the art's ratio; cover is the guard for the
+   odd source that isn't exactly 16:9. */
+.tc-hero-backdrop__img {
+  object-fit: cover;
+}
+
+/* --- Scrims: the title page's ramps, per band --- */
+
+/* Tablet default: dark under the copy's start corner, one long ease to
+   fully clear at the end, bottom edge handed to the base color. */
+.tc-hero-backdrop__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, transparent 55%, var(--color-media-base)),
+    linear-gradient(
+      to right,
+      var(--color-scrim-strong) 25%,
+      var(--color-scrim-soft) 55%,
+      transparent 85%
+    );
+
+  /* Wide band: the art's start edge dissolves into the base color the
+     copy sits on, and a short bottom run keeps the dots and the
+     Featured caption readable when the art is pale. */
+  @media (width >= 64rem) {
+    background:
+      linear-gradient(to top, var(--color-scrim-strong), transparent 18%),
+      linear-gradient(
+        to right,
+        var(--color-media-base),
+        var(--color-scrim-soft) 45%,
+        transparent 80%
+      );
+  }
+
+  /* Phone-narrow: nothing overlaps the strip, so it stays clear and
+     only the hand-off into the base color dims it. */
+  @media (width <= 36rem) {
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--color-scrim-soft) 60%,
+      var(--color-media-base)
+    );
+  }
+}
+
+/* --- Rotation furniture --- */
+
+.tc-hero-backdrop__featured {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 1;
+  color: var(--color-on-media-muted);
+
+  /* Below the tablet band the caption steps above the dot row so the
+     two never share a line. */
+  @media (width <= 48rem) {
+    inset-block-end: calc(var(--space-3) + var(--icon-lg) + var(--space-2));
+  }
+
+  /* Phone-narrow only: the copy sits below the strip, so the caption
+     anchors inside the strip near its lower edge, where the fade gives
+     it contrast. */
+  @media (width <= 36rem) {
+    inset-block-start: calc(100vw * 9 / 16 - var(--space-8));
+    inset-block-end: auto;
+  }
+}
+
+.tc-hero-backdrop__dots {
+  position: absolute;
+  inset-block-end: var(--space-3);
+  inset-inline: 0;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-1);
+  justify-content: center;
+}
+
+/* The button is the 24px hit area (2.5.8); the mark is the visual dot. */
+.tc-hero-backdrop__dot {
+  display: grid;
+  place-items: center;
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}
+
+.tc-hero-backdrop__dot-mark {
+  inline-size: 0.5em;
+  block-size: 0.5em;
+  background-color: var(--color-on-media-muted);
+  border-radius: var(--radius-pill);
+  opacity: 0.55;
+  transition:
+    inline-size var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+}
+
+.tc-hero-backdrop__dot--active .tc-hero-backdrop__dot-mark {
+  inline-size: 1.5em;
+  opacity: 1;
+}
+
+/* Last and highest-specificity on purpose (ascending order for the
+   specificity lint): hover outranks the active state, so hovering any
+   dot, active included, gives the same feedback. */
+.tc-hero-backdrop__dot:hover .tc-hero-backdrop__dot-mark {
+  opacity: 0.8;
+}

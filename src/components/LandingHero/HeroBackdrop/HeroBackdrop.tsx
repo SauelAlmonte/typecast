@@ -8,6 +8,13 @@ import type { UpcomingItem } from "@/app/api/upcoming/route";
  * its own 16:9 in every band, so there is no portrait variant. */
 const BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
 
+/** Mirrors the backdrop box in hero-backdrop.css: a full-width strip in compact
+ * bands; from 64rem the box rides the band height (100svh minus the
+ * header) at 16:9, capped at the viewport. Must change with the CSS or
+ * the browser fetches the wrong srcset width. */
+const BACKDROP_SIZES =
+  "(min-width: 64rem) min(calc((100svh - 5rem) * 16 / 9), 100vw), 100vw";
+
 /** How long each featured title holds the background. */
 const ROTATE_MS = 5_000;
 
@@ -85,19 +92,19 @@ export default function HeroBackdrop() {
             so it can be the LCP image; eager stops the lazy default. The
             current layer alone adds fetchPriority: it wins the race among
             the three concurrently mounted layers. */}
-        <div className="tc-hero-layer" key={`p-${previous.id}`}>
+        <div className="tc-hero-backdrop__layer" key={`p-${previous.id}`}>
           <Image
             alt=""
-            className="tc-hero-layer-img"
+            className="tc-hero-backdrop__img"
             fill
             loading="eager"
-            sizes="100vw"
+            sizes={BACKDROP_SIZES}
             src={artSrc(previous)}
           />
         </div>
         {/* The key remounts this layer per title, restarting the fade. */}
         <div
-          className="tc-hero-layer tc-hero-layer-current"
+          className="tc-hero-backdrop__layer tc-hero-backdrop__layer--current"
           key={`c-${current.id}`}
         >
           {/* Not the deprecated priority or its successor preload: a head
@@ -105,48 +112,50 @@ export default function HeroBackdrop() {
               keyed remount would inject one per rotated title. */}
           <Image
             alt=""
-            className="tc-hero-layer-img"
+            className="tc-hero-backdrop__img"
             fetchPriority="high"
             fill
             loading="eager"
-            sizes="100vw"
+            sizes={BACKDROP_SIZES}
             src={artSrc(current)}
           />
         </div>
         {n > 2 && (
           <div
-            className="tc-hero-layer tc-hero-layer-hidden"
+            className="tc-hero-backdrop__layer tc-hero-backdrop__layer--hidden"
             key={`n-${next.id}`}
           >
             <Image
               alt=""
-              className="tc-hero-layer-img"
+              className="tc-hero-backdrop__img"
               fill
-              sizes="100vw"
+              sizes={BACKDROP_SIZES}
               src={artSrc(next)}
             />
           </div>
         )}
-        <div className="tc-hero-scrim" />
+        <div className="tc-hero-backdrop__scrim" />
       </div>
-      <p className="tc-meta tc-hero-featured">
+      <p className="tc-meta tc-hero-backdrop__featured">
         Featured: {current.title}
         {current.year ? ` (${current.year})` : ""}
       </p>
       {n > 1 && (
-        <div className="tc-hero-dots">
+        <div className="tc-hero-backdrop__dots">
           {items.map((item, i) => (
             <button
               aria-current={i === index || undefined}
               aria-label={`Show ${item.title}`}
               className={
-                i === index ? "tc-hero-dot tc-hero-dot-active" : "tc-hero-dot"
+                i === index
+                  ? "tc-hero-backdrop__dot tc-hero-backdrop__dot--active"
+                  : "tc-hero-backdrop__dot"
               }
               key={`${item.mediaType}-${item.id}`}
               onClick={() => setIndex(i)}
               type="button"
             >
-              <span className="tc-hero-dot-mark" />
+              <span className="tc-hero-backdrop__dot-mark" />
             </button>
           ))}
         </div>

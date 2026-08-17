@@ -2,18 +2,42 @@
    doc assigns to this file. Component files join the imports as components
    are built (search, card, button, tag, states). */
 
-@import "./tokens.css";
-@import "./reset.css";
-@import "./typography.css";
-@import "./layout.css";
-@import "./components/icon.css";
-@import "./components/header.css";
-@import "./components/hero.css";
-@import "./components/search.css";
-@import "./components/carousel.css";
+@import "./design-system/tokens.css";
+@import "./design-system/reset.css";
+@import "./design-system/typography.css";
+@import "./design-system/layout.css";
+@import "../components/Icon/icon.css";
+@import "../components/Header/header.css";
+@import "../components/Header/Navbar/navbar.css";
+@import "../components/Header/MobileNav/mobile-nav.css";
+@import "../components/LandingHero/landing-hero.css";
+@import "../components/LandingHero/HeroBackdrop/hero-backdrop.css";
+@import "../components/SearchBox/search-box.css";
+@import "../components/Rails/CategoryRails/category-rails.css";
+@import "../components/Rails/carousel.css";
 @import "./components/results.css";
 @import "./components/title.css";
-@import "./components/footer.css";
+@import "../components/TrailerDialog/trailer-dialog.css";
+@import "../components/Footer/footer.css";
+
+/* The font families come from next/font in layout.tsx, which sets these
+   variables on <html> at build time — no stylesheet ever assigns them.
+   Registering them here (valueless, so the cascade is untouched) tells
+   static tooling they exist. */
+@property --font-text {
+  syntax: "*";
+  inherits: true;
+}
+
+@property --font-display {
+  syntax: "*";
+  inherits: true;
+}
+
+@property --font-brand {
+  syntax: "*";
+  inherits: true;
+}
 
 html {
   background: var(--color-canvas);

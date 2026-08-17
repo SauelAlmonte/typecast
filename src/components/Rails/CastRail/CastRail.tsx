@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useId, useRef } from "react";
-import Icon from "@/components/Icon";
+import Icon from "@/components/Icon/Icon";
 
 /** w185 covers the card width at 2x device pixel ratio. */
 const PROFILE_BASE = "https://image.tmdb.org/t/p/w185";
@@ -48,14 +48,14 @@ export default function CastRail({ title, cast }: CastRailProps) {
 
   return (
     <section aria-labelledby={headingId} className="tc-carousel">
-      <div className="tc-carousel-head">
+      <div className="tc-carousel__head">
         <h2 className="tc-h3" id={headingId}>
           {title}
         </h2>
-        <div className="tc-carousel-nav">
+        <div className="tc-carousel__nav">
           <button
             aria-label={`Scroll ${title} back`}
-            className="tc-carousel-arrow"
+            className="tc-carousel__arrow"
             onClick={() => page(-1)}
             type="button"
           >
@@ -63,7 +63,7 @@ export default function CastRail({ title, cast }: CastRailProps) {
           </button>
           <button
             aria-label={`Scroll ${title} forward`}
-            className="tc-carousel-arrow"
+            className="tc-carousel__arrow"
             onClick={() => page(1)}
             type="button"
           >
@@ -71,23 +71,23 @@ export default function CastRail({ title, cast }: CastRailProps) {
           </button>
         </div>
       </div>
-      <ul className="tc-carousel-track" ref={track}>
+      <ul className="tc-carousel__track" ref={track}>
         {cast.map((person) => (
-          <li className="tc-carousel-card" key={person.id}>
+          <li className="tc-carousel__card" key={person.id}>
             {person.profilePath ? (
               <Image
                 alt=""
-                className="tc-carousel-poster"
+                className="tc-carousel__poster"
                 height={278}
                 src={`${PROFILE_BASE}${person.profilePath}`}
                 width={185}
               />
             ) : (
-              <span aria-hidden="true" className="tc-carousel-poster" />
+              <span aria-hidden="true" className="tc-carousel__poster" />
             )}
-            <span className="tc-ui tc-carousel-title">{person.name}</span>
+            <span className="tc-ui tc-carousel__title">{person.name}</span>
             {person.character && (
-              <span className="tc-meta tc-carousel-meta">
+              <span className="tc-meta tc-carousel__meta">
                 {person.character}
               </span>
             )}

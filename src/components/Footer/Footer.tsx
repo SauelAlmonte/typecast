@@ -1,21 +1,21 @@
 import Image from "next/image";
-import CopyrightYear from "@/components/CopyrightYear";
+import CopyrightYear from "@/components/Footer/CopyrightYear/CopyrightYear";
 
 export default function Footer() {
   return (
     <footer className="tc-footer">
-      <div className="tc-container-wide tc-footer-inner">
+      <div className="tc-container-wide tc-footer__inner">
         <span className="tc-wordmark">TypeCast</span>
         <a
-          className="tc-ui tc-footer-link"
+          className="tc-ui tc-footer__link"
           href="https://github.com/SauelAlmonte/typecast"
         >
           GitHub
         </a>
       </div>
-      <div className="tc-container-wide tc-footer-legal">
+      <div className="tc-container-wide tc-footer__legal">
         {/* TMDB's terms require their logo alongside the attribution. */}
-        <a className="tc-footer-tmdb" href="https://www.themoviedb.org/">
+        <a className="tc-footer__tmdb" href="https://www.themoviedb.org/">
           {/* unoptimized: the optimizer refuses SVG by default, and a
               1 KB vector gains nothing from it anyway. */}
           <Image
@@ -26,11 +26,11 @@ export default function Footer() {
             width={100}
           />
         </a>
-        <p className="tc-meta tc-footer-note">
+        <p className="tc-meta tc-footer__note">
           This product uses the TMDB API but is not endorsed or certified by
           TMDB.
         </p>
-        <p className="tc-meta tc-footer-note">
+        <p className="tc-meta tc-footer__note">
           © <CopyrightYear /> Sauel Almonte. All rights reserved.
         </p>
       </div>

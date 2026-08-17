@@ -1,0 +1,8 @@
+/* TMDB category rails stacked under the hero the way Prime stacks
+   rows; each row is a shared carousel (carousel.css). */
+
+.tc-category-rails {
+  display: grid;
+  gap: var(--space-8);
+  padding-block: var(--space-2);
+}

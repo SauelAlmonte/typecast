@@ -16,7 +16,7 @@ type IconProps = {
 // Decorative by contract: every icon is paired with visible or
 // visually-hidden text, so the svg itself stays hidden from AT.
 export default function Icon({ name, size = "md", className }: IconProps) {
-  const classes = ["tc-icon", size !== "md" && `tc-icon-${size}`, className]
+  const classes = ["tc-icon", size !== "md" && `tc-icon--${size}`, className]
     .filter(Boolean)
     .join(" ");
   return (

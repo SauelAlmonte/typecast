@@ -1,0 +1,37 @@
+/* The header's nav row: brand at the start, catalog links in the
+   middle, GitHub at the end. */
+
+.tc-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: 100%;
+}
+
+/* Catalog sections between the brand and GitHub. On phones they and the
+   GitHub link fold into the full-screen menu behind the hamburger. */
+.tc-navbar__links {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Text link with a padded hit area comfortably over the 24px floor (2.5.8). */
+.tc-navbar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-2);
+  color: var(--color-ink);
+}
+
+/* After .tc-navbar__link on purpose: the GitHub hide shares its
+   specificity, so only source order keeps display: none winning.
+   The hamburger that replaces these is MobileNav's, shown by the
+   same breakpoint in mobile-nav.css. */
+@media (width <= 48rem) {
+  .tc-navbar__links,
+  .tc-navbar__link--github {
+    display: none;
+  }
+}

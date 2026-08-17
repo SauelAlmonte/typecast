@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
-import IconSprite from "@/components/IconSprite";
-import SearchBox from "@/components/SearchBox";
+import Footer from "@/components/Footer/Footer";
+import Header from "@/components/Header/Header";
+import IconSprite from "@/components/Icon/IconSprite/IconSprite";
+import SearchBox from "@/components/SearchBox/SearchBox";
 import { type MediaKind, popularMedia, searchMedia } from "@/db/queries";
 
 /** w342 fills the widest grid cell this layout produces. */

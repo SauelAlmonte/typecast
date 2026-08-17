@@ -1,0 +1,36 @@
+/* Fixed bar. Safe under mandatory snap because the scroll container's
+   scroll-padding (layout.css) shifts every snap target below the bar, so
+   no section content or focused control ever hides beneath it (WCAG
+   2.4.11). Solid canvas: content scrolling underneath must never show
+   through the wordmark. */
+
+.tc-header {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 1000;
+  block-size: var(--size-header);
+  background-color: var(--color-canvas);
+  border-block-end: 1px solid var(--color-line);
+}
+
+/* The wordmark is the logo, sized to read as one, not as a nav label.
+   It links home, so the anchor voice (underline) is stripped: the mark
+   is brand first, and hover states the interactivity instead. Shared
+   with the phone menu's bar (MobileNav), so it lives here rather than
+   with either nav. */
+.tc-header__brand {
+  font-size: var(--type-h2);
+  line-height: var(--leading-h2);
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--color-ink-muted);
+  }
+}
+
+/* The bar is solid on every page. It used to float transparent over
+   the landing hero, but the hero art no longer runs underneath it:
+   like the title pages, the band starts below the bar. */

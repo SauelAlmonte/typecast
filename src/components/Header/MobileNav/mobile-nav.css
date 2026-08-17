@@ -1,0 +1,65 @@
+/* The phone menu: hamburger opener in the bar, full-screen dialog
+   behind it. Both exist only under the 48rem breakpoint that folds
+   the inline links away (navbar.css). */
+
+.tc-mobile-nav__button {
+  display: none;
+  padding: var(--space-2);
+  color: inherit;
+
+  @media (width <= 48rem) {
+    display: inline-flex;
+  }
+}
+
+/* A native dialog: the platform supplies the focus trap, Escape, and
+   background inertness. The UA centers dialogs in a fit-content box,
+   so every one of those defaults is unwound to fill the viewport;
+   svh keeps the box stable under the phone URL-bar collapse. */
+.tc-mobile-nav {
+  inline-size: 100%;
+  block-size: 100svh;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--space-6);
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+  border: none;
+}
+
+/* Mirrors the bar's geometry so the close button sits where the
+   hamburger was and the wordmark doesn't jump. */
+.tc-mobile-nav__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  block-size: var(--size-header);
+}
+
+.tc-mobile-nav__close {
+  display: inline-flex;
+  padding: var(--space-2);
+  color: inherit;
+}
+
+/* Start-aligned column of oversized links: a full-screen menu earns
+   heading-scale targets. */
+.tc-mobile-nav__list {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  padding-block-start: var(--space-6);
+  list-style: none;
+}
+
+.tc-mobile-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  font-size: var(--type-h2);
+  line-height: var(--leading-h2);
+  color: var(--color-ink);
+}
