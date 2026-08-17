@@ -39,6 +39,11 @@
   .tc-hero-backdrop {
     inset-block-end: 0;
     inset-inline-start: auto;
+    /* Tall windows would make the 16:9 box wider than the band and
+       the overflow crop would eat the art's start side only. Capped,
+       the box loses its ratio instead and the image cover-crops from
+       its center, so the subject stays centered at any window shape. */
+    max-inline-size: 100%;
   }
 }
 
