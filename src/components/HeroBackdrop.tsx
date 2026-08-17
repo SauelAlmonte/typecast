@@ -99,11 +99,15 @@ export default function HeroBackdrop() {
   return (
     <>
       <div aria-hidden="true" className="tc-hero-backdrop">
+        {/* Visible at first paint beneath the current layer's 900ms fade,
+            so it can be the LCP image; eager stops the lazy default without
+            priority's preload hint, which belongs to the current layer. */}
         <div className="tc-hero-layer" key={`p-${previous.id}`}>
           <Image
             alt=""
             className="tc-hero-layer-img"
             fill
+            loading="eager"
             sizes="100vw"
             src={artSrc(previous)}
           />
