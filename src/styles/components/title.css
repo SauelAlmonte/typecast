@@ -6,32 +6,52 @@
 
 .tc-title-hero {
   position: relative;
+  /* Crops the backdrop box's excess width when the band runs tall. */
+  overflow: hidden;
   color: var(--color-on-media);
   background-color: var(--color-media-base);
 }
 
+/* The landing hero's lesson again: cover-fit in a content-shaped band
+   must crop and zoom, so the box takes the art's own 16:9 instead,
+   pinned to the end edge at full band height. The rest of the band is
+   the base color, and the scrim dissolves the art's start edge into
+   it so there's never a seam. */
 .tc-title-backdrop {
   position: absolute;
-  inset: 0;
-  overflow: hidden;
+  inset-block: 0;
+  inset-inline-end: 0;
+  aspect-ratio: 16 / 9;
 }
 
 .tc-title-backdrop-img {
   object-fit: cover;
-  /* Faces and titles live in the upper half of TMDB backdrops. */
-  object-position: center 25%;
 }
 
-/* Start-heavy: the copy column hugs the start edge, and even the soft
-   end keeps enough scrim that a pale backdrop can't wash the meta row. */
+/* Solid at the art's start edge (the seam), dimmed through the middle
+   where copy can overlap on middling widths, clear at the end. */
 .tc-title-scrim {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to right,
-    var(--color-scrim-strong) 30%,
-    var(--color-scrim-soft)
+    var(--color-media-base),
+    var(--color-scrim-soft) 45%,
+    transparent 80%
   );
+}
+
+/* Phone band: the copy stacks tall over the art, so the box reverts to
+   a cover fill under a near-solid dim; legibility beats the crop. */
+@media (width <= 48rem) {
+  .tc-title-backdrop {
+    inset: 0;
+    aspect-ratio: auto;
+  }
+
+  .tc-title-scrim {
+    background: var(--color-scrim-strong);
+  }
 }
 
 .tc-title-hero-inner {
