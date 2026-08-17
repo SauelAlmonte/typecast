@@ -201,19 +201,32 @@
 
 /* --- Rotation furniture --- */
 
+/* Wide bands: above the bottom scrim run, visibly on the picture
+   rather than in the dark bar the dots occupy. */
 .tc-hero-featured {
   position: absolute;
-  inset-block-end: var(--space-4);
+  inset-block-end: 20%;
   inset-inline-end: var(--space-4);
   z-index: 1;
   color: var(--color-on-media-muted);
 }
 
-/* Compact bands: the caption steps above the dot row instead of
-   sharing its line, so the two never collide. */
-@media (width <= 48rem) {
+/* Compact bands: the caption belongs to the picture, not the dot row.
+   On phones the copy sits below the strip, so the caption anchors
+   inside the strip near its lower edge, where the fade gives it
+   contrast. On tablets the copy overlays the strip's lower half, so
+   the caption takes the strip's clear top-end corner instead. */
+@media (width <= 36rem) {
   .tc-hero-featured {
-    inset-block-end: calc(var(--space-3) + var(--icon-lg) + var(--space-2));
+    inset-block-start: calc(100vw * 9 / 16 - var(--space-8));
+    inset-block-end: auto;
+  }
+}
+
+@media (36rem < width < 64rem) {
+  .tc-hero-featured {
+    inset-block-start: var(--space-5);
+    inset-block-end: auto;
   }
 }
 
