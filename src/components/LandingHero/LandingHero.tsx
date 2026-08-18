@@ -6,7 +6,7 @@ export default function LandingHero() {
     <section aria-labelledby="hero-title" className="tc-landing-hero">
       <div className="tc-landing-hero__band">
         <HeroBackdrop />
-        <div className="tc-container-wide tc-landing-hero__copy">
+        <div className="tc-container tc-landing-hero__copy">
           <h1 className="tc-display" id="hero-title">
             Half a title is enough.
             <span aria-hidden="true" className="tc-caret" />
