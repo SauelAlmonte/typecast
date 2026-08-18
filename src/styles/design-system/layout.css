@@ -52,7 +52,15 @@
   padding-inline: 0;
 }
 
+/* Short pages: main grows, so the footer holds the bottom instead of
+   riding up. The fixed header and skip link are out of flow. */
+body {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Every page's content starts below the fixed header (header.css). */
 main {
+  flex: 1;
   padding-block-start: var(--size-header);
 }

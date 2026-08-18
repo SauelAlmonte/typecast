@@ -92,7 +92,7 @@ export default async function SearchPage({
       <IconSprite />
       <Header />
       <main id="main" tabIndex={-1}>
-        <div className="tc-container-wide tc-results">
+        <div className="tc-container tc-results">
           <SearchBox />
           <h1 className="tc-h2">{heading}</h1>
           {placeholder && (

@@ -69,22 +69,6 @@
   .tc-display {
     max-inline-size: 12ch;
   }
-
-  /* The bar tracks the window until the cap wins; phones just use the
-     full column. */
-  .tc-search-box {
-    max-inline-size: var(--container-hero-copy);
-
-    @media (width >= 48rem) {
-      max-inline-size: min(var(--container-hero-copy), 50vw);
-    }
-
-    /* Laptops: a narrower bar beside the calmer headline; 1920+ keeps
-       the full width. */
-    @media (64rem <= width < 120rem) {
-      max-inline-size: min(28rem, 40vw);
-    }
-  }
 }
 
 /* Shares the bar's governor so it never runs wider than the bar.

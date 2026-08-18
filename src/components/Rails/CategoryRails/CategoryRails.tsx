@@ -38,7 +38,7 @@ export default function CategoryRails() {
   }
 
   return (
-    <div className="tc-container-wide tc-category-rails">
+    <div className="tc-container tc-category-rails">
       {rails === null ? (
         <>
           <MediaRail items={null} title="Popular Movies" />

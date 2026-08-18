@@ -4,7 +4,7 @@ import CopyrightYear from "@/components/Footer/CopyrightYear/CopyrightYear";
 export default function Footer() {
   return (
     <footer className="tc-footer">
-      <div className="tc-container-wide tc-footer__inner">
+      <div className="tc-container tc-footer__inner">
         <span className="tc-wordmark">TypeCast</span>
         <a
           className="tc-ui tc-footer__link"
@@ -13,7 +13,7 @@ export default function Footer() {
           GitHub
         </a>
       </div>
-      <div className="tc-container-wide tc-footer__legal">
+      <div className="tc-container tc-footer__legal">
         {/* TMDB's terms require their logo alongside the attribution. */}
         <a className="tc-footer__tmdb" href="https://www.themoviedb.org/">
           {/* unoptimized: the optimizer refuses SVG by default, and a
