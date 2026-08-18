@@ -211,7 +211,9 @@ export default function SearchBox() {
     // a false "No matches" while the request runs.
     setIsOpen(false);
     setActiveIndex(-1);
-    fetchSuggestions(key);
+    // Unlike the debounced path there is no timer to swallow a failure,
+    // so log-and-degrade here the way the rails and hero fetches do.
+    fetchSuggestions(key).catch(console.error);
   }
 
   function selectByIndex(index: number) {
