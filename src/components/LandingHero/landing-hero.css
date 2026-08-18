@@ -1,6 +1,6 @@
-/* Landing hero. The band's height comes from the copy; the art
-   (HeroBackdrop) renders at its own 16:9, uncropped. Without art the
-   band is just the base color. */
+/* Landing hero. The band sizes to the copy; the art crops inside its
+   own frame (__art), never on the band. Without art the band is just
+   the base color. */
 
 .tc-landing-hero {
   padding-block-end: var(--space-6);
