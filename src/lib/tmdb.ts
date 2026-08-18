@@ -18,6 +18,7 @@ export type TmdbListItem = {
   vote_average?: number;
   poster_path?: string | null;
   backdrop_path?: string | null;
+  genre_ids?: number[];
 };
 
 /** Envelope common to every paginated TMDB list endpoint. */
@@ -153,6 +154,40 @@ export async function fetchTmdbDetail(
   }
 
   return (await res.json()) as TmdbTitleDetail;
+}
+
+/**
+ * Fetch one scope's genre vocabulary (id → name pairs). The two scopes
+ * share one id space, so callers can merge the lists by id.
+ *
+ * @param mediaType - Which vocabulary: `/genre/movie/list` or `/genre/tv/list`.
+ * @returns The scope's genres.
+ * @throws When `TMDB_READ_ACCESS_TOKEN` is missing or TMDB responds non-2xx.
+ */
+export async function fetchTmdbGenres(
+  mediaType: "movie" | "tv",
+): Promise<TmdbGenre[]> {
+  const token = process.env.TMDB_READ_ACCESS_TOKEN;
+  if (!token) {
+    throw new Error("TMDB_READ_ACCESS_TOKEN is not set. Add it to .env.local.");
+  }
+
+  const res = await fetch(`${TMDB_BASE_URL}/genre/${mediaType}/list`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `TMDB ${res.status} on /genre/${mediaType}/list: ${body.slice(0, 200)}`,
+    );
+  }
+
+  const { genres } = (await res.json()) as { genres: TmdbGenre[] };
+  return genres;
 }
 
 /**
