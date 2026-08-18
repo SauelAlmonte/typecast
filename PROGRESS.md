@@ -2,18 +2,19 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** Fluid layout shipped and healthy in production. One global
-container (`tc-container`, cap `max(80rem, 93.5%)`) spaces every
-section, hero bands scale with the width instead of the window, and
-the search bar, wordmark, and link voice are single global systems
-(PRs #34, #35, and #36 merged). The deployed site serves title pages
-again (the Vercel token fix) and the landing suggestion panel floats
-over the rails (PR #38). Next up: what the catalog pages display — the
-Movies and TV nav pages show only the top 24 popular titles, and the
-plan is genre-categorized rail stacks, which starts with a data
-design pass because the schema stores no genres. Then the combobox's
-loading and error states (the audit's top findings), rate limiting
-before wide sharing, server cache, and the scheduled sync.
+**Phase:** The genre catalog is live: TMDB genres in Neon, and the
+Movies and TV pages browse the whole 340-title catalog as curated
+rail stacks instead of a top-24 grid (PRs #41, #42). Quality caught
+up with the build the same day — a four-agent WCAG 2.1 AA audit found
+and PR #44 fixed four blockers, Lighthouse now guards production
+scores in CI (PR #43), the README finally describes what exists with
+an architecture diagram (PR #48), and every missing-image or
+missing-overview void says so honestly (PR #49). Dark is pinned; the
+finished theme toggle is parked on `feat/theme-toggle` until the
+light palette gets its design pass (PR #47). Next up: that light
+pass, People then Awards content, the combobox's loading and error
+states, rate limiting before wide sharing, server cache, and the
+scheduled sync.
 
 ---
 
@@ -39,7 +40,7 @@ before wide sharing, server cache, and the scheduled sync.
 | 2026-08-13 | E2E layout | Tests live in `e2e/` at the repo root, `@playwright/test` only — no MCP, no SDKs, no screenshot config. Locally the webServer starts or reuses the dev server; in CI it serves the production build, per the Next.js 16 testing guide. |
 | 2026-08-13 | CI shape | One workflow, two parallel jobs on push/PR to `main`: lint + typecheck (`next typegen` before `tsc`, the PR #3 lesson) and build + Playwright e2e. Node 24 to match local, pnpm from the `packageManager` field, frozen lockfile, concurrency cancels superseded runs. |
 | 2026-08-13 | Plain CSS over Tailwind | The design doc's one pending decision, settled by Sauel: the §9 tree ships as plain CSS. Tokens live in `src/styles/design-system/tokens.css`; component files consume tokens and never declare raw values. The reset is hand-written. |
-| 2026-08-13 | Theming deferred | `color-scheme: dark light` with `light-dark()` is live (dark default), but the `[data-theme]` override selectors are deliberately absent: the doc forbids shipping them without a toggle control and a blocking anti-flash script, and neither exists yet. |
+| 2026-08-13 | Theming deferred | `color-scheme: dark light` with `light-dark()` is live (dark default), but the `[data-theme]` override selectors are deliberately absent: the doc forbids shipping them without a toggle control and a blocking anti-flash script, and neither exists yet. Superseded 2026-08-18: both were built, then parked — see "Dark pinned, light parked". |
 | 2026-08-13 | Component layout | Flat `src/components/` with PascalCase files; each component's CSS lives in `src/styles/components/*.css`, imported by `global.css` in §9 order. First structure decision made after the system design, per the config-phase rule. Superseded 2026-08-17: one directory per component with subcomponents nested, each owning its BEM stylesheet; the global layer (tokens, reset, typography, layout) lives in `src/styles/design-system/` behind `global.css`, whose import order is unchanged. The two page stylesheets (`title.css`, `results.css`) stay in `src/styles/components/` until their pages get the same pass. |
 | 2026-08-13 | Landing shape | Every section is a labelled landmark region filling the viewport below a fixed header: `min-block-size: calc(100svh - var(--size-header))` with mandatory scroll snap (Sauel's call over the proximity recommendation) and `scroll-padding` keeping snap targets clear of the bar. The hero search field is the §5 static shell only, with no combobox ARIA until the real component exists. Superseded: the walkthrough sections and mandatory page snap gave way to the single-hero media page (PR #20), the only snap left is the rails' horizontal proximity snap (`carousel.css`), and the static shell became the real combobox (PR #18). |
 | 2026-08-13 | No em dashes | Anywhere Sauel reads: UI copy, metadata, commits, PR bodies, replies. Use periods, commas, or colons. |
@@ -71,14 +72,24 @@ before wide sharing, server cache, and the scheduled sync.
 | 2026-08-17 | TMDB prose is data | Overviews and taglines render verbatim (their authors' em dashes included), but em dashes are glued with word joiners at render (`glueEmDashes`) so one can never strand at a line end, and both cap at the `--measure-overview` 55ch reading measure with `pretty`/`balance` wrapping. |
 | 2026-08-17 | Crops get their own frame | An `overflow: hidden` crop lives on a dedicated absolutely positioned frame around the thing being cropped, never on a container that also holds floating UI. The hero band's own overflow (there to crop the 16:9 art) clipped every descendant with it, cutting the suggestion panel off at the band's bottom edge; it read as a z-index bug, but clipping ignores stacking order, so no z-index could fix it. `tc-landing-hero__art` now owns the crop (PR #38). |
 | 2026-08-17 | Two Intel Macs in rotation | Sauel works across the Mac Pro 2019 (Intel, macOS 26) and the MacBook Pro 2015 (Intel, macOS 12). Two standing consequences: each machine's global pnpm must match the `packageManager` pin (see pnpm pin policy; the MacBook proved it again today), and the Playwright 1.61.0 pin follows the oldest OS in rotation, so it stays while the MacBook does. The memory plugin's `.remember/` folder exists only on the Mac Pro; it is gitignored, so it never syncs through the repo. |
+| 2026-08-18 | Genre catalog shape | Genres follow the `media_list` precedent: a `genres` vocabulary table keyed by TMDB's own ids (movie and TV lists share one id space, so both merge into 27 rows) and a `media_genres` join table, replaced upsert-then-prune each sync. List payloads already carry `genre_ids`, so membership costs the sync zero extra calls. `genreRails()` builds every rail for a scope in one window-function statement: rails hold at most 20 titles, genres under 4 sit out, order is a hand-curated per-scope array (uncurated genres append rather than vanish), and posterless rows are excluded before ranking because the card IS the poster (PRs #41, #42). |
+| 2026-08-18 | Lighthouse audits production | CI has no database (e2e passes because the suggest API is mocked), so a CI-built app cannot render honestly. The Lighthouse job audits the deployed site on push to `main` only — a PR is never failed by a production score it didn't cause — with budgets ratcheted just under measured reality and reports uploaded as artifacts. The landing floor is 0.6 because its LCP is 7.3s: the hero art waits behind a client fetch waterfall, queued as its own fix (PR #43). |
+| 2026-08-18 | A11y verified, blockers fixed | A four-agent WCAG 2.1 AA audit (contrast computed from the oklch tokens, not estimated) found four blockers, all fixed in PR #44: an `isComposing` guard so IME typing works, a light-theme active-suggestion marker (`--color-active-marker`), the skip link lifted above the fixed header's z-index, and a pause control on the hero rotation (2.2.2). Rode along: `role="list"` restores what `list-style: none` strips in Safari/VoiceOver, truthful `aria-expanded`/`aria-controls`, and scrim/border contrast corrections. Native beats ARIA: Biome pushed the theme control to real radio inputs, which was the better design. Deferred polish is listed in PR #44's body. |
+| 2026-08-18 | Dark pinned, light parked | Light rendered automatically for light-OS visitors and Sauel doesn't approve its current look, so `color-scheme` is pinned to `dark` (PR #47) — every visitor gets dark until the light palette gets a design pass. Nothing was deleted: the `light-dark()` tokens keep their light halves, and the complete three-state toggle (native radios, `[data-theme]` on `<html>`, blocking anti-flash script, hydration fix) is parked on the `feat/theme-toggle` branch. Restoring light is one token plus that branch. |
+| 2026-08-18 | Honest empty media states | TMDB has no fallback art: it returns null paths and often empty season overviews, and our placeholders were blank boxes. Every no-art box now carries an image glyph with a muted "No image" label (glyph alone on the 40px suggestion thumbs), the season card renders its meta line only when TMDB has a year or episode count and says "No overview yet." otherwise, and all fallbacks stay `aria-hidden` because the adjacent name carries the card (PR #49). |
+| 2026-08-18 | README states only what exists | The README predated the build and described the plan (a prefix index, a provider interface, daily ID exports, a dozen uninstalled tools). A three-agent ground-truth audit fed the rewrite: the verified combobox internals and Postgres-side ranking, a mermaid diagram of the real data flow, the installed stack only, a landing screenshot, and no clone-and-run instructions on purpose (PR #48). |
 
 ---
 
 ## Open
 
-- **Catalog display (next up)**: the Movies and TV nav pages show only the top 24 popular titles via `popularMedia`. The agreed direction is genre-categorized rail stacks reusing the carousel, like the landing page. The database stores no genres today, so it starts with a data design pass — schema migration, the sync writing genres, a `mediaByGenre` query — explain-first, since catalog architecture is core.
-- **Combobox loading and error states**: the verification audit's two high findings. The empty state has no loading concept, so "No matches" paints during the debounce window and after clicking a recent; and `fetchSuggestions` has no `res.ok` check, so a 500 or offline fetch becomes an unhandled rejection with no user feedback. One fix: the panel needs loading and error states. Core territory, Sauel's build.
-- **Combobox keyboard findings** (audit, medium): `isComposing` is unguarded, so IME users committing a composition trigger submit; and ArrowDown-when-closed reopens stale results against a changed input, bypassing the guard `handleFocus` already enforces.
+- **Light palette design pass (unparks the toggle)**: Sauel doesn't approve light mode's current look, so dark is pinned (PR #47). The pass redesigns the light tokens; shipping it is one `color-scheme` token back to `dark light` plus the parked `feat/theme-toggle` branch (complete three-state control, anti-flash script, hydration fix).
+- **People, then Awards**: People has a clear path — TMDB's popular-people endpoint synced into a `people` table on the media pattern, a browse page, later person detail and combobox inclusion (the sync currently drops person items). Awards has no TMDB data at all, so it needs a data-source decision first (Wikidata, hand-curation, or reshaping the page).
+- **Hero LCP fix**: the landing's Lighthouse performance is 0.73 because the hero art loads behind a client fetch waterfall (HTML, JS, `/api/upcoming`, then the image; LCP 7.3s). Server-rendering or preloading the first slide fixes it; raise the Lighthouse floor when it lands.
+- **Combobox loading and error states**: the audit's remaining high finding. The recents false "No matches" flash was fixed in PR #44, but there is still no loading state during the debounce window and `fetchSuggestions` has no `res.ok` check, so a 500 becomes a logged-and-swallowed failure with no user feedback. Core territory, Sauel's build.
+- **A11y deferred polish** (PR #44's list): ArrowUp-opens-panel and Alt+ArrowDown, `aria-current` on nav links (needs a client nav component), trailer backdrop light-dismiss, a focus target when the phone menu closes on viewport growth, the caret's strict 2.2.2 reading, and the hero furniture's DOM order before the h1.
+- **Dependabot alerts (4)**: two high, one moderate, one low — all transitive dev dependencies pulled in by `@lhci/cli` (extract-zip, tmp, uuid family). Dependabot opened its own update run; review and merge it or bump the lockfile.
+- **Branch cleanup pending Sauel**: `fix/a11y-audit` still exists local and remote; its only unmerged content is the accidental #45 toggle merge, which `feat/theme-toggle` duplicates. Deletable on his word. `feat/theme-toggle` is a deliberate keep.
 - **Query length cap** (audit, medium): `q` reaches `word_similarity` unbounded, so one 14KB request trigram-scans the catalog twice; a cap in `searchMedia` covers suggest and `/search` at once.
 - **Server hardening** (audit, low): a sync crash between upsert and prune persists a merged rail until the next sync; postponed titles that drop off TMDB keep stale future dates atop the hero rotation; one failed rail query fails all eight in `/api/rails`.
 - **Design-audit paper cuts**: a few untokenized values in component CSS (search-box.css's 3px active bar, the hero `12ch`, dot and caret em sizes, `steps(1)`), a stale chartreuse comment in landing-hero.css still naming the retired preview, and typography.css's header claiming no raw values while declaring font weights. The redundant physical width fell out with PR #30's band rework.
@@ -89,8 +100,6 @@ before wide sharing, server cache, and the scheduled sync.
 - **Hero art curation**: the title page's consensus picker (most-voted textless backdrop) could serve the landing rotation too; today the rotation still uses the sync's stored default `backdrop_path`.
 - **Vitest unit tests**: `normalizeSearchText` and the ranking query are the first candidates. Also unlocks affected tests in `stop-check`.
 - **Commit the design doc**: Design System v2.0 governs all UI work but lives only in chat history. It belongs in the repo, likely `docs/design-system.md`.
-- **Theme toggle and anti-flash script**: the pair that unlocks the `[data-theme]` selectors. Deliberately deferred; see the theming decision.
-- **Lighthouse**: planned for CI (never hooks). The landing page now gives it something real to audit, so it can be wired in.
 - **Sandbox hardening**: CodeRabbit flagged on PR #3 that `Read`/`Edit` deny rules don't stop Bash subprocesses from reading `.env.local`. The real fix needs OS-level sandboxing (`sandbox.filesystem.denyRead`), which changes how every shell command runs and would also block `next build`'s legitimate env loading. Deferred as Sauel's call; the Bash branch guard narrows the gap meanwhile.
 - **Migration guard**: a PreToolUse deny on edits to applied migration files, now that Drizzle exists and `src/db/migrations/` holds applied SQL.
 - **Slash commands and subagents**: which recurring workflows are worth encoding.
@@ -156,6 +165,16 @@ before wide sharing, server cache, and the scheduled sync.
 - [x] Diagnosed the deployed title-page crash ("This page couldn't load") as `TMDB_READ_ACCESS_TOKEN` missing on Vercel: the title page is the only route that calls TMDB at request time (everything else reads Neon, which is why the rest of the deployed site worked), and the token lived only in `.env.local`. Sauel added it for Production and Preview, marked Sensitive, and redeployed; titles render in production.
 - [x] Shipped PR #38 (`4549650`): the art-crop frame (see the Decided row). Verified before the PR with a Playwright measurement against the dev server: the open panel extends 424px past the band's bottom edge and paints over the rail posters, and the art still crops at the band edge.
 - [x] Confirmed the OG card intact after the redeploy scare: the empty tile on Vercel's Deployment Details page is Vercel's own asynchronously captured deployment screenshot, not the OG image; the live `og:image` meta tag and the 1200x630 JPEG behind it both verified serving.
+- [x] Shipped PR #40 (`07d4061`): the CSS comment sweep. A four-agent pass over all 18 stylesheets trimmed five files' storytelling while keeping every constraint; thirteen were already tight. Its one CodeRabbit finding was real and older than the PR: the gutter comment promised a slide to 24px, but the clamp's floor is 32px — the words moved to match the shipped, eye-tuned code.
+- [x] Shipped PR #41 (`56c122b`): the genre data layer, verified live before the PR opened — Sauel ran the migration and sync (27 genres, 608 memberships, catalog at 340 titles) and `genreRails` returned 14 correctly ordered rails per scope against the real database.
+- [x] Shipped PR #42 (`8733e5f`): genre rail stacks on the Movies and TV browse pages via a new `GenreRails` component that reuses `MediaRail` exactly as the landing page does. Typed-query results and the landing page untouched; verified at 1440 and 390.
+- [x] Shipped PR #43 (`7667489`): Lighthouse CI. Measured production first (landing 0.73 perf on a 7.3s hero LCP; browse 0.96, title 0.94; accessibility, best practices, and SEO all 1.0) and set the budgets just under reality. Its merge push's Build & e2e job wedged three hours on `playwright install` — the PR #36 runner failure again — cancelled and rerun to green.
+- [x] Ran the four-agent WCAG 2.1 AA audit (combobox, nav and dialogs, content pages, global tokens with computed oklch contrast): 4 blockers, 4 should-fixes, 11 polish, and a verified done-right column confirming the hand-built ARIA held up.
+- [x] Shipped PR #44 (`eb6355c`): the a11y fix pass — all four blockers, all four should-fixes, and the rode-along polish. CodeRabbit's unhandled-rejection finding fixed; its stale-panel suggestion declined with the classic-combobox reasoning, both threads resolved.
+- [x] Built the three-state theme toggle to Sauel's reference (native radios in a fieldset, `[data-theme]` mechanism, blocking anti-flash script, hydration fix). PR #45 was accidentally merged into the a11y branch instead of `main`, so it never deployed; the complete rebased implementation is parked on `feat/theme-toggle` per his "don't delete code", and PR #46 closed as superseded.
+- [x] Shipped PR #47 (`d2ed0a6`): dark pinned. Light-OS visitors were getting the unapproved light palette automatically; every visitor now gets dark until the light design pass.
+- [x] Shipped PR #48 (`e86e579`): the README rewrite, grounded by a three-agent audit that proved the old file described a project that was never built (no prefix index, no provider interface, no daily ID exports, twelve uninstalled tools listed as the stack).
+- [x] Shipped PR #49 (`86017f3`): honest empty states for missing TMDB art and overviews, prompted by Sauel's screenshots of blank cast boxes and a hollow season card.
 
 ---
 
