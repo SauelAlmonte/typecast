@@ -73,3 +73,42 @@ export const mediaList = pgTable(
 );
 
 export type MediaListRow = typeof mediaList.$inferInsert;
+
+/**
+ * TMDB's genre vocabulary, both scopes in one table: the movie and TV
+ * genre lists share one id space (Drama is 18 in both), so rows from
+ * /genre/movie/list and /genre/tv/list merge by id. The id is TMDB's,
+ * not ours — list payloads reference it directly via `genre_ids`.
+ */
+export const genres = pgTable("genres", {
+  id: integer("id").primaryKey(),
+  name: text("name").notNull(),
+});
+
+export type Genre = typeof genres.$inferSelect;
+
+/**
+ * Which genres a title belongs to. Same shape as `media_list` for the
+ * same reason: a title carries several genres at once, and the sync
+ * replaces memberships wholesale so rows never go stale. No position
+ * column — TMDB's `genre_ids` order carries no meaning.
+ */
+export const mediaGenres = pgTable(
+  "media_genres",
+  {
+    mediaId: bigint("media_id", { mode: "number" })
+      .notNull()
+      .references(() => media.id, { onDelete: "cascade" }),
+    genreId: integer("genre_id")
+      .notNull()
+      .references(() => genres.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.mediaId, table.genreId] }),
+    // The genre pages ask "all titles in genre X"; the PK only serves
+    // the media-first direction.
+    index("media_genres_genre_id_idx").on(table.genreId),
+  ],
+);
+
+export type MediaGenreRow = typeof mediaGenres.$inferInsert;

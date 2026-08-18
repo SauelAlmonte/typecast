@@ -1,6 +1,6 @@
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { media } from "@/db/schema";
+import { genres, media, mediaGenres } from "@/db/schema";
 import { normalizeSearchText } from "@/lib/normalize";
 
 /** The two kinds the catalog holds; used to scope search and browse. */
@@ -119,4 +119,151 @@ export async function popularMedia(
     .where(eq(media.mediaType, kind))
     .orderBy(desc(media.popularity))
     .limit(limit);
+}
+
+/** One genre's rail: the genre and its top titles, ready to render. */
+export type GenreRail = {
+  genreId: number;
+  name: string;
+  titles: MediaMatch[];
+};
+
+/* Sauel's rail order per scope, TMDB ids with names alongside.
+ * Reordering a page is reordering its array. A genre missing from its
+ * array still renders, appended after the curated run in name order,
+ * so catalog growth never disappears silently. */
+const MOVIE_RAIL_ORDER = [
+  28, // Action
+  12, // Adventure
+  878, // Science Fiction
+  14, // Fantasy
+  35, // Comedy
+  18, // Drama
+  53, // Thriller
+  27, // Horror
+  9648, // Mystery
+  80, // Crime
+  16, // Animation
+  10751, // Family
+  10749, // Romance
+  99, // Documentary
+  36, // History
+  10402, // Music
+  10752, // War
+  37, // Western
+  10770, // TV Movie
+];
+
+const TV_RAIL_ORDER = [
+  10759, // Action & Adventure
+  10765, // Sci-Fi & Fantasy
+  35, // Comedy
+  18, // Drama
+  9648, // Mystery
+  80, // Crime
+  16, // Animation
+  10751, // Family
+  10762, // Kids
+  10764, // Reality
+  99, // Documentary
+  10766, // Soap
+  10767, // Talk
+  10763, // News
+  10768, // War & Politics
+  37, // Western
+];
+
+// A rail of two or three titles looks broken; four is the floor.
+const RAIL_MIN = 4;
+// Matches the landing rails' length.
+const RAIL_CAP = 20;
+
+/**
+ * Every genre rail for one scope in a single round trip: titles ranked
+ * inside their genre by the same popularity order `popularMedia` uses,
+ * capped per rail, with sparse genres (fewer than `RAIL_MIN` titles)
+ * sitting out until the catalog grows into them.
+ *
+ * One statement on purpose: `row_number()` partitioned by genre does
+ * per-rail ranking and capping in the database, so the alternative
+ * (one query per genre) never exists to get slow.
+ *
+ * @param kind - Which catalog half to build rails for.
+ * @returns Rails in the curated order, each with its top titles.
+ */
+export async function genreRails(kind: MediaKind): Promise<GenreRail[]> {
+  const db = getDb();
+
+  const ranked = db.$with("ranked").as(
+    db
+      .select({
+        id: media.id,
+        tmdbId: media.tmdbId,
+        mediaType: media.mediaType,
+        title: media.title,
+        year: sql<
+          number | null
+        >`extract(year from ${media.releaseDate})::int`.as("year"),
+        posterPath: media.posterPath,
+        genreId: mediaGenres.genreId,
+        pos: sql<number>`row_number() over (partition by ${mediaGenres.genreId} order by ${media.popularity} desc, ${media.id})`.as(
+          "pos",
+        ),
+        railSize:
+          sql<number>`count(*) over (partition by ${mediaGenres.genreId})`.as(
+            "rail_size",
+          ),
+      })
+      .from(media)
+      .innerJoin(mediaGenres, eq(mediaGenres.mediaId, media.id))
+      .where(eq(media.mediaType, kind)),
+  );
+
+  const rows = await db
+    .with(ranked)
+    .select({
+      genreId: ranked.genreId,
+      name: genres.name,
+      id: ranked.id,
+      tmdbId: ranked.tmdbId,
+      mediaType: ranked.mediaType,
+      title: ranked.title,
+      year: ranked.year,
+      posterPath: ranked.posterPath,
+    })
+    .from(ranked)
+    .innerJoin(genres, eq(genres.id, ranked.genreId))
+    .where(
+      and(
+        sql`${ranked.pos} <= ${RAIL_CAP}`,
+        sql`${ranked.railSize} >= ${RAIL_MIN}`,
+      ),
+    )
+    .orderBy(ranked.genreId, ranked.pos);
+
+  const byGenre = new Map<number, GenreRail>();
+  for (const row of rows) {
+    let rail = byGenre.get(row.genreId);
+    if (!rail) {
+      rail = { genreId: row.genreId, name: row.name, titles: [] };
+      byGenre.set(row.genreId, rail);
+    }
+    rail.titles.push({
+      id: row.id,
+      tmdbId: row.tmdbId,
+      mediaType: row.mediaType,
+      title: row.title,
+      year: row.year,
+      posterPath: row.posterPath,
+    });
+  }
+
+  const order = kind === "movie" ? MOVIE_RAIL_ORDER : TV_RAIL_ORDER;
+  const position = (rail: GenreRail) => {
+    const i = order.indexOf(rail.genreId);
+    return i === -1 ? order.length : i;
+  };
+  return [...byGenre.values()].sort(
+    (a, b) => position(a) - position(b) || a.name.localeCompare(b.name),
+  );
 }

@@ -1,13 +1,20 @@
-import { and, eq, notInArray, sql } from "drizzle-orm";
+import { and, eq, inArray, notInArray, sql } from "drizzle-orm";
 import { getDb } from "../src/db";
 import {
+  genres,
+  type MediaGenreRow,
   type MediaListRow,
   media,
+  mediaGenres,
   mediaList,
   type NewMedia,
 } from "../src/db/schema";
 import { normalizeSearchText } from "../src/lib/normalize";
-import { fetchTmdbList, type TmdbListItem } from "../src/lib/tmdb";
+import {
+  fetchTmdbGenres,
+  fetchTmdbList,
+  type TmdbListItem,
+} from "../src/lib/tmdb";
 
 /**
  * A TMDB list to ingest: the endpoint, how many pages, and which media
@@ -109,6 +116,8 @@ async function main() {
   const rows = new Map<string, NewMedia>();
   // Per slug, the ordered member keys exactly as TMDB ranked them.
   const memberships = new Map<string, string[]>();
+  // Per title, its TMDB genre ids; every list payload carries them.
+  const genreIdsByKey = new Map<string, number[]>();
 
   for (const source of SOURCES) {
     const members: string[] = [];
@@ -121,6 +130,7 @@ async function main() {
         // Last write wins on duplicates across lists; the payloads for the
         // same (type, id) are identical, so order doesn't matter.
         rows.set(key, row);
+        genreIdsByKey.set(key, item.genre_ids ?? []);
         // Within one list, first sighting keeps TMDB's rank.
         if (source.slug && !members.includes(key)) members.push(key);
       }
@@ -191,6 +201,56 @@ async function main() {
     }
     console.log(`${slug}: ${listRows.length} members`);
   }
+
+  // The genre vocabulary, both scopes merged by their shared id space;
+  // names refresh in place if TMDB ever renames one.
+  const [movieGenres, tvGenres] = await Promise.all([
+    fetchTmdbGenres("movie"),
+    fetchTmdbGenres("tv"),
+  ]);
+  const vocabulary = new Map(
+    [...movieGenres, ...tvGenres].map((g) => [g.id, g.name]),
+  );
+  await db
+    .insert(genres)
+    .values([...vocabulary].map(([id, name]) => ({ id, name })))
+    .onConflictDoUpdate({
+      target: genres.id,
+      set: { name: sql`excluded.name` },
+    });
+
+  // Membership pairs for every title seen this run, filtered to the
+  // vocabulary so a stray id in a payload can't break the FK.
+  const pairs: MediaGenreRow[] = [];
+  const syncedIds: number[] = [];
+  for (const [key, genreIds] of genreIdsByKey) {
+    const mediaId = idByKey.get(key);
+    if (mediaId === undefined) continue;
+    syncedIds.push(mediaId);
+    for (const genreId of genreIds) {
+      if (vocabulary.has(genreId)) pairs.push({ mediaId, genreId });
+    }
+  }
+
+  // Same upsert-then-prune as the lists, for the same reason: no
+  // transactions on this driver, so readers never see an empty set.
+  if (pairs.length > 0) {
+    await db.insert(mediaGenres).values(pairs).onConflictDoNothing();
+    await db.delete(mediaGenres).where(
+      and(
+        inArray(mediaGenres.mediaId, syncedIds),
+        sql`(${mediaGenres.mediaId}, ${mediaGenres.genreId}) not in (${sql.join(
+          pairs.map((p) => sql`(${p.mediaId}, ${p.genreId})`),
+          sql`, `,
+        )})`,
+      ),
+    );
+  } else if (syncedIds.length > 0) {
+    await db.delete(mediaGenres).where(inArray(mediaGenres.mediaId, syncedIds));
+  }
+  console.log(
+    `genres: ${vocabulary.size} in vocabulary, ${pairs.length} memberships`,
+  );
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)::int` })
