@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { RailItem } from "@/app/api/rails/route";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
+import Icon from "@/components/Icon/Icon";
 import IconSprite from "@/components/Icon/IconSprite/IconSprite";
 import CastRail, { type CastCard } from "@/components/Rails/CastRail/CastRail";
 import MediaRail from "@/components/Rails/MediaRail/MediaRail";
@@ -251,7 +252,13 @@ export default async function TitlePage({
                   width={342}
                 />
               ) : (
-                <span aria-hidden="true" className="tc-title-poster" />
+                <span
+                  aria-hidden="true"
+                  className="tc-title-poster tc-title-poster--empty"
+                >
+                  <Icon name="image" />
+                  <span className="tc-meta">No image</span>
+                </span>
               )}
               {/* The headline rides beside the poster at every width
                   above the phone stack; the about block joins it there
@@ -335,23 +342,30 @@ export default async function TitlePage({
                     ) : (
                       <span
                         aria-hidden="true"
-                        className="tc-title-season-poster"
-                      />
+                        className="tc-title-season-poster tc-title-season-poster--empty"
+                      >
+                        <Icon name="image" />
+                        <span className="tc-meta">No image</span>
+                      </span>
                     )}
                     <div className="tc-title-season-text">
                       <h3 className="tc-h3">{season.name}</h3>
-                      <p className="tc-meta">
-                        {season.air_date ? season.air_date.slice(0, 4) : null}
-                        {season.air_date && season.episode_count ? " · " : null}
-                        {season.episode_count
-                          ? `${season.episode_count} episodes`
-                          : null}
-                      </p>
-                      {season.overview && (
-                        <p className="tc-title-season-overview">
-                          {season.overview}
+                      {(season.air_date || season.episode_count) && (
+                        <p className="tc-meta">
+                          {season.air_date ? season.air_date.slice(0, 4) : null}
+                          {season.air_date && season.episode_count
+                            ? " · "
+                            : null}
+                          {season.episode_count
+                            ? `${season.episode_count} episodes`
+                            : null}
                         </p>
                       )}
+                      {/* TMDB leaves many season overviews empty; an
+                          honest line beats a hollow card. */}
+                      <p className="tc-title-season-overview">
+                        {season.overview || "No overview yet."}
+                      </p>
                     </div>
                   </div>
                 </section>

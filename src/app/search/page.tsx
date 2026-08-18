@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
+import Icon from "@/components/Icon/Icon";
 import IconSprite from "@/components/Icon/IconSprite/IconSprite";
 import GenreRails from "@/components/Rails/GenreRails/GenreRails";
 import SearchBox from "@/components/SearchBox/SearchBox";
@@ -144,8 +145,11 @@ export default async function SearchPage({
                     ) : (
                       <span
                         aria-hidden="true"
-                        className="tc-result-card-poster"
-                      />
+                        className="tc-result-card-poster tc-result-card-poster--empty"
+                      >
+                        <Icon name="image" />
+                        <span className="tc-meta">No image</span>
+                      </span>
                     )}
                     <span className="tc-ui tc-result-card-title">
                       {r.title}

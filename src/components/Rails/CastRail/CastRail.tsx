@@ -84,7 +84,13 @@ export default function CastRail({ title, cast }: CastRailProps) {
                 width={185}
               />
             ) : (
-              <span aria-hidden="true" className="tc-carousel__poster" />
+              <span
+                aria-hidden="true"
+                className="tc-carousel__poster tc-carousel__poster--empty"
+              >
+                <Icon name="image" />
+                <span className="tc-meta">No image</span>
+              </span>
             )}
             <span className="tc-ui tc-carousel__title">{person.name}</span>
             {person.character && (

@@ -37,6 +37,11 @@ export default function IconSprite() {
           <rect height="16" rx="1" width="4" x="6" y="4" />
           <rect height="16" rx="1" width="4" x="14" y="4" />
         </symbol>
+        <symbol id="icon-image" viewBox="0 0 24 24">
+          <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
+          <circle cx="9" cy="9" r="2" />
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+        </symbol>
       </defs>
     </svg>
   );

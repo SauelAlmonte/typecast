@@ -149,6 +149,13 @@
   border-radius: var(--radius-control);
 }
 
+/* No-poster fallback: icon only; the 40px box has no room for words. */
+.tc-search-box__thumb--empty {
+  display: grid;
+  place-content: center;
+  color: var(--color-ink-muted);
+}
+
 .tc-search-box__recent-icon {
   flex-shrink: 0;
   color: var(--color-ink-muted);

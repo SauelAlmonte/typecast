@@ -73,6 +73,15 @@
   border-radius: var(--radius-card);
 }
 
+/* No-art fallback: same box, an honest label instead of a blank. */
+.tc-carousel__poster--empty {
+  display: grid;
+  place-content: center;
+  gap: var(--space-1);
+  justify-items: center;
+  color: var(--color-ink-muted);
+}
+
 .tc-carousel__title {
   display: block;
   overflow: hidden;

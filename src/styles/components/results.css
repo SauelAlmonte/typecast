@@ -54,6 +54,15 @@
   margin-block-end: var(--space-1);
 }
 
+/* No-art fallback: same box, an honest label instead of a blank. */
+.tc-result-card-poster--empty {
+  display: grid;
+  place-content: center;
+  gap: var(--space-1);
+  justify-items: center;
+  color: var(--color-ink-muted);
+}
+
 .tc-result-card-meta {
   color: var(--color-ink-muted);
 }
