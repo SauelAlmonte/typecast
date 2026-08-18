@@ -3,9 +3,12 @@ type IconName =
   | "chevron-right"
   | "github"
   | "menu"
+  | "monitor"
+  | "moon"
   | "pause"
   | "play"
   | "search"
+  | "sun"
   | "x";
 
 type IconProps = {

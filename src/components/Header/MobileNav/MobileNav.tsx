@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CATALOG_LINKS, GITHUB_URL } from "@/components/Header/links";
 import Icon from "@/components/Icon/Icon";
+import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 
 /**
  * The phone menu: hamburger button plus the full-screen menu behind
@@ -106,6 +107,9 @@ export default function MobileNav() {
             </li>
           </ul>
         </nav>
+        <div className="tc-mobile-nav__theme">
+          <ThemeToggle />
+        </div>
       </dialog>
     </>
   );
