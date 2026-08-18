@@ -1,0 +1,10 @@
+/* Genre rails stacked on the browse pages; each row is the shared
+   carousel (carousel.css), spaced like the landing stack. */
+
+.tc-genre-rails {
+  display: grid;
+  gap: var(--space-8);
+  /* The results container justifies items start; full width keeps the
+     rails on the container's grid, not shrunk to content. */
+  inline-size: 100%;
+}

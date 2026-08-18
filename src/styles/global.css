@@ -13,6 +13,7 @@
 @import "../components/LandingHero/HeroBackdrop/hero-backdrop.css";
 @import "../components/SearchBox/search-box.css";
 @import "../components/Rails/CategoryRails/category-rails.css";
+@import "../components/Rails/GenreRails/genre-rails.css";
 @import "../components/Rails/carousel.css";
 @import "./components/results.css";
 @import "./components/title.css";
