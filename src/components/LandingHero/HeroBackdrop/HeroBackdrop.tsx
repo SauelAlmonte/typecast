@@ -8,14 +8,12 @@ import type { UpcomingItem } from "@/app/api/upcoming/route";
  * its own 16:9 in every band, so there is no portrait variant. */
 const BACKDROP_BASE = "https://image.tmdb.org/t/p/w1280";
 
-/** Mirrors the backdrop box in hero-backdrop.css. Through 90rem the
- * band is content-sized (landing-hero.css), so its height is unknown
- * here and 100vw is the safe ceiling; only past 90rem does the band
- * hold the viewport minimum, where the box rides that height at 16:9,
- * capped at the viewport. Must change with the CSS or the browser
- * fetches the wrong srcset width. */
-const BACKDROP_SIZES =
-  "(min-width: 90rem) min(calc((100svh - 5rem) * 16 / 9), 100vw), 100vw";
+/** Mirrors the backdrop box in hero-backdrop.css. The band is
+ * content-sized (landing-hero.css), so 100vw is the safe ceiling;
+ * past 90rem the band's 37.5vw floor governs and the 16:9 box lands
+ * at ~67vw. Must change with the CSS or the browser fetches the
+ * wrong srcset width. */
+const BACKDROP_SIZES = "(min-width: 90rem) 67vw, 100vw";
 
 /** How long each featured title holds the background. */
 const ROTATE_MS = 5_000;

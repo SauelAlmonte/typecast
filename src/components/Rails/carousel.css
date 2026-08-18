@@ -1,8 +1,6 @@
-/* The shared rail shell: a snap-scrolling track paged by arrow
-   buttons, used by MediaRail (poster cards as links) and CastRail
-   (people cards, deliberately not links). Horizontal snap on the track
-   is unrelated to the page snap the landing dropped; it only settles
-   cards after a fling. */
+/* Shared rail shell: a snap-scrolling track paged by arrow buttons.
+   MediaRail (poster links) and CastRail (people, not links) build on
+   it. */
 
 .tc-carousel {
   display: grid;
@@ -21,7 +19,7 @@
   gap: var(--space-2);
 }
 
-/* Icon plus padding lands the hit area at 40px, over the 24px floor. */
+/* Icon plus padding lands the hit area at 40px (2.5.8). */
 .tc-carousel__arrow {
   display: grid;
   place-items: center;
@@ -36,8 +34,8 @@
   }
 }
 
-/* The arrows are the visible affordance; the scrollbar would double it.
-   Wheel, drag, and the buttons all still scroll the track. */
+/* The arrows are the affordance; a scrollbar would double it. Wheel
+   and drag still scroll. */
 .tc-carousel__track {
   display: flex;
   gap: var(--space-3);
@@ -60,8 +58,8 @@
   }
 }
 
-/* 2:3 like TMDB poster art; the skeleton span holds the same box while
-   the rail loads so the hero never jumps. */
+/* 2:3 like TMDB posters; the skeleton span holds the same box so the
+   layout never jumps while a rail loads. */
 .tc-carousel__poster {
   inline-size: 100%;
   block-size: auto;
@@ -78,8 +76,7 @@
   white-space: nowrap;
 }
 
-/* The whole card is one link; the poster is the affordance, so the
-   anchor drops the underline and hover restates it on the title. */
+/* One link per card; hover restates the underline on the title. */
 .tc-carousel__card-link {
   display: grid;
   gap: var(--space-1);

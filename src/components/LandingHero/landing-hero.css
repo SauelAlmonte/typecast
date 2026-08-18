@@ -1,45 +1,38 @@
-/* Landing hero, same treatment as the title pages: the band's height
-   comes from the copy, and the rotating art (HeroBackdrop/hero-backdrop.css) renders
-   at its own 16:9 with nothing cropped. The band is theme-independent
-   media ground like the title hero, so the fallback without art is
-   simply the base color. */
+/* Landing hero. The band's height comes from the copy; the art
+   (HeroBackdrop) renders at its own 16:9, uncropped. Without art the
+   band is just the base color. */
 
 .tc-landing-hero {
-  padding-block-end: var(--space-8);
+  padding-block-end: var(--space-6);
+
+  /* Tablets run a roomier tail into the rails on purpose. */
+  @media (36rem < width <= 48rem) {
+    padding-block-end: var(--space-7);
+  }
 }
 
 .tc-landing-hero__band {
   position: relative;
   display: grid;
-  /* The copy holds the bottom corner, Prime-style, and the band keeps
-     its original stature: the viewport below the fixed bar. min-, not
-     height, so taller content stays scrollable (WCAG 1.4.4/1.4.10);
-     svh dodges the phone URL-bar jump. On wide screens the art box
-     rides this height, so the taller the window, the more art. */
   align-content: end;
-  min-block-size: calc(100svh - var(--size-header));
-  /* Crops the backdrop box's excess width when the band runs tall. */
+  /* Content-sized at every width: the band is its copy, never the
+     window, so no dead ground can open below the text. */
   overflow: hidden;
   color: var(--color-on-media);
   background-color: var(--color-media-base);
 
-  /* Phone-narrow: no viewport minimum, which put a dead gap between
-     strip and copy. The band is its content. */
-  @media (width <= 36rem) {
-    min-block-size: auto;
-  }
-
-  /* Tablet and up: the copy rides above the dead middle, an optical
-     center (the copy's end-heavy padding is what lifts it). */
+  /* Tablet and up: copy at the optical center (its end-heavy padding
+     does the lifting). */
   @media (width > 36rem) {
     align-content: center;
   }
 
-  /* Tablets through laptops: content-sized like the phone, so no dead
-     ground opens between the copy and the dot row on tall windows.
-     Only larger desktops keep the full-viewport band. */
-  @media (36rem < width <= 90rem) {
-    min-block-size: auto;
+  /* Tablet landscape and up: a floor that scales with the width
+     (37.5vw ≈ the art box owning two thirds of the viewport). Under
+     ~1390px the copy is taller than the floor, so content governs and
+     the floor fades in with no boundary snap. */
+  @media (width > 48rem) {
+    min-block-size: 37.5vw;
   }
 }
 
@@ -54,15 +47,16 @@
   padding-block: var(--space-7);
   text-align: start;
 
-  /* Phone-narrow: the copy sits right below the full-width strip; the
-     end padding reserves the caption and dot rows' ground. */
+  /* Phone-narrow: copy sits below the full-width strip; the end
+     padding reserves the dot row's ground. 48px floor: the dots top
+     out 36px above the band's edge. */
   @media (width <= 36rem) {
     padding-block-start: calc(100vw * 9 / 16 + var(--space-5));
-    padding-block-end: var(--space-9);
+    padding-block-end: var(--space-7);
   }
 
-  /* Center alignment centers the padded box, so the extra bottom
-     padding is what pushes the text up toward the optical center. */
+  /* Centering centers the padded box, so the extra end padding is
+     what lifts the text. */
   @media (width > 36rem) {
     padding-block-end: var(--space-10);
   }
@@ -71,40 +65,43 @@
     padding-block-end: var(--space-9);
   }
 
-  /* Wraps "Half a title" / "is enough." as two stacked lines, the way
-     Prime's title art sits as a block in the corner. */
+  /* Wraps the headline as two stacked lines. */
   .tc-display {
     max-inline-size: 12ch;
   }
 
-  /* Above the touch band only: the bar tracks the window (50vw) until
-     the fixed cap wins near 1100px wide. Phones never see this; there
-     the column is simply the full width. */
+  /* The bar tracks the window until the cap wins; phones just use the
+     full column. */
   .tc-search-box {
     max-inline-size: var(--container-hero-copy);
 
     @media (width >= 48rem) {
       max-inline-size: min(var(--container-hero-copy), 50vw);
     }
+
+    /* Laptops: a narrower bar beside the calmer headline; 1920+ keeps
+       the full width. */
+    @media (64rem <= width < 120rem) {
+      max-inline-size: min(28rem, 40vw);
+    }
   }
 }
 
-/* The paragraph shares the bar's governor so it can never run wider
-   than the bar. */
+/* Shares the bar's governor so it never runs wider than the bar.
+   balance keeps the wrapped lines near-equal at every width. */
 .tc-landing-hero__lede {
   max-inline-size: var(--measure-lede);
   color: var(--color-on-media-muted);
+  text-wrap: balance;
 
   @media (width >= 48rem) {
     max-inline-size: min(var(--measure-lede), 50vw);
   }
 }
 
-/* The brand symbol: a caret still typing. em-relative so it tracks the
-   clamped display size — spacing tokens are for layout gaps, not glyph
-   geometry. currentColor, not chartreuse: the accent budget (§3, 2 uses)
-   is spent on the search field and the preview's active row. The
-   reduced-motion kill switch in reset.css stops the blink. */
+/* The brand caret. em, not spacing tokens: it tracks the display
+   size. currentColor: the accent budget (§3) is spent on search.
+   reset.css stops the blink under reduced motion. */
 .tc-caret {
   display: inline-block;
   inline-size: 0.045em;
