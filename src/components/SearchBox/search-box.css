@@ -1,18 +1,16 @@
 /* Design System v2.0 §5 — input anatomy and suggestion rows for the
    combobox. */
 
-/* One bar everywhere it appears (hero, results): 34rem cap, tracking
-   the window at 50vw from tablets, narrower on laptops beside the
-   calmer type, the full cap again from 1920. */
+/* One bar everywhere it appears (hero, results); narrower on laptops
+   beside the calmer type, the full cap again from 1920. */
 .tc-search-box {
   position: relative;
   inline-size: 100%;
   max-inline-size: var(--container-hero-copy);
 
-  /* From the tablet band up the 16px zoom floor no longer applies
-     (only touch browsers zoom into small inputs), so the control
-     relaxes to the ui size; every dimension is em, so the whole pill
-     scales down with it. */
+  /* Only touch browsers zoom into sub-16px inputs, so from tablets
+     the control relaxes to the ui size; every dimension is em, so the
+     whole pill scales down with it. */
   @media (width >= 48rem) {
     max-inline-size: min(var(--container-hero-copy), 50vw);
     font-size: var(--type-ui);
@@ -23,8 +21,8 @@
   }
 }
 
-/* The magnifying glass is a real submit button, layered inside the
-   pill at its start edge. Sized in em so it scales with the field text. */
+/* A real submit button layered inside the pill. Sized in em so it
+   scales with the field text. */
 .tc-search-box__submit {
   position: absolute;
   inset-block-start: 50%;
@@ -43,10 +41,9 @@
   }
 }
 
-/* The 1px border is the identifying cue and carries the 3:1 requirement —
-   the surface-to-canvas fill difference is decorative only. Geometry is
-   em so padding and height ride the input's own font size; the start
-   padding clears the submit button plus a half-em gap. */
+/* The 1px border carries the 3:1 requirement — the fill difference is
+   decorative only. Geometry is em so it rides the input's font size;
+   the start padding clears the submit button plus a half-em gap. */
 .tc-search-box__input {
   inline-size: 100%;
   block-size: var(--size-input);
@@ -57,9 +54,8 @@
   );
   padding-inline-end: var(--search-pad-inline);
   font-size: var(--type-body); /* 16px floor — never below 16 on mobile */
-  /* Explicit ink, not inherit: inside the hero the surrounding copy is
-     forced to the light media color, but this control sits on its own
-     themed surface, where that color can vanish (white on cream). */
+  /* Explicit ink, not inherit: the hero forces the light media color,
+     which can vanish on this themed surface (white on cream). */
   color: var(--color-ink);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -158,7 +154,6 @@
   color: var(--color-ink-muted);
 }
 
-/* Title above, year below, in the space right of the thumb. */
 .tc-search-box__text {
   display: flex;
   flex: 1;

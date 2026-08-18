@@ -1,6 +1,5 @@
 /* Entry point — import order matters (§9), then the base styles the design
-   doc assigns to this file. Component files join the imports as components
-   are built (search, card, button, tag, states). */
+   doc assigns to this file. */
 
 @import "./design-system/tokens.css";
 @import "./design-system/reset.css";
@@ -20,10 +19,9 @@
 @import "../components/TrailerDialog/trailer-dialog.css";
 @import "../components/Footer/footer.css";
 
-/* The font families come from next/font in layout.tsx, which sets these
-   variables on <html> at build time — no stylesheet ever assigns them.
-   Registering them here (valueless, so the cascade is untouched) tells
-   static tooling they exist. */
+/* next/font in layout.tsx sets these variables on <html> at build time;
+   no stylesheet ever assigns them. Valueless registration here tells
+   static tooling they exist without touching the cascade. */
 @property --font-text {
   syntax: "*";
   inherits: true;
@@ -49,8 +47,7 @@ body {
 }
 
 /* One link voice site-wide: quiet until hovered. :where keeps the
-   specificity at zero, so any component rule outranks it (the rail
-   and result cards carry the hover underline on their titles). */
+   specificity at zero, so any component rule outranks it. */
 :where(a) {
   text-decoration: none;
 }
@@ -67,9 +64,8 @@ h3,
   font-optical-sizing: auto; /* active because opsz was requested */
 }
 
-/* The logo, one voice everywhere (header, phone menu, footer): brand
-   face at h2 scale. The hover is scoped to links, so the footer's
-   plain-span wordmark never fakes clickability. */
+/* The wordmark, one voice everywhere. The hover is scoped to links, so
+   the footer's plain-span wordmark never fakes clickability. */
 .tc-wordmark {
   font-family: var(--font-brand), cursive;
   font-size: var(--type-h2);

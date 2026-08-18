@@ -1,23 +1,19 @@
 /* Design System v2.0 §4 — containers. Logical properties only; physical
    properties are what makes RTL a rewrite instead of a config change. */
 
-/* The global container: max width, centering, shared gutter. Horizontal
-   only; each section owns its own height. Full-bleed art stays outside.
+/* The global container, horizontal only; full-bleed art stays outside.
    Replaces the tc-container-* family below as sections migrate.
-   The cap is fluid: 80rem holds the floor through laptops, then 93.5%
-   of the screen takes over (≈1346px at 1440, 1795 at 1920, 2394 at
-   2560), so resizing scales in one motion instead of tier snaps. */
+   The cap is fluid: 80rem holds through laptops, then 93.5% of the
+   screen takes over, so resizing scales in one motion, no tier snaps. */
 .tc-container {
   inline-size: 100%;
   max-inline-size: max(var(--container-wide), 93.5%);
   margin-inline: auto;
   padding-inline: var(--space-6);
 
-  /* Laptops sit below the cap, so a 40px gutter alone spaces them;
-     once the 93.5% frame starts growing (~1370px), the gutter slides
-     back to 24px in step with it (21.8rem - 22.5vw is the line
-     through 40px at 1370 and 24px at 1440), so the edge inset climbs
-     in one motion instead of stepping at a breakpoint. */
+  /* The gutter slides from 40px to 24px as the 93.5% frame grows:
+     21.8rem - 22.5vw is the line through 40px at 1370 and 24px at
+     1440. */
   @media (width >= 64rem) {
     padding-inline: clamp(var(--space-6), 21.8rem - 22.5vw, 2.5rem);
   }

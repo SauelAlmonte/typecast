@@ -1,6 +1,5 @@
 /* Landing hero. The band sizes to the copy; the art crops inside its
-   own frame (__art), never on the band. Without art the band is just
-   the base color. */
+   own frame (__art), never on the band. */
 
 .tc-landing-hero {
   padding-block-end: var(--space-6);
@@ -24,20 +23,18 @@
     align-content: center;
   }
 
-  /* Tablet landscape and up: a floor that scales with the width
-     (37.5vw ≈ the art box owning two thirds of the viewport). Under
-     ~1390px the copy is taller than the floor, so content governs and
-     the floor fades in with no boundary snap. */
+  /* Tablet landscape and up: a width-scaled floor (37.5vw ≈ the art
+     box owning two thirds of the viewport). Under ~1390px the copy is
+     taller, so content governs with no boundary snap. */
   @media (width > 48rem) {
     min-block-size: 37.5vw;
   }
 }
 
-/* The art's crop box: the band's exact box on its own element. The
-   16:9 art overflows the content-sized band on tablets and up, and
-   cropping it on the band itself clipped every descendant with it,
-   the search suggestion panel included, at the band's bottom edge.
-   Here the crop touches only the art and its furniture. */
+/* The art's crop box: the band's exact box on its own element.
+   Cropping on the band itself clipped every descendant with it, the
+   search suggestion panel included; here the crop touches only the
+   art and its furniture. */
 .tc-landing-hero__art {
   position: absolute;
   inset: 0;

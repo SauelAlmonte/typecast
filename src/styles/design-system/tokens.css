@@ -2,10 +2,10 @@
    Component files consume these tokens and never declare raw values. */
 
 :root {
-  /* Dark wins when the user has no stated OS preference.
-     The [data-theme] override selectors are deliberately absent: per the
-     design doc they must not ship without a toggle control and a blocking
-     anti-flash script in <head>, and neither exists yet. */
+  /* Dark wins when the user has no stated OS preference. [data-theme]
+     overrides are absent on purpose: the design doc bars them without a
+     toggle and a blocking anti-flash script in <head>, and neither exists
+     yet. */
   color-scheme: dark light;
 }
 
@@ -87,14 +87,12 @@
   --space-10: 128px; /* 32x — hero and campaign surfaces */
 
   /* --- Container widths (§4) --- */
-  /* The hero's bottom-left copy column: lede and search bar stay inside
-     it so nothing outgrows the title above them. The lede additionally
-     caps at a character measure, the unit lines are counted in. */
+  /* Hero copy column: keeps lede and search bar inside the title's width.
+     The lede's measure counts the unit lines. */
   --container-hero-copy: 34rem;
   --measure-lede: 45ch;
-  /* Title-page tagline and overview: a reading measure narrow enough
-     to stay inside the headline's width instead of running into the
-     art. */
+  /* Title-page tagline and overview: narrow enough to stay inside the
+     headline's width, clear of the art. */
   --measure-overview: 55ch;
   --container-search: 48rem; /* 768px  — the search column */
   --container-content: 64rem; /* 1024px — article and detail pages */
@@ -116,9 +114,8 @@
 
   /* --- Control anatomy (§5) --- */
   --size-header: 5rem;
-  /* Search-bar geometry is em on purpose: em resolves against the font
-     size of the element that consumes the token, so the whole control
-     scales as one piece with its own text. */
+  /* Search-bar geometry is em on purpose: the whole control scales as
+     one piece with its own text. */
   --size-input: 3em;
   --size-input-mobile: 3em;
   --search-pad-inline: 1em;
