@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import type { UpcomingItem } from "@/app/api/upcoming/route";
+import Icon from "@/components/Icon/Icon";
 
 /** w1280 is TMDB's largest sized backdrop; the hero box renders it at
  * its own 16:9 in every band, so there is no portrait variant. */
@@ -36,6 +37,8 @@ const ROTATION_MAX = 6;
 export default function HeroBackdrop() {
   const [items, setItems] = useState<UpcomingItem[]>([]);
   const [index, setIndex] = useState(0);
+  // The 2.2.2 stop control's state; dots stay usable while paused.
+  const [paused, setPaused] = useState(false);
 
   function artSrc(item: UpcomingItem): string {
     return `${BACKDROP_BASE}${item.backdropPath}`;
@@ -68,13 +71,13 @@ export default function HeroBackdrop() {
   // Reduced motion stops the automatic swap entirely, not just the
   // fade; the dots keep manual rotation available.
   useEffect(() => {
-    if (items.length < 2) return;
+    if (paused || items.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setTimeout(() => {
       setIndex((index + 1) % items.length);
     }, ROTATE_MS);
     return () => clearTimeout(id);
-  }, [index, items.length]);
+  }, [index, items.length, paused]);
 
   if (items.length === 0) {
     return null;
@@ -142,6 +145,19 @@ export default function HeroBackdrop() {
       </p>
       {n > 1 && (
         <div className="tc-hero-backdrop__dots">
+          {/* Auto-updating content needs a stop control (WCAG 2.2.2). */}
+          <button
+            aria-label={
+              paused
+                ? "Resume the featured rotation"
+                : "Pause the featured rotation"
+            }
+            className="tc-hero-backdrop__pause"
+            onClick={() => setPaused(!paused)}
+            type="button"
+          >
+            <Icon name={paused ? "play" : "pause"} size="sm" />
+          </button>
           {items.map((item, i) => (
             <button
               aria-current={i === index || undefined}

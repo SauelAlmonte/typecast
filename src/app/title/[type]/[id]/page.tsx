@@ -396,7 +396,8 @@ export default async function TitlePage({
                   <h3 className="tc-meta tc-title-keywords-heading">
                     Keywords
                   </h3>
-                  <ul className="tc-title-keywords">
+                  {/* biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1). */}
+                  <ul className="tc-title-keywords" role="list">
                     {keywords.map((word) => (
                       <li className="tc-meta tc-title-keyword" key={word}>
                         {word}
