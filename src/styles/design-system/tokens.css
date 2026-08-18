@@ -53,7 +53,9 @@
   --color-on-media-muted: oklch(0.84 0.015 90);
 
   /* --- Type scale (§2) — size / line-height pairs --- */
-  --type-display: clamp(3.25rem, 7vw, 6.5rem);
+  /* Steep late ramp: laptops hold near the 3.25rem floor, the climb to
+     the 6.5rem cap happens between 1440 and 1920. */
+  --type-display: clamp(3.25rem, 8.3vw - 3.5rem, 6.5rem);
   --leading-display: 0.91;
   --type-h1: clamp(2.25rem, 4vw, 4.5rem);
   --leading-h1: 0.98;
@@ -115,7 +117,7 @@
      scales as one piece with its own text. 3.5em at the 1rem input font
      is the old 56px. */
   --size-input: 3.5em;
-  --size-input-mobile: 3.25em;
+  --size-input-mobile: 3em;
   --search-pad-inline: 1em;
   --search-icon-inset: 0.625em;
   --search-button-size: 2.25em;
@@ -142,4 +144,13 @@
   --duration-slow: 320ms; /* page-level and campaign transitions */
   --duration-crossfade: 900ms; /* hero backdrop rotation fade */
   --duration-caret: 1.1s; /* caret blink cadence — brand gesture, not UI motion */
+}
+
+/* Laptops and below: a slimmer search pill beside the calmer display
+   type; 1920+ keeps the full 3.5em anatomy. Inert under 48rem, where
+   the input uses --size-input-mobile. */
+@media (width < 120rem) {
+  :root {
+    --size-input: 3em;
+  }
 }
