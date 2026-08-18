@@ -2,11 +2,13 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** Fluid layout shipped. One global container (`tc-container`,
-cap `max(80rem, 93.5%)`) spaces every section, hero bands scale with
-the width instead of the window, and the search bar, wordmark, and
-link voice are single global systems (PRs #34 and #35 merged; #36
-open at session end). Next up: what the catalog pages display — the
+**Phase:** Fluid layout shipped and healthy in production. One global
+container (`tc-container`, cap `max(80rem, 93.5%)`) spaces every
+section, hero bands scale with the width instead of the window, and
+the search bar, wordmark, and link voice are single global systems
+(PRs #34, #35, and #36 merged). The deployed site serves title pages
+again (the Vercel token fix) and the landing suggestion panel floats
+over the rails (PR #38). Next up: what the catalog pages display — the
 Movies and TV nav pages show only the top 24 popular titles, and the
 plan is genre-categorized rail stacks, which starts with a data
 design pass because the schema stores no genres. Then the combobox's
@@ -67,21 +69,22 @@ before wide sharing, server cache, and the scheduled sync.
 | 2026-08-17 | One control voice | Shared pieces are defined once, globally: the search bar's full sizing in `search-box.css` (3em pill at every width, hero and results identical), the wordmark's whole look in `global.css` (footer logo matches the header; hover scoped to links), zero-specificity `:where(a)` rules making links quiet until hover, and `body` as a flex column with `main` growing so short pages keep the footer at the bottom. |
 | 2026-08-17 | Subpixel seams | Layered image and scrim boxes round to whole pixels independently, so at some window widths a sliver of unscrimmed art reads as a faint line. A 1px scrim overhang on the art's start and bottom edges is part of the band pattern, landing and title both. |
 | 2026-08-17 | TMDB prose is data | Overviews and taglines render verbatim (their authors' em dashes included), but em dashes are glued with word joiners at render (`glueEmDashes`) so one can never strand at a line end, and both cap at the `--measure-overview` 55ch reading measure with `pretty`/`balance` wrapping. |
+| 2026-08-17 | Crops get their own frame | An `overflow: hidden` crop lives on a dedicated absolutely positioned frame around the thing being cropped, never on a container that also holds floating UI. The hero band's own overflow (there to crop the 16:9 art) clipped every descendant with it, cutting the suggestion panel off at the band's bottom edge; it read as a z-index bug, but clipping ignores stacking order, so no z-index could fix it. `tc-landing-hero__art` now owns the crop (PR #38). |
+| 2026-08-17 | Two Intel Macs in rotation | Sauel works across the Mac Pro 2019 (Intel, macOS 26) and the MacBook Pro 2015 (Intel, macOS 12). Two standing consequences: each machine's global pnpm must match the `packageManager` pin (see pnpm pin policy; the MacBook proved it again today), and the Playwright 1.61.0 pin follows the oldest OS in rotation, so it stays while the MacBook does. The memory plugin's `.remember/` folder exists only on the Mac Pro; it is gitignored, so it never syncs through the repo. |
 
 ---
 
 ## Open
 
-- **PR #36 pending merge**: the title-hero and site-wide unification branch, opened at session end. Awaiting Sauel's review, CI, merge, then the usual cleanup.
-- **Catalog display (tomorrow's work)**: the Movies and TV nav pages show only the top 24 popular titles via `popularMedia`. The agreed direction is genre-categorized rail stacks reusing the carousel, like the landing page. The database stores no genres today, so it starts with a data design pass — schema migration, the sync writing genres, a `mediaByGenre` query — explain-first, since catalog architecture is core.
+- **Catalog display (next up)**: the Movies and TV nav pages show only the top 24 popular titles via `popularMedia`. The agreed direction is genre-categorized rail stacks reusing the carousel, like the landing page. The database stores no genres today, so it starts with a data design pass — schema migration, the sync writing genres, a `mediaByGenre` query — explain-first, since catalog architecture is core.
 - **Combobox loading and error states**: the verification audit's two high findings. The empty state has no loading concept, so "No matches" paints during the debounce window and after clicking a recent; and `fetchSuggestions` has no `res.ok` check, so a 500 or offline fetch becomes an unhandled rejection with no user feedback. One fix: the panel needs loading and error states. Core territory, Sauel's build.
 - **Combobox keyboard findings** (audit, medium): `isComposing` is unguarded, so IME users committing a composition trigger submit; and ArrowDown-when-closed reopens stale results against a changed input, bypassing the guard `handleFocus` already enforces.
 - **Query length cap** (audit, medium): `q` reaches `word_similarity` unbounded, so one 14KB request trigram-scans the catalog twice; a cap in `searchMedia` covers suggest and `/search` at once.
 - **Server hardening** (audit, low): a sync crash between upsert and prune persists a merged rail until the next sync; postponed titles that drop off TMDB keep stale future dates atop the hero rotation; one failed rail query fails all eight in `/api/rails`.
 - **Design-audit paper cuts**: a few untokenized values in component CSS (search-box.css's 3px active bar, the hero `12ch`, dot and caret em sizes, `steps(1)`), a stale chartreuse comment in landing-hero.css still naming the retired preview, and typography.css's header claiming no raw values while declaring font weights. The redundant physical width fell out with PR #30's band rework.
-- **Playwright unpin**: the macOS 26 upgrade removes the reason for the exact 1.61.0 pin and the CI-only webkit gate; `playwright.config.ts` still carries a comment claiming this machine runs macOS 12. Unpin, enable local WebKit, and fix the comment together.
+- **Playwright unpin, blocked again**: the Mac Pro's macOS 26 upgrade removed the original reason, but the MacBook Pro 2015 (macOS 12) rejoined the rotation on 2026-08-17, restoring it: 1.61.0 is the last release whose browser builds run there. The pin and the CI-only webkit gate stay until the macOS 12 machine leaves the rotation.
 - **Rate limiting before wide sharing**: the API routes have none. Fine for showing Jami; add Upstash rate limiting (and the Redis server cache) before the link travels.
-- **Scheduled sync**: a Vercel cron replacing manual `pnpm db:sync`, which now also maintains the eight category lists. Needs `TMDB_READ_ACCESS_TOKEN` on Vercel when it lands.
+- **Scheduled sync**: a Vercel cron replacing manual `pnpm db:sync`, which now also maintains the eight category lists. Its `TMDB_READ_ACCESS_TOKEN` prerequisite landed 2026-08-17 with the title-page fix, so nothing blocks it.
 - **Full Cast & Crew subpage**: the title page's cast rail is top-billed only; the department-grouped `/title/{type}/{id}/cast` page was deliberately deferred to its own PR.
 - **Hero art curation**: the title page's consensus picker (most-voted textless backdrop) could serve the landing rotation too; today the rotation still uses the sync's stored default `backdrop_path`.
 - **Vitest unit tests**: `normalizeSearchText` and the ranking query are the first candidates. Also unlocks affected tests in `stop-check`.
@@ -92,7 +95,6 @@ before wide sharing, server cache, and the scheduled sync.
 - **Migration guard**: a PreToolUse deny on edits to applied migration files, now that Drizzle exists and `src/db/migrations/` holds applied SQL.
 - **Slash commands and subagents**: which recurring workflows are worth encoding.
 - **Affected tests in `stop-check`**: once Vitest lands. Playwright already runs in CI and stays out of hooks.
-- **Older MacBook pnpm**: still broken until it runs `npm i -g pnpm@11.22.0` (the current pin), then `git pull` and `pnpm install`. Every pnpm command there fails until the global matches the pin.
 
 ---
 
@@ -149,7 +151,11 @@ before wide sharing, server cache, and the scheduled sync.
 - [x] Ran a six-agent audit of this file against the merged repo at Sauel's request; the corrections and supersession notes in this update are its verified findings (stale signing and Playwright rows, the partially-superseded catalog and backdrop rows, PR #22's wrong hash, the retired paper cut).
 - [x] Shipped PR #34 (`688eaa5`): the header-first container pass. `tc-container` prototyped in the header with per-device width tiers, nav links quiet until hover in both navs, and an 11-agent verification workflow whose four confirmed findings all landed: the GitHub link joined the type scale, the phone-menu close-on-grow query became the exact complement of the CSS range (a menu opened at exactly 768px could outlive its opener), the descendant selector became a BEM mix, and a stale comment fell.
 - [x] Shipped PR #35 (`6f3f440`): the hero on the fluid system. The per-device container tiers became the `max(80rem, 93.5%)` cap with the sliding gutter after Sauel's screen recording showed resize snapping; the display clamp calmed the laptop headline; the search pill slimmed; the band dropped svh for the 37.5vw floor; dots lifted with the caption below their line; 1px scrim overhangs killed the subpixel seam he spotted at ~1442–1550.
-- [x] Opened PR #36 at session close: the title hero mirroring the whole system (container, floor, seams, measures, em-dash glue, comment trims), the trailer dialog fixed (fluid button, restored `margin: auto` centering that the global reset had stripped, autoplay removed), and the site-wide unification (container migration complete, one search bar, one wordmark, quiet links, pinned footer).
+- [x] Opened PR #36 at session close: the title hero mirroring the whole system (container, floor, seams, measures, em-dash glue, comment trims), the trailer dialog fixed (fluid button, restored `margin: auto` centering that the global reset had stripped, autoplay removed), and the site-wide unification (container migration complete, one search bar, one wordmark, quiet links, pinned footer). Merged the same day.
+- [x] Unbroke pnpm on the MacBook Pro, closing the standing Open item: its global was 11.21.0 against the repo's 11.22.0 pin, so every pnpm command failed with the delegation identity error, the pin-policy failure mode confirmed live (`@pnpm/exe@11.22.0` publishes no Intel-mac binary; pnpm's own `~/Library/pnpm/pnpm-lock.yaml` is the "missing from pnpm-lock.yaml" the message means). `npm i -g pnpm@11.22.0` aligned it.
+- [x] Diagnosed the deployed title-page crash ("This page couldn't load") as `TMDB_READ_ACCESS_TOKEN` missing on Vercel: the title page is the only route that calls TMDB at request time (everything else reads Neon, which is why the rest of the deployed site worked), and the token lived only in `.env.local`. Sauel added it for Production and Preview, marked Sensitive, and redeployed; titles render in production.
+- [x] Shipped PR #38 (`4549650`): the art-crop frame (see the Decided row). Verified before the PR with a Playwright measurement against the dev server: the open panel extends 424px past the band's bottom edge and paints over the rail posters, and the art still crops at the band edge.
+- [x] Confirmed the OG card intact after the redeploy scare: the empty tile on Vercel's Deployment Details page is Vercel's own asynchronously captured deployment screenshot, not the OG image; the live `og:image` meta tag and the 1200x630 JPEG behind it both verified serving.
 
 ---
 
