@@ -2,11 +2,21 @@
    Component files consume these tokens and never declare raw values. */
 
 :root {
-  /* Dark wins when the user has no stated OS preference. [data-theme]
-     overrides are absent on purpose: the design doc bars them without a
-     toggle and a blocking anti-flash script in <head>, and neither exists
-     yet. */
+  /* Dark wins when the user has no stated OS preference. ThemeToggle
+     stores an explicit choice as [data-theme]; a blocking script in the
+     layout replays it before first paint, so a stored choice never
+     flashes the OS theme. */
   color-scheme: dark light;
+}
+
+/* An explicit choice overrides the OS: forcing color-scheme flips
+   every light-dark() token at once. No [data-theme] means System. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 :root {

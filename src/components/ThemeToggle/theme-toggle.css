@@ -1,0 +1,45 @@
+/* Three-state theme picker: a pill of icon radios, the checked one on
+   a raised circle. The inputs are visually hidden inside their labels,
+   so state and focus styles ride :has(). */
+
+.tc-theme-toggle {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: var(--space-1);
+  margin: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+}
+
+/* The label is the control: 24px, the 2.5.8 floor, like the hero dots. */
+.tc-theme-toggle__option {
+  display: grid;
+  place-items: center;
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  transition: color var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--color-ink);
+  }
+
+  /* The hidden input carries focus; the ring paints on the circle. */
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Checked = raised circle; the border is the 3:1 state cue (1.4.11),
+     since the fill difference alone is too subtle in light. */
+  &:has(input:checked) {
+    color: var(--color-ink);
+    background-color: var(--color-raised);
+    border-color: var(--color-border);
+  }
+}

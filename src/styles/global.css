@@ -9,6 +9,7 @@
 @import "../components/Header/header.css";
 @import "../components/Header/Navbar/navbar.css";
 @import "../components/Header/MobileNav/mobile-nav.css";
+@import "../components/ThemeToggle/theme-toggle.css";
 @import "../components/LandingHero/landing-hero.css";
 @import "../components/LandingHero/HeroBackdrop/hero-backdrop.css";
 @import "../components/SearchBox/search-box.css";
