@@ -2,11 +2,11 @@
    Component files consume these tokens and never declare raw values. */
 
 :root {
-  /* Dark wins when the user has no stated OS preference. [data-theme]
-     overrides are absent on purpose: the design doc bars them without a
-     toggle and a blocking anti-flash script in <head>, and neither exists
-     yet. */
-  color-scheme: dark light;
+  /* Pinned dark while the light palette awaits its design pass; the
+     light halves of the light-dark() tokens below stay live for that
+     day. Restoring light is `dark light` here plus the parked toggle
+     (feat/theme-toggle branch). */
+  color-scheme: dark;
 }
 
 :root {
