@@ -27,6 +27,7 @@
 
 # performance
 .lighthouseci/
+.lighthouseci-reports/
 
 # misc
 .DS_Store

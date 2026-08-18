@@ -19,7 +19,7 @@
   gap: var(--space-2);
 }
 
-/* Icon plus padding lands the hit area at 40px (2.5.8). */
+/* Icon, padding, and border land the hit area at 38px (2.5.8). */
 .tc-carousel__arrow {
   display: grid;
   place-items: center;
@@ -40,6 +40,10 @@
   display: flex;
   gap: var(--space-3);
   padding-block: var(--space-1);
+  /* Inline padding gives the edge cards' focus ring room inside the
+     scrollport; the negative margin keeps the rail's visual edges. */
+  padding-inline: var(--space-1);
+  margin-inline: calc(-1 * var(--space-1));
   overflow-x: auto;
   list-style: none;
   scroll-snap-type: x proximity;

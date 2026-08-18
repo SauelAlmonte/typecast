@@ -33,6 +33,10 @@ export default function IconSprite() {
         <symbol id="icon-play" viewBox="0 0 24 24">
           <polygon points="6 3 20 12 6 21 6 3" />
         </symbol>
+        <symbol id="icon-pause" viewBox="0 0 24 24">
+          <rect height="16" rx="1" width="4" x="6" y="4" />
+          <rect height="16" rx="1" width="4" x="14" y="4" />
+        </symbol>
       </defs>
     </svg>
   );
