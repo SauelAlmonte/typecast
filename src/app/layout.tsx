@@ -40,6 +40,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${display.variable} ${text.variable} ${brand.variable}`}
+      // The theme script sets data-theme before hydration, so the
+      // client <html> legitimately differs from the server render.
+      // Scopes to this element's attributes only, nothing deeper.
+      suppressHydrationWarning
     >
       <body>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static string, no user input; see THEME_SCRIPT. */}
