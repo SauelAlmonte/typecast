@@ -1,4 +1,4 @@
-import { and, desc, eq, like, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, like, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { genres, media, mediaGenres } from "@/db/schema";
 import { normalizeSearchText } from "@/lib/normalize";
@@ -121,11 +121,18 @@ export async function popularMedia(
     .limit(limit);
 }
 
+/** A rail card: posterPath is non-null by query, because the card IS
+ * the poster; posterless rows are excluded before ranking, so the
+ * rail minimum counts only what renders. */
+export type RailTitle = Omit<MediaMatch, "posterPath"> & {
+  posterPath: string;
+};
+
 /** One genre's rail: the genre and its top titles, ready to render. */
 export type GenreRail = {
   genreId: number;
   name: string;
-  titles: MediaMatch[];
+  titles: RailTitle[];
 };
 
 /* Sauel's rail order per scope, TMDB ids with names alongside.
@@ -182,7 +189,8 @@ const RAIL_CAP = 20;
  * Every genre rail for one scope in a single round trip: titles ranked
  * inside their genre by the same popularity order `popularMedia` uses,
  * capped per rail, with sparse genres (fewer than `RAIL_MIN` titles)
- * sitting out until the catalog grows into them.
+ * sitting out until the catalog grows into them. Posterless rows never
+ * enter the ranking; the rail card is the poster.
  *
  * One statement on purpose: `row_number()` partitioned by genre does
  * per-rail ranking and capping in the database, so the alternative
@@ -216,7 +224,7 @@ export async function genreRails(kind: MediaKind): Promise<GenreRail[]> {
       })
       .from(media)
       .innerJoin(mediaGenres, eq(mediaGenres.mediaId, media.id))
-      .where(eq(media.mediaType, kind)),
+      .where(and(eq(media.mediaType, kind), isNotNull(media.posterPath))),
   );
 
   const rows = await db
@@ -229,7 +237,7 @@ export async function genreRails(kind: MediaKind): Promise<GenreRail[]> {
       mediaType: ranked.mediaType,
       title: ranked.title,
       year: ranked.year,
-      posterPath: ranked.posterPath,
+      posterPath: sql<string>`${ranked.posterPath}`,
     })
     .from(ranked)
     .innerJoin(genres, eq(genres.id, ranked.genreId))

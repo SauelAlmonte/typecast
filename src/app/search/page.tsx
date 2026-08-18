@@ -4,8 +4,14 @@ import Link from "next/link";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import IconSprite from "@/components/Icon/IconSprite/IconSprite";
+import GenreRails from "@/components/Rails/GenreRails/GenreRails";
 import SearchBox from "@/components/SearchBox/SearchBox";
-import { type MediaKind, popularMedia, searchMedia } from "@/db/queries";
+import {
+  type GenreRail,
+  genreRails,
+  type MediaKind,
+  searchMedia,
+} from "@/db/queries";
 
 /** w342 fills the widest grid cell this layout produces. */
 const POSTER_BASE = "https://image.tmdb.org/t/p/w342";
@@ -55,8 +61,8 @@ export async function generateMetadata({
  * never runs at build time. Flows:
  * - `q` alone: ranked matches across the whole catalog.
  * - `q` with `type`: the same ranking scoped to movies or TV.
- * - `type` alone: that kind's most popular titles, the Movies and
- *   TV Shows nav destinations.
+ * - `type` alone: that kind's genre rails, the Movies and TV Shows
+ *   nav destinations.
  * - `type=person` / `type=award`: honest empty states; not synced yet.
  */
 export default async function SearchPage({
@@ -69,11 +75,12 @@ export default async function SearchPage({
   const placeholder = kind === "person" || kind === "award";
 
   let results: Awaited<ReturnType<typeof searchMedia>> = [];
+  let rails: GenreRail[] = [];
   if (!placeholder) {
     if (q !== "") {
       results = await searchMedia(q, RESULTS_LIMIT, scope);
     } else if (scope) {
-      results = await popularMedia(scope, RESULTS_LIMIT);
+      rails = await genreRails(scope);
     }
   }
 
@@ -111,6 +118,12 @@ export default async function SearchPage({
               No matches for &ldquo;{q}&rdquo;. Try a shorter fragment.
             </p>
           )}
+          {!placeholder && q === "" && scope && rails.length === 0 && (
+            <p className="tc-results-empty">
+              Nothing to browse yet; the catalog is still filling in.
+            </p>
+          )}
+          {rails.length > 0 && <GenreRails rails={rails} />}
           {results.length > 0 && (
             <ul className="tc-results-grid">
               {results.map((r) => (
