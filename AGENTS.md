@@ -39,8 +39,11 @@ scratch on purpose.
 Next.js 16.3.0 · React 19.2.8 (React Compiler enabled) · TypeScript · pnpm
 11.22.0 · Biome 2.5.7
 
-Planned but not yet installed: Neon + Drizzle, Better Auth, Zod, Upstash Redis,
-Vitest, Testing Library, Playwright, MSW.
+Also installed: Neon + Drizzle (HTTP driver) and Playwright, pinned exactly to
+1.61.0 while a macOS 12 machine is in rotation (see PROGRESS.md).
+
+Planned but not yet installed: Better Auth, Zod, Upstash Redis, Vitest,
+Testing Library, MSW.
 
 ## Do not add
 
@@ -59,7 +62,7 @@ pnpm exec tsc --noEmit  # no typecheck script exists yet
 pnpm build
 ```
 
-No test runner is installed yet.
+Playwright e2e is installed (`pnpm test:e2e`); no unit test runner yet.
 
 ## Git workflow
 
@@ -80,8 +83,13 @@ per edit. Everything else in `.claude/rules/git-workflow.md` still applies.
 
 ## Current status
 
-Configuration phase. No application code written — `src/` is the untouched
-create-next-app scaffold.
+The core is built and deployed: the hand-written combobox (debounce,
+cancellation, cache, keyboard and ARIA), the local catalog in Neon with
+Sauel's ranking, and the landing, search, and title pages, live at
+typecast-sepia.vercel.app. `PROGRESS.md` is the running log of decisions
+and open work; read its Open list before proposing next steps.
 
-Directory structure is deliberately undecided; it follows the system design,
-which hasn't happened yet. Do not invent or assume file-layout conventions.
+Layout conventions are settled: one directory per component under
+`src/components/`, each owning its BEM stylesheet, with the global layer
+(tokens, reset, typography, layout) in `src/styles/design-system/` behind
+`global.css`.
