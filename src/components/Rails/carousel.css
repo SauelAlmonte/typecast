@@ -76,7 +76,8 @@
   white-space: nowrap;
 }
 
-/* One link per card; hover restates the underline on the title. */
+/* MediaRail only: its whole card is one link; hover restates the
+   underline on the title. CastRail cards are not links. */
 .tc-carousel__card-link {
   display: grid;
   gap: var(--space-1);
