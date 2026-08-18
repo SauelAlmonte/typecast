@@ -2,6 +2,7 @@ type IconName =
   | "chevron-left"
   | "chevron-right"
   | "github"
+  | "image"
   | "menu"
   | "pause"
   | "play"

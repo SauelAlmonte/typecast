@@ -414,7 +414,12 @@ export default function SearchBox() {
                       width={40}
                     />
                   ) : (
-                    <span aria-hidden="true" className="tc-search-box__thumb" />
+                    <span
+                      aria-hidden="true"
+                      className="tc-search-box__thumb tc-search-box__thumb--empty"
+                    >
+                      <Icon name="image" size="sm" />
+                    </span>
                   )}
                   <span className="tc-search-box__text">
                     <span className="tc-search-box__title">{r.title}</span>

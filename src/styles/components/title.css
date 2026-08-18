@@ -98,6 +98,16 @@
   border-radius: var(--radius-card);
 }
 
+/* No-art fallback on the media band, so it speaks the media colors. */
+.tc-title-poster--empty {
+  display: grid;
+  place-content: center;
+  gap: var(--space-1);
+  justify-items: center;
+  color: var(--color-on-media-muted);
+  background-color: var(--color-scrim-soft);
+}
+
 .tc-title-headline {
   display: grid;
   grid-area: headline;
@@ -286,6 +296,15 @@
   aspect-ratio: 2 / 3;
   object-fit: cover;
   background-color: var(--color-raised);
+}
+
+/* No-art fallback: same box, an honest label instead of a blank. */
+.tc-title-season-poster--empty {
+  display: grid;
+  place-content: center;
+  gap: var(--space-1);
+  justify-items: center;
+  color: var(--color-ink-muted);
 }
 
 .tc-title-season-text {
