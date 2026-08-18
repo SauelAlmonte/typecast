@@ -91,7 +91,7 @@ request time, one appended request per title, cached for a day.
   `light-dark()`, BEM with native nesting, no component library
 - **Testing:** Playwright end-to-end (Chromium, Firefox, WebKit in CI)
 - **Quality:** Biome for lint and format, `tsc --noEmit`, GitHub
-  Actions CI
+  Actions CI with Lighthouse score budgets against production
 - **Tooling:** pnpm, tsx for the sync script
 - **Hosting:** Vercel, zero-config
 
@@ -116,16 +116,16 @@ Accessibility is a design input, not a retrofit:
 One fluid layout system spaces every page: a single container whose
 cap and gutter scale with the viewport as proportions and clamps, not
 stepped breakpoints, so resizing moves in one motion. Hero bands scale
-with the width. Dark is the default theme; light follows the OS
-preference through `light-dark()` tokens.
+with the width. Dark is the site's theme; a complete light palette
+lives in the `light-dark()` tokens, parked until its design pass.
 
 ## Status
 
 The core is live: the hand-built combobox, the local catalog with
 genre rails on the browse pages, and the landing, search, and title
 pages. On the roadmap: combobox loading and error states, rate
-limiting, a scheduled sync, Lighthouse budgets in CI, unit tests, a
-theme toggle, and People and Awards content.
+limiting, a scheduled sync, unit tests, the light theme's design
+pass, and People and Awards content.
 
 ## Attribution
 
