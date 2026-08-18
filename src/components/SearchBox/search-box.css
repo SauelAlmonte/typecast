@@ -1,19 +1,25 @@
 /* Design System v2.0 §5 — input anatomy and suggestion rows for the
    combobox. */
 
+/* One bar everywhere it appears (hero, results): 34rem cap, tracking
+   the window at 50vw from tablets, narrower on laptops beside the
+   calmer type, the full cap again from 1920. */
 .tc-search-box {
   position: relative;
   inline-size: 100%;
-  max-inline-size: var(--container-search);
+  max-inline-size: var(--container-hero-copy);
 
   /* From the tablet band up the 16px zoom floor no longer applies
      (only touch browsers zoom into small inputs), so the control
-     relaxes to the ui size. Every dimension is em, so the whole pill
-     scales down with it: height, icon slot, and paddings together.
-     The wrapper gets the same size so the submit button's em geometry
-     stays in lockstep with the input's padding. */
+     relaxes to the ui size; every dimension is em, so the whole pill
+     scales down with it. */
   @media (width >= 48rem) {
+    max-inline-size: min(var(--container-hero-copy), 50vw);
     font-size: var(--type-ui);
+  }
+
+  @media (64rem <= width < 120rem) {
+    max-inline-size: min(28rem, 40vw);
   }
 }
 

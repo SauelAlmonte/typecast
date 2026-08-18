@@ -11,7 +11,7 @@ import Icon from "@/components/Icon/Icon";
 export default function Navbar() {
   return (
     <nav aria-label="Primary" className="tc-navbar">
-      <Link className="tc-wordmark tc-header__brand" href="/">
+      <Link className="tc-wordmark" href="/">
         TypeCast
       </Link>
       <div className="tc-navbar__links">

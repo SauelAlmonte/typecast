@@ -16,13 +16,22 @@ const POSTER_BASE = "https://image.tmdb.org/t/p/w500";
 
 /** Mirrors the backdrop box in title.css: a full-width strip in compact
  * bands; from 64rem the box rides the band height at 16:9. The band is
- * content-sized (poster plus paddings, more when the copy runs long),
- * so 64rem is a ceiling on the box's usual width, not an exact value. */
-const BACKDROP_SIZES = "(min-width: 64rem) 64rem, 100vw";
+ * its content until the 37.5vw floor overtakes it (~1700px here, the
+ * title content being taller than the landing copy), where the box
+ * lands at ~67vw. 100vw stays the safe ceiling below that. Must change
+ * with the CSS or the browser fetches the wrong srcset width. */
+const BACKDROP_SIZES = "(min-width: 120rem) 67vw, 100vw";
 
 const CAST_MAX = 12;
 const RECOMMENDATIONS_MAX = 12;
 const KEYWORDS_MAX = 12;
+
+/** Em dashes are legal break points, so TMDB prose can strand one at
+ * a line's end. Word joiners (U+2060) glue the dash to both neighbors
+ * and the trio wraps as one word; the visible text is unchanged. */
+function glueEmDashes(text: string): string {
+  return text.replaceAll("\u{2014}", "\u{2060}\u{2014}\u{2060}");
+}
 
 /** The route only speaks TMDB's two scripted kinds; anything else 404s. */
 function readKind(type: string): "movie" | "tv" {
@@ -231,7 +240,7 @@ export default async function TitlePage({
                 <div className="tc-title-scrim" />
               </div>
             )}
-            <div className="tc-container-wide tc-title-hero-inner">
+            <div className="tc-container tc-title-hero-inner">
               {detail.poster_path ? (
                 <Image
                   alt={`${title} poster`}
@@ -273,7 +282,9 @@ export default async function TitlePage({
                   </div>
                 )}
                 {detail.tagline && (
-                  <p className="tc-title-tagline">{detail.tagline}</p>
+                  <p className="tc-title-tagline">
+                    {glueEmDashes(detail.tagline)}
+                  </p>
                 )}
               </div>
               {(detail.overview || credit) && (
@@ -281,7 +292,9 @@ export default async function TitlePage({
                   {detail.overview && (
                     <>
                       <h2 className="tc-h3">Overview</h2>
-                      <p className="tc-title-overview">{detail.overview}</p>
+                      <p className="tc-title-overview">
+                        {glueEmDashes(detail.overview)}
+                      </p>
                     </>
                   )}
                   {credit && (
@@ -296,7 +309,7 @@ export default async function TitlePage({
               )}
             </div>
           </section>
-          <div className="tc-container-wide tc-title-body">
+          <div className="tc-container tc-title-body">
             <div className="tc-title-main">
               <CastRail
                 cast={cast}

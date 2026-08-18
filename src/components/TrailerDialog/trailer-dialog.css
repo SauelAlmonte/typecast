@@ -1,13 +1,14 @@
 /* Play Trailer button and its modal. The button lives in the title
    hero's actions row and inherits the media colors from the band. */
 
-/* §6 button height: 12px paddings around the ui line land on 44px. */
+/* Fluid pill: ~34px on laptops and below, growing to ~43px by 2560.
+   Stays over the 24px hit floor (2.5.8) everywhere. */
 .tc-trailer-dialog__button {
   display: inline-flex;
   gap: var(--space-2);
   align-items: center;
-  padding-block: var(--space-3);
-  padding-inline: var(--space-5);
+  padding-block: clamp(0.5rem, 0.25rem + 0.35vw, 0.75rem);
+  padding-inline: clamp(1rem, 0.5rem + 0.8vw, 1.5rem);
   font-size: var(--type-ui);
   line-height: var(--leading-ui);
   color: inherit;
@@ -21,6 +22,9 @@
 
 .tc-trailer-dialog {
   inline-size: min(100%, var(--container-content));
+  /* The reset zeroes all margins, which kills the UA's margin: auto
+     that centers native dialogs; restore it. */
+  margin: auto;
   padding: 0;
   color: var(--color-ink);
   background-color: var(--color-canvas);

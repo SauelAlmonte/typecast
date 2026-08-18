@@ -92,6 +92,10 @@
      caps at a character measure, the unit lines are counted in. */
   --container-hero-copy: 34rem;
   --measure-lede: 45ch;
+  /* Title-page tagline and overview: a reading measure narrow enough
+     to stay inside the headline's width instead of running into the
+     art. */
+  --measure-overview: 55ch;
   --container-search: 48rem; /* 768px  — the search column */
   --container-content: 64rem; /* 1024px — article and detail pages */
   --container-aside: 16rem; /*  256px — the facts column on detail pages */
@@ -114,9 +118,8 @@
   --size-header: 5rem;
   /* Search-bar geometry is em on purpose: em resolves against the font
      size of the element that consumes the token, so the whole control
-     scales as one piece with its own text. 3.5em at the 1rem input font
-     is the old 56px. */
-  --size-input: 3.5em;
+     scales as one piece with its own text. */
+  --size-input: 3em;
   --size-input-mobile: 3em;
   --search-pad-inline: 1em;
   --search-icon-inset: 0.625em;
@@ -144,13 +147,4 @@
   --duration-slow: 320ms; /* page-level and campaign transitions */
   --duration-crossfade: 900ms; /* hero backdrop rotation fade */
   --duration-caret: 1.1s; /* caret blink cadence — brand gesture, not UI motion */
-}
-
-/* Laptops and below: a slimmer search pill beside the calmer display
-   type; 1920+ keeps the full 3.5em anatomy. Inert under 48rem, where
-   the input uses --size-input-mobile. */
-@media (width < 120rem) {
-  :root {
-    --size-input: 3em;
-  }
 }

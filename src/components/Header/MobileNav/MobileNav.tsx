@@ -68,11 +68,7 @@ export default function MobileNav() {
         <div className="tc-mobile-nav__bar">
           {/* A real home link like the desktop wordmark; closing on click
               keeps the dialog from surviving the navigation. */}
-          <Link
-            className="tc-wordmark tc-header__brand"
-            href="/"
-            onClick={closeMenu}
-          >
+          <Link className="tc-wordmark" href="/" onClick={closeMenu}>
             TypeCast
           </Link>
           <button

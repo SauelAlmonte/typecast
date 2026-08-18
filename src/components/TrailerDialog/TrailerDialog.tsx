@@ -55,9 +55,9 @@ export default function TrailerDialog({ videoKey, title }: TrailerDialogProps) {
         </div>
         {open && (
           <iframe
-            allow="autoplay; encrypted-media; fullscreen"
+            allow="encrypted-media; fullscreen"
             className="tc-trailer-dialog__frame"
-            src={`https://www.youtube-nocookie.com/embed/${videoKey}?autoplay=1`}
+            src={`https://www.youtube-nocookie.com/embed/${videoKey}`}
             title={`${title} trailer`}
           />
         )}
