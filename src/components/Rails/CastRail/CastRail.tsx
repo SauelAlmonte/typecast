@@ -71,7 +71,8 @@ export default function CastRail({ title, cast }: CastRailProps) {
           </button>
         </div>
       </div>
-      <ul className="tc-carousel__track" ref={track}>
+      {/* biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1). */}
+      <ul className="tc-carousel__track" ref={track} role="list">
         {cast.map((person) => (
           <li className="tc-carousel__card" key={person.id}>
             {person.profilePath ? (

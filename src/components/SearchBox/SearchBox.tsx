@@ -69,8 +69,12 @@ export default function SearchBox() {
   /** The normalized query the current `results` answer; guards reopening. */
   const lastKey = useRef<string | null>(null);
 
-  const showingRecents = normalizeSearchText(query) === "";
+  const queryKey = normalizeSearchText(query);
+  const showingRecents = queryKey === "";
   const optionCount = showingRecents ? recents.length : results.length;
+  /** Whether `results` answer the query as it reads now. Stale results
+   * may stay visible mid-typing, but never reopen or read as empty. */
+  const resultsAreCurrent = lastKey.current === queryKey;
 
   function showResults(key: string, data: SuggestResult[]) {
     lastKey.current = key;
@@ -196,7 +200,20 @@ export default function SearchBox() {
   function selectRecent(title: string) {
     setQuery(title);
     cancelPending();
-    runSearch(normalizeSearchText(title));
+    const key = normalizeSearchText(title);
+    const cached = cache.current.get(key);
+    if (cached) {
+      showResults(key, cached);
+      return;
+    }
+    // A pick is a discrete event: no debounce, and the panel hides
+    // until this key's results exist, so the empty state can't flash
+    // a false "No matches" while the request runs.
+    setIsOpen(false);
+    setActiveIndex(-1);
+    // Unlike the debounced path there is no timer to swallow a failure,
+    // so log-and-degrade here the way the rails and hero fetches do.
+    fetchSuggestions(key).catch(console.error);
   }
 
   function selectByIndex(index: number) {
@@ -219,8 +236,15 @@ export default function SearchBox() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    // Never act on keys aimed at an IME composition: Enter commits the
+    // composed text and the arrows steer the candidate list.
+    if (e.nativeEvent.isComposing) return;
     if (!isOpen) {
-      if (e.key === "ArrowDown" && optionCount > 0) {
+      if (
+        e.key === "ArrowDown" &&
+        optionCount > 0 &&
+        (showingRecents || resultsAreCurrent)
+      ) {
         e.preventDefault();
         setIsOpen(true);
         setActiveIndex(0);
@@ -257,20 +281,23 @@ export default function SearchBox() {
     }
   }
 
-  const showEmptyState = isOpen && !showingRecents && results.length === 0;
+  const showEmptyState =
+    isOpen && !showingRecents && resultsAreCurrent && results.length === 0;
+  /* The popup exists only when it has something to show, and the ARIA
+   * expanded/controls pair reflects exactly that. */
+  const panelVisible = isOpen && (showEmptyState || optionCount > 0);
   const activeId =
-    isOpen && activeIndex >= 0
+    panelVisible && activeIndex >= 0
       ? showingRecents
         ? recentOptionId(activeIndex)
         : results[activeIndex] && resultOptionId(results[activeIndex])
       : undefined;
 
+  // Counts only: the empty panel is its own status region, so a live
+  // "No matches" here would announce twice.
   let liveMessage = "";
-  if (isOpen) {
-    liveMessage =
-      optionCount > 0
-        ? `${optionCount} ${showingRecents ? "recent searches" : "suggestions"} available`
-        : "No matches";
+  if (panelVisible && optionCount > 0) {
+    liveMessage = `${optionCount} ${showingRecents ? "recent searches" : "suggestions"} available`;
   }
 
   return (
@@ -292,8 +319,8 @@ export default function SearchBox() {
       <input
         aria-activedescendant={activeId || undefined}
         aria-autocomplete="list"
-        aria-controls={LISTBOX_ID}
-        aria-expanded={isOpen}
+        aria-controls={panelVisible && !showEmptyState ? LISTBOX_ID : undefined}
+        aria-expanded={panelVisible}
         autoComplete="off"
         className="tc-search-box__input"
         id="tc-search"
@@ -310,12 +337,15 @@ export default function SearchBox() {
       <span aria-live="polite" className="tc-visually-hidden">
         {liveMessage}
       </span>
-      {isOpen && showEmptyState && (
-        <div className="tc-search-box__panel tc-search-box__panel--empty">
+      {showEmptyState && (
+        <div
+          className="tc-search-box__panel tc-search-box__panel--empty"
+          role="status"
+        >
           No matches for “{query.trim()}”
         </div>
       )}
-      {isOpen && !showEmptyState && (
+      {panelVisible && !showEmptyState && (
         <div
           aria-label={showingRecents ? "Recent searches" : "Suggestions"}
           className="tc-search-box__panel"

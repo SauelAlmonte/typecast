@@ -110,7 +110,7 @@ export default async function SearchPage({
           )}
           {!placeholder && q === "" && !scope && (
             <p className="tc-results-empty">
-              Type a title above to search the catalog.
+              Type a title in the search box to search the catalog.
             </p>
           )}
           {!placeholder && q !== "" && results.length === 0 && (
@@ -125,7 +125,8 @@ export default async function SearchPage({
           )}
           {rails.length > 0 && <GenreRails rails={rails} />}
           {results.length > 0 && (
-            <ul className="tc-results-grid">
+            // biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1).
+            <ul className="tc-results-grid" role="list">
               {results.map((r) => (
                 <li className="tc-result-card" key={`${r.mediaType}-${r.id}`}>
                   <Link

@@ -32,12 +32,16 @@
   /* --- Lines: two tokens, two jobs --- */
   /* Decorative separators only. Not permitted to be the sole definition of a control. */
   --color-line: light-dark(oklch(0.86 0.018 260), oklch(0.32 0.024 260));
-  /* Control boundaries. Meets 3:1 against --color-surface in both themes. */
-  --color-border: light-dark(oklch(0.63 0.022 260), oklch(0.5 0.026 260));
+  /* Control boundaries. Meets 3:1 against --color-surface in both themes
+     (light was 2.97:1 at L 0.63; 0.62 clears the threshold). */
+  --color-border: light-dark(oklch(0.62 0.022 260), oklch(0.5 0.026 260));
 
   /* --- Accent application --- */
   --color-focus: light-dark(oklch(0.56 0.11 105), var(--tc-chartreuse));
   --color-on-accent: oklch(0.19 0.025 260);
+  /* The combobox's active-row bar: chartreuse reads on dark rows but
+     washes out on light (1.4:1), so light borrows the focus green. */
+  --color-active-marker: light-dark(oklch(0.56 0.11 105), var(--tc-chartreuse));
 
   /* --- Elevation (light-dark() takes colors, not whole shadow values) --- */
   --shadow-popover: 0 18px 48px

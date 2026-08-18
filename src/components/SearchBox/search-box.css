@@ -134,7 +134,7 @@
 
 .tc-search-box__option--active {
   background-color: var(--color-raised);
-  border-inline-start-color: var(--tc-chartreuse);
+  border-inline-start-color: var(--color-active-marker);
 }
 
 /* Poster thumb: fixed 2:3 box; object-fit crops any odd source instead of

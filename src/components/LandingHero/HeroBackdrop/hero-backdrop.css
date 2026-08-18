@@ -53,8 +53,10 @@
 .tc-hero-backdrop__scrim {
   position: absolute;
   inset: 0;
+  /* The bottom hand-off starts at 45% so the caption's ground stays
+     dark even where the band floor crops the strip (1.4.3). */
   background:
-    linear-gradient(to bottom, transparent 55%, var(--color-media-base)),
+    linear-gradient(to bottom, transparent 45%, var(--color-media-base)),
     linear-gradient(
       to right,
       var(--color-scrim-strong) 25%,
@@ -122,6 +124,19 @@
      line. Phones hug the edge. */
   @media (width > 36rem) {
     inset-block-end: var(--space-6);
+  }
+}
+
+/* The rotation's stop control (2.2.2): same 24px hit box as a dot. */
+.tc-hero-backdrop__pause {
+  display: grid;
+  place-items: center;
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+  color: var(--color-on-media-muted);
+
+  &:hover {
+    color: var(--color-on-media);
   }
 }
 
