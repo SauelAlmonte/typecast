@@ -15,9 +15,6 @@
   position: relative;
   display: grid;
   align-content: end;
-  /* Content-sized at every width: the band is its copy, never the
-     window, so no dead ground can open below the text. */
-  overflow: hidden;
   color: var(--color-on-media);
   background-color: var(--color-media-base);
 
@@ -34,6 +31,17 @@
   @media (width > 48rem) {
     min-block-size: 37.5vw;
   }
+}
+
+/* The art's crop box: the band's exact box on its own element. The
+   16:9 art overflows the content-sized band on tablets and up, and
+   cropping it on the band itself clipped every descendant with it,
+   the search suggestion panel included, at the band's bottom edge.
+   Here the crop touches only the art and its furniture. */
+.tc-landing-hero__art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 
 /* --- Copy --- */
