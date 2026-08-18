@@ -11,9 +11,8 @@
   margin-inline: auto;
   padding-inline: var(--space-6);
 
-  /* The gutter slides from 40px to 24px as the 93.5% frame grows:
-     21.8rem - 22.5vw is the line through 40px at 1370 and 24px at
-     1440. */
+  /* The gutter slides from 40px to its 32px floor as the 93.5% frame
+     grows: 21.8rem - 22.5vw crosses 40px at ~1372 and 32px at ~1408. */
   @media (width >= 64rem) {
     padding-inline: clamp(var(--space-6), 21.8rem - 22.5vw, 2.5rem);
   }
