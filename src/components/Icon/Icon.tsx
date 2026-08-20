@@ -4,9 +4,12 @@ type IconName =
   | "github"
   | "image"
   | "menu"
+  | "monitor"
+  | "moon"
   | "pause"
   | "play"
   | "search"
+  | "sun"
   | "x";
 
 type IconProps = {

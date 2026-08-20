@@ -2,10 +2,20 @@
    Component files consume these tokens and never declare raw values. */
 
 :root {
-  /* Pinned dark while the light palette awaits its design pass; the
-     light halves of the light-dark() tokens below stay live for that
-     day. Restoring light is `dark light` here plus the parked toggle
-     (feat/theme-toggle branch). */
+  /* Dark wins when the user has no stated OS preference. ThemeToggle
+     stores an explicit choice as [data-theme]; a blocking script in the
+     layout replays it before first paint, so a stored choice never
+     flashes the OS theme. */
+  color-scheme: dark light;
+}
+
+/* An explicit choice overrides the OS: forcing color-scheme flips
+   every light-dark() token at once. No [data-theme] means System. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
   color-scheme: dark;
 }
 
