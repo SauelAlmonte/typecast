@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import Footer from "@/components/Footer/Footer";
-import Header from "@/components/Header/Header";
 import Icon from "@/components/Icon/Icon";
-import IconSprite from "@/components/Icon/IconSprite/IconSprite";
 import GenreRails from "@/components/Rails/GenreRails/GenreRails";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import {
@@ -109,129 +106,117 @@ export default async function SearchPage({
   }
 
   return (
-    <>
-      <a className="tc-skip-link" href="#main">
-        Skip to content
-      </a>
-      <IconSprite />
-      <Header />
-      <main id="main" tabIndex={-1}>
-        <div className="tc-container tc-results">
-          <SearchBox />
-          <h1 className="tc-h2">{heading}</h1>
-          {kind === "award" && (
-            <p className="tc-results-empty">
-              Awards aren’t in the catalog yet; movies and TV shows are
-              searchable today.
-            </p>
-          )}
-          {kind === "person" && q !== "" && (
-            <p className="tc-results-empty">
-              People aren’t searchable yet; movies and TV shows are. Open People
-              from the nav to browse them.
-            </p>
-          )}
-          {kind === "person" && q === "" && people.length === 0 && (
-            <p className="tc-results-empty">
-              Nothing to browse yet; the catalog is still filling in.
-            </p>
-          )}
-          {people.length > 0 && (
-            // biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1).
-            <ul className="tc-results-grid" role="list">
-              {people.map((person) => (
-                <li className="tc-result-card" key={person.id}>
-                  <Link
-                    className="tc-result-card-link"
-                    href={`/person/${person.tmdbId}`}
+    <div className="tc-container tc-results">
+      <SearchBox />
+      <h1 className="tc-h2">{heading}</h1>
+      {kind === "award" && (
+        <p className="tc-results-empty">
+          Awards aren’t in the catalog yet; movies and TV shows are searchable
+          today.
+        </p>
+      )}
+      {kind === "person" && q !== "" && (
+        <p className="tc-results-empty">
+          People aren’t searchable yet; movies and TV shows are. Open People
+          from the nav to browse them.
+        </p>
+      )}
+      {kind === "person" && q === "" && people.length === 0 && (
+        <p className="tc-results-empty">
+          Nothing to browse yet; the catalog is still filling in.
+        </p>
+      )}
+      {people.length > 0 && (
+        // biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1).
+        <ul className="tc-results-grid" role="list">
+          {people.map((person) => (
+            <li className="tc-result-card" key={person.id}>
+              <Link
+                className="tc-result-card-link"
+                href={`/person/${person.tmdbId}`}
+              >
+                {person.profilePath ? (
+                  <Image
+                    alt=""
+                    className="tc-result-card-poster"
+                    height={278}
+                    src={`${PROFILE_BASE}${person.profilePath}`}
+                    width={185}
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="tc-result-card-poster tc-result-card-poster--empty"
                   >
-                    {person.profilePath ? (
-                      <Image
-                        alt=""
-                        className="tc-result-card-poster"
-                        height={278}
-                        src={`${PROFILE_BASE}${person.profilePath}`}
-                        width={185}
-                      />
-                    ) : (
-                      <span
-                        aria-hidden="true"
-                        className="tc-result-card-poster tc-result-card-poster--empty"
-                      >
-                        <Icon name="image" />
-                        <span className="tc-meta">No image</span>
-                      </span>
-                    )}
-                    <span className="tc-ui tc-result-card-title">
-                      {person.name}
-                    </span>
-                    {person.knownForDepartment && (
-                      <span className="tc-meta tc-result-card-meta">
-                        {person.knownForDepartment}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-          {!placeholder && q === "" && !scope && (
-            <p className="tc-results-empty">
-              Type a title in the search box to search the catalog.
-            </p>
-          )}
-          {!placeholder && q !== "" && results.length === 0 && (
-            <p className="tc-results-empty">
-              No matches for &ldquo;{q}&rdquo;. Try a shorter fragment.
-            </p>
-          )}
-          {!placeholder && q === "" && scope && rails.length === 0 && (
-            <p className="tc-results-empty">
-              Nothing to browse yet; the catalog is still filling in.
-            </p>
-          )}
-          {rails.length > 0 && <GenreRails rails={rails} />}
-          {results.length > 0 && (
-            // biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1).
-            <ul className="tc-results-grid" role="list">
-              {results.map((r) => (
-                <li className="tc-result-card" key={`${r.mediaType}-${r.id}`}>
-                  <Link
-                    className="tc-result-card-link"
-                    href={`/title/${r.mediaType}/${r.tmdbId}`}
+                    <Icon name="image" />
+                    <span className="tc-meta">No image</span>
+                  </span>
+                )}
+                <span className="tc-ui tc-result-card-title">
+                  {person.name}
+                </span>
+                {person.knownForDepartment && (
+                  <span className="tc-meta tc-result-card-meta">
+                    {person.knownForDepartment}
+                  </span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!placeholder && q === "" && !scope && (
+        <p className="tc-results-empty">
+          Type a title in the search box to search the catalog.
+        </p>
+      )}
+      {!placeholder && q !== "" && results.length === 0 && (
+        <p className="tc-results-empty">
+          No matches for &ldquo;{q}&rdquo;. Try a shorter fragment.
+        </p>
+      )}
+      {!placeholder && q === "" && scope && rails.length === 0 && (
+        <p className="tc-results-empty">
+          Nothing to browse yet; the catalog is still filling in.
+        </p>
+      )}
+      {rails.length > 0 && <GenreRails rails={rails} />}
+      {results.length > 0 && (
+        // biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1).
+        <ul className="tc-results-grid" role="list">
+          {results.map((r) => (
+            <li className="tc-result-card" key={`${r.mediaType}-${r.id}`}>
+              <Link
+                className="tc-result-card-link"
+                href={`/title/${r.mediaType}/${r.tmdbId}`}
+              >
+                {r.posterPath ? (
+                  <Image
+                    alt=""
+                    className="tc-result-card-poster"
+                    height={278}
+                    src={`${POSTER_BASE}${r.posterPath}`}
+                    width={185}
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="tc-result-card-poster tc-result-card-poster--empty"
                   >
-                    {r.posterPath ? (
-                      <Image
-                        alt=""
-                        className="tc-result-card-poster"
-                        height={278}
-                        src={`${POSTER_BASE}${r.posterPath}`}
-                        width={185}
-                      />
-                    ) : (
-                      <span
-                        aria-hidden="true"
-                        className="tc-result-card-poster tc-result-card-poster--empty"
-                      >
-                        <Icon name="image" />
-                        <span className="tc-meta">No image</span>
-                      </span>
-                    )}
-                    <span className="tc-ui tc-result-card-title">
-                      {r.title}
-                    </span>
-                    <span className="tc-meta tc-result-card-meta">
-                      {r.mediaType === "tv" ? "TV" : "Movie"}
-                      {r.year ? ` · ${r.year}` : ""}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </main>
-      <Footer />
-    </>
+                    <Icon name="image" />
+                    <span className="tc-meta">No image</span>
+                  </span>
+                )}
+                <span className="tc-ui tc-result-card-title">{r.title}</span>
+                <span className="tc-meta tc-result-card-meta">
+                  {r.mediaType === "tv" ? "TV" : "Movie"}
+                  {r.year ? ` · ${r.year}` : ""}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

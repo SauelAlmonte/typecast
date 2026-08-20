@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { RailItem } from "@/app/api/rails/route";
-import Footer from "@/components/Footer/Footer";
-import Header from "@/components/Header/Header";
 import Icon from "@/components/Icon/Icon";
-import IconSprite from "@/components/Icon/IconSprite/IconSprite";
 import MediaRail from "@/components/Rails/MediaRail/MediaRail";
 import { fetchTmdbPerson, type TmdbPersonDetail } from "@/lib/tmdb";
 
@@ -109,77 +106,67 @@ export default async function PersonPage({
   const [lead, ...rest] = paragraphs;
 
   return (
-    <>
-      <a className="tc-skip-link" href="#main">
-        Skip to content
-      </a>
-      <IconSprite />
-      <Header />
-      <main id="main" tabIndex={-1}>
-        <div className="tc-container tc-person">
-          {detail.profile_path ? (
-            <Image
-              alt={`Portrait of ${detail.name}`}
-              className="tc-person__portrait"
-              height={632}
-              src={`${PORTRAIT_BASE}${detail.profile_path}`}
-              width={421}
-            />
-          ) : (
-            <span
-              aria-hidden="true"
-              className="tc-person__portrait tc-person__portrait--empty"
-            >
-              <Icon name="image" />
-              <span className="tc-meta">No image</span>
-            </span>
-          )}
-          <div className="tc-person__intro">
-            <h1 className="tc-h1">{detail.name}</h1>
-            {detail.known_for_department && (
-              <p className="tc-meta tc-meta-caps tc-person__department">
-                {detail.known_for_department}
-              </p>
-            )}
-            <dl className="tc-person__facts">
-              {detail.birthday && (
-                <div className="tc-person__fact">
-                  <dt className="tc-meta tc-person__fact-name">Born</dt>
-                  <dd className="tc-ui">{formatDate(detail.birthday)}</dd>
-                </div>
-              )}
-              {detail.deathday && (
-                <div className="tc-person__fact">
-                  <dt className="tc-meta tc-person__fact-name">Died</dt>
-                  <dd className="tc-ui">{formatDate(detail.deathday)}</dd>
-                </div>
-              )}
-              {detail.place_of_birth && (
-                <div className="tc-person__fact">
-                  <dt className="tc-meta tc-person__fact-name">Birthplace</dt>
-                  <dd className="tc-ui">{detail.place_of_birth}</dd>
-                </div>
-              )}
-            </dl>
-          </div>
-          {lead && <p className="tc-person__lead">{lead}</p>}
-          {rest.length > 0 && (
-            <section aria-label="Biography" className="tc-person__bio">
-              {rest.map((p) => (
-                <p className="tc-person__bio-text" key={p.slice(0, 40)}>
-                  {p}
-                </p>
-              ))}
-            </section>
-          )}
-          {knownFor.length > 0 && (
-            <div className="tc-person__rail">
-              <MediaRail items={knownFor} title="Known For" />
+    <div className="tc-container tc-person">
+      {detail.profile_path ? (
+        <Image
+          alt={`Portrait of ${detail.name}`}
+          className="tc-person__portrait"
+          height={632}
+          src={`${PORTRAIT_BASE}${detail.profile_path}`}
+          width={421}
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          className="tc-person__portrait tc-person__portrait--empty"
+        >
+          <Icon name="image" />
+          <span className="tc-meta">No image</span>
+        </span>
+      )}
+      <div className="tc-person__intro">
+        <h1 className="tc-h1">{detail.name}</h1>
+        {detail.known_for_department && (
+          <p className="tc-meta tc-meta-caps tc-person__department">
+            {detail.known_for_department}
+          </p>
+        )}
+        <dl className="tc-person__facts">
+          {detail.birthday && (
+            <div className="tc-person__fact">
+              <dt className="tc-meta tc-person__fact-name">Born</dt>
+              <dd className="tc-ui">{formatDate(detail.birthday)}</dd>
             </div>
           )}
+          {detail.deathday && (
+            <div className="tc-person__fact">
+              <dt className="tc-meta tc-person__fact-name">Died</dt>
+              <dd className="tc-ui">{formatDate(detail.deathday)}</dd>
+            </div>
+          )}
+          {detail.place_of_birth && (
+            <div className="tc-person__fact">
+              <dt className="tc-meta tc-person__fact-name">Birthplace</dt>
+              <dd className="tc-ui">{detail.place_of_birth}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+      {lead && <p className="tc-person__lead">{lead}</p>}
+      {rest.length > 0 && (
+        <section aria-label="Biography" className="tc-person__bio">
+          {rest.map((p) => (
+            <p className="tc-person__bio-text" key={p.slice(0, 40)}>
+              {p}
+            </p>
+          ))}
+        </section>
+      )}
+      {knownFor.length > 0 && (
+        <div className="tc-person__rail">
+          <MediaRail items={knownFor} title="Known For" />
         </div>
-      </main>
-      <Footer />
-    </>
+      )}
+    </div>
   );
 }

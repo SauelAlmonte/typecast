@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Gochi_Hand, Onest } from "next/font/google";
 import "@/styles/global.css";
+import Footer from "@/components/Footer/Footer";
+import Header from "@/components/Header/Header";
+import IconSprite from "@/components/Icon/IconSprite/IconSprite";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -36,7 +39,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${display.variable} ${text.variable} ${brand.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <a className="tc-skip-link" href="#main">
+          Skip to content
+        </a>
+        <IconSprite />
+        <Header />
+        {/* tabIndex lets the skip link land focus here in every browser. */}
+        <main id="main" tabIndex={-1}>
+          {children}
+        </main>
+        <Footer />
+      </body>
     </html>
   );
 }
