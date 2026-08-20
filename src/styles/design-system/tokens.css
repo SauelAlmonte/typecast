@@ -30,12 +30,16 @@
   --tc-warning: oklch(0.8 0.16 82);
   --tc-danger: oklch(0.61 0.22 28);
 
-  /* --- Surfaces: blue-charcoal in dark, never pure black. Light canvas
-     is a cool near-white (2026-08-20 palette pass); surface and raised
-     still carry the earlier warm-paper hue, pending the same pass. --- */
+  /* --- Surfaces: cool near-whites in light (2026-08-20 palette pass,
+     which retired the warm paper), blue-charcoal in dark, never pure
+     black. The light trio shares the canvas hue; chroma stays subtle
+     so the steps read as elevation, not color. --- */
   --color-canvas: light-dark(oklch(0.969 0.0062 255.47), oklch(0.16 0.02 260));
-  --color-surface: light-dark(oklch(0.945 0.014 90), oklch(0.205 0.024 260));
-  --color-raised: light-dark(oklch(0.995 0.004 90), oklch(0.255 0.025 260));
+  --color-surface: light-dark(
+    oklch(0.945 0.008 255.47),
+    oklch(0.205 0.024 260)
+  );
+  --color-raised: light-dark(oklch(0.995 0.003 255.47), oklch(0.255 0.025 260));
 
   /* --- Text --- */
   --color-ink: light-dark(oklch(0.19 0.025 260), oklch(0.945 0.012 90));
