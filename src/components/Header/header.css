@@ -11,12 +11,14 @@
   border-block-end: 1px solid var(--color-line);
 }
 
-/* Glass only while scrolled: the scroll timeline swaps the solid bar
-   for translucent canvas plus blur across the first bar-height of
-   scroll, both themes. At rest the bar is the solid canvas above,
-   which is also the permanent state for browsers without scroll-driven
-   animations or backdrop-filter. Reduced-motion's 0.01ms duration
-   cannot break this: scroll timelines ignore duration entirely. */
+/* Glass only while scrolled: the scroll timeline fades the solid bar
+   to fully transparent while the backdrop blur comes in, across the
+   first bar-height of scroll, both themes. The bar adds no color of
+   its own when scrolled - the effect is blur alone. At rest it is the
+   solid canvas above, which is also the permanent state for browsers
+   without scroll-driven animations or backdrop-filter.
+   Reduced-motion's 0.01ms duration cannot break this: scroll
+   timelines ignore duration entirely. */
 @supports (
     (backdrop-filter: blur(1px)) or
     (-webkit-backdrop-filter: blur(1px))
@@ -37,7 +39,7 @@
     }
 
     to {
-      background-color: var(--color-glass);
+      background-color: transparent;
       -webkit-backdrop-filter: blur(var(--blur-glass));
       backdrop-filter: blur(var(--blur-glass));
     }
