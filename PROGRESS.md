@@ -2,19 +2,20 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** The genre catalog is live: TMDB genres in Neon, and the
-Movies and TV pages browse the whole 340-title catalog as curated
-rail stacks instead of a top-24 grid (PRs #41, #42). Quality caught
-up with the build the same day — a four-agent WCAG 2.1 AA audit found
-and PR #44 fixed four blockers, Lighthouse now guards production
-scores in CI (PR #43), the README finally describes what exists with
-an architecture diagram (PR #48), and every missing-image or
-missing-overview void says so honestly (PR #49). Dark is pinned; the
-finished theme toggle is parked on `feat/theme-toggle` until the
-light palette gets its design pass (PR #47). Next up: that light
-pass, People then Awards content, the combobox's loading and error
-states, rate limiting before wide sharing, server cache, and the
-scheduled sync.
+**Phase:** Production got hardened. The Dependabot board went to
+zero: pnpm overrides forced the patched `tmp` and `uuid` under the
+Lighthouse CLI, and the unpatched `extract-zip` was dismissed with
+its reasoning on record (PRs #51, #52). The same day, Vercel's image
+optimizer ran out of free-tier quota and started answering 402 for
+every poster, so TMDB art now loads straight from TMDB's CDN through
+a custom `next/image` loader — the quota can never bite again
+(PR #53). Sauel's own Lighthouse runs then read 99/100/100/100 on
+desktop; the mobile read traced its 4.0s LCP to the hero's client
+fetch waterfall, fixed by server-rendering the rotation (PR #54).
+The genre catalog, the WCAG pass, and the honest empty states from
+2026-08-18 all hold. Next up: the light palette pass, People then
+Awards content, the combobox's loading and error states, rate
+limiting before wide sharing, server cache, and the scheduled sync.
 
 ---
 
@@ -78,6 +79,9 @@ scheduled sync.
 | 2026-08-18 | Dark pinned, light parked | Light rendered automatically for light-OS visitors and Sauel doesn't approve its current look, so `color-scheme` is pinned to `dark` (PR #47) — every visitor gets dark until the light palette gets a design pass. Nothing was deleted: the `light-dark()` tokens keep their light halves, and the complete three-state toggle (native radios, `[data-theme]` on `<html>`, blocking anti-flash script, hydration fix) is parked on the `feat/theme-toggle` branch. Restoring light is one token plus that branch. |
 | 2026-08-18 | Honest empty media states | TMDB has no fallback art: it returns null paths and often empty season overviews, and our placeholders were blank boxes. Every no-art box now carries an image glyph with a muted "No image" label (glyph alone on the 40px suggestion thumbs), the season card renders its meta line only when TMDB has a year or episode count and says "No overview yet." otherwise, and all fallbacks stay `aria-hidden` because the adjacent name carries the card (PR #49). |
 | 2026-08-18 | README states only what exists | The README predated the build and described the plan (a prefix index, a provider interface, daily ID exports, a dozen uninstalled tools). A three-agent ground-truth audit fed the rewrite: the verified combobox internals and Postgres-side ranking, a mermaid diagram of the real data flow, the installed stack only, a landing screenshot, and no clone-and-run instructions on purpose (PR #48). |
+| 2026-08-20 | Overrides over waiting | All four Dependabot alerts were transitive dev deps of `@lhci/cli`, already on its latest release, so pnpm overrides in `pnpm-workspace.yaml` force the patched versions directly: `tmp` 0.2.7 (0.2.6 shipped first and immediately drew its own advisory, a bypass of the very fix) and `uuid` 11.1.1. `extract-zip` has no patched release at all — dismissed on GitHub as tolerable risk (CI-only, extracts Chrome from Google's own CDN); the real fix arrives when lighthouse adopts `@puppeteer/browsers` 3.x, which dropped it. Verified by running the full `lhci` production suite on the forced versions, since CI's Lighthouse job only runs on pushes to `main` (PRs #51, #52). |
+| 2026-08-20 | TMDB art skips the image optimizer | Vercel's free-tier image quota ran out and `/_next/image` began answering 402 for every poster and backdrop — TMDB already stores each image pre-sized, so the optimizer was spending quota re-encoding files that ship optimized. A custom loader (`src/lib/tmdb-image-loader.ts`) maps Next's requested widths onto TMDB's own size whitelist (shared across posters, backdrops, and profiles — verified empirically), capped at the w1280 ceiling the site already shipped; non-TMDB sources pass through. Zero Vercel transformations forever; the trade is JPEG-only delivery, no AVIF (PR #53). |
+| 2026-08-20 | Landing hero is server-rendered | The mobile Lighthouse read (86 perf, 4.0s LCP) traced ~2.9s to pure request delay: the hero fetched `/api/upcoming` after hydration, so the browser learned the backdrop's URL last. `upcomingTitles()` now lives in `db/queries`, `LandingHero` awaits it, and the first slide ships in the initial HTML with `fetchPriority="high"` on both first-paint layers (Lighthouse pinned the LCP on the instantly-visible underlay, not the fading current layer). The page regenerates hourly, tracking the daily sync. Rail posters also gained `sizes` mirroring the card widths, so phones fetch w154/w300 buckets instead of w500 (PR #54). |
 
 ---
 
@@ -85,10 +89,9 @@ scheduled sync.
 
 - **Light palette design pass (unparks the toggle)**: Sauel doesn't approve light mode's current look, so dark is pinned (PR #47). The pass redesigns the light tokens; shipping it is one `color-scheme` token back to `dark light` plus the parked `feat/theme-toggle` branch (complete three-state control, anti-flash script, hydration fix).
 - **People, then Awards**: People has a clear path — TMDB's popular-people endpoint synced into a `people` table on the media pattern, a browse page, later person detail and combobox inclusion (the sync currently drops person items). Awards has no TMDB data at all, so it needs a data-source decision first (Wikidata, hand-curation, or reshaping the page).
-- **Hero LCP fix**: the landing's Lighthouse performance is 0.73 because the hero art loads behind a client fetch waterfall (HTML, JS, `/api/upcoming`, then the image; LCP 7.3s). Server-rendering or preloading the first slide fixes it; raise the Lighthouse floor when it lands.
+- **Raise the Lighthouse landing floor**: the 0.6 floor was set when the hero LCP waterfall held the landing at 0.73. PR #54 removes the waterfall; once a post-merge run confirms the new score, ratchet the floor up to just under it.
 - **Combobox loading and error states**: the audit's remaining high finding. The recents false "No matches" flash was fixed in PR #44, but there is still no loading state during the debounce window and `fetchSuggestions` has no `res.ok` check, so a 500 becomes a logged-and-swallowed failure with no user feedback. Core territory, Sauel's build.
 - **A11y deferred polish** (PR #44's list): ArrowUp-opens-panel and Alt+ArrowDown, `aria-current` on nav links (needs a client nav component), trailer backdrop light-dismiss, a focus target when the phone menu closes on viewport growth, the caret's strict 2.2.2 reading, and the hero furniture's DOM order before the h1.
-- **Dependabot alerts (4)**: two high, one moderate, one low — all transitive dev dependencies pulled in by `@lhci/cli` (extract-zip, tmp, uuid family). Dependabot opened its own update run; review and merge it or bump the lockfile.
 - **Branch cleanup pending Sauel**: `fix/a11y-audit` still exists local and remote; its only unmerged content is the accidental #45 toggle merge, which `feat/theme-toggle` duplicates. Deletable on his word. `feat/theme-toggle` is a deliberate keep.
 - **Query length cap** (audit, medium): `q` reaches `word_similarity` unbounded, so one 14KB request trigram-scans the catalog twice; a cap in `searchMedia` covers suggest and `/search` at once.
 - **Server hardening** (audit, low): a sync crash between upsert and prune persists a merged rail until the next sync; postponed titles that drop off TMDB keep stale future dates atop the hero rotation; one failed rail query fails all eight in `/api/rails`.
@@ -175,6 +178,10 @@ scheduled sync.
 - [x] Shipped PR #47 (`d2ed0a6`): dark pinned. Light-OS visitors were getting the unapproved light palette automatically; every visitor now gets dark until the light design pass.
 - [x] Shipped PR #48 (`e86e579`): the README rewrite, grounded by a three-agent audit that proved the old file described a project that was never built (no prefix index, no provider interface, no daily ID exports, twelve uninstalled tools listed as the stack).
 - [x] Shipped PR #49 (`86017f3`): honest empty states for missing TMDB art and overviews, prompted by Sauel's screenshots of blank cast boxes and a hollow season card.
+- [x] Shipped PR #51 (`2057cba`): pnpm overrides clearing three Dependabot alerts (`tmp`, `uuid`), verified with a full `lhci` production run since PR pipelines never exercise the Lighthouse job. Dismissed the unpatchable `extract-zip` alert as tolerable risk with the reasoning on record.
+- [x] Shipped PR #52 (`e68b3e3`): `tmp` bumped to 0.2.7 after the 0.2.6 override immediately drew a new high alert — a type-confusion bypass of the exact fix 0.2.6 shipped, its vulnerable range only `>= 0.2.6, < 0.2.7`. Dependabot at zero open alerts.
+- [x] Shipped PR #53 (`151c588`): the TMDB image loader, diagnosed from Sauel's console screenshot of 402s on every `/_next/image` request. Verified end to end: the production build renders `srcSet` straight from `image.tmdb.org`, and the deployed site recovered its art immediately. Sauel's DevTools Lighthouse then read desktop 99/100/100/100, and the CI Lighthouse job confirmed search back above its 0.85 floor.
+- [x] Opened PR #54 at session close: the hero LCP fix (server-rendered rotation, priority on both first-paint layers, hourly ISR) and rail poster `sizes`, both from Sauel's mobile Lighthouse read. Verified against the served production build before opening.
 
 ---
 
