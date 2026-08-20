@@ -3,10 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
-    // TMDB poster thumbnails in suggestion rows.
-    remotePatterns: [
-      { protocol: "https", hostname: "image.tmdb.org", pathname: "/t/p/**" },
-    ],
+    // TMDB art loads straight from TMDB's CDN; see the loader file.
+    loader: "custom",
+    loaderFile: "./src/lib/tmdb-image-loader.ts",
   },
 };
 
