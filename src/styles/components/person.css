@@ -1,0 +1,75 @@
+/* Person page: portrait and facts up top, biography, known-for rail.
+   The title page's shape, one column simpler. */
+
+.tc-person {
+  display: grid;
+  gap: var(--space-7);
+  padding-block: var(--space-7);
+}
+
+/* Portrait beside the intro from tablets; stacked on phones. */
+.tc-person__head {
+  display: grid;
+  gap: var(--space-5);
+
+  @media (width > 36rem) {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+  }
+}
+
+/* 2:3 like poster art; object-fit crops odd sources instead of
+   squashing, and the empty-span fallback keeps the layout aligned. */
+.tc-person__portrait {
+  inline-size: var(--size-poster-detail);
+  block-size: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background-color: var(--color-raised);
+  border-radius: var(--radius-card);
+
+  @media (width <= 36rem) {
+    inline-size: var(--size-poster-detail-mobile);
+  }
+}
+
+/* No-art fallback: same box, an honest label instead of a blank. */
+.tc-person__portrait--empty {
+  display: grid;
+  place-content: center;
+  gap: var(--space-1);
+  justify-items: center;
+  color: var(--color-ink-muted);
+}
+
+.tc-person__intro {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.tc-person__department {
+  color: var(--color-ink-muted);
+}
+
+.tc-person__facts {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.tc-person__fact {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.tc-person__fact-name {
+  color: var(--color-ink-muted);
+}
+
+/* The measure keeps TMDB's long biographies readable. */
+.tc-person__bio {
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: var(--measure-overview);
+}

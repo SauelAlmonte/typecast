@@ -103,6 +103,23 @@ export type TmdbTitleDetail = {
   content_ratings?: { results?: { iso_3166_1: string; rating?: string }[] };
 };
 
+/**
+ * A person detail response with combined credits appended. Credit
+ * entries are the same endpoint-dependent list-item shape the media
+ * lists use, so `TmdbListItem` covers them.
+ */
+export type TmdbPersonDetail = {
+  id: number;
+  name: string;
+  biography?: string;
+  birthday?: string | null;
+  deathday?: string | null;
+  place_of_birth?: string | null;
+  known_for_department?: string;
+  profile_path?: string | null;
+  combined_credits?: { cast?: TmdbListItem[] };
+};
+
 /** One TMDB request covers everything a title page shows. */
 const DETAIL_APPEND = {
   movie: "credits,videos,recommendations,keywords,release_dates,images",
@@ -157,6 +174,48 @@ export async function fetchTmdbDetail(
   }
 
   return (await res.json()) as TmdbTitleDetail;
+}
+
+/**
+ * Fetch one person's detail record with combined credits appended, so
+ * the person page costs a single TMDB request. Cached in the framework
+ * data cache for a day per URL, the title page's reasoning.
+ *
+ * @param tmdbId - TMDB's person id, the one our catalog stores as `tmdb_id`.
+ * @returns The decoded detail, or null when TMDB has no such person, so
+ *   the page can 404 instead of 500.
+ * @throws When the token is missing or TMDB fails with anything but 404.
+ */
+export async function fetchTmdbPerson(
+  tmdbId: number,
+): Promise<TmdbPersonDetail | null> {
+  const token = process.env.TMDB_READ_ACCESS_TOKEN;
+  if (!token) {
+    throw new Error("TMDB_READ_ACCESS_TOKEN is not set. Add it to .env.local.");
+  }
+
+  const url = new URL(`${TMDB_BASE_URL}/person/${tmdbId}`);
+  url.searchParams.set("append_to_response", "combined_credits");
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+    next: { revalidate: DETAIL_REVALIDATE_S },
+  });
+
+  if (res.status === 404) {
+    return null;
+  }
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `TMDB ${res.status} on /person/${tmdbId}: ${body.slice(0, 200)}`,
+    );
+  }
+
+  return (await res.json()) as TmdbPersonDetail;
 }
 
 /**

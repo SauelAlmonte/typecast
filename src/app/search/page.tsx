@@ -139,36 +139,38 @@ export default async function SearchPage({
           {people.length > 0 && (
             // biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1).
             <ul className="tc-results-grid" role="list">
-              {/* Not links, matching CastRail's contract: person pages
-                  aren't in the catalog yet, and a card that goes nowhere
-                  shouldn't dress like one that does. */}
               {people.map((person) => (
                 <li className="tc-result-card" key={person.id}>
-                  {person.profilePath ? (
-                    <Image
-                      alt=""
-                      className="tc-result-card-poster"
-                      height={278}
-                      src={`${PROFILE_BASE}${person.profilePath}`}
-                      width={185}
-                    />
-                  ) : (
-                    <span
-                      aria-hidden="true"
-                      className="tc-result-card-poster tc-result-card-poster--empty"
-                    >
-                      <Icon name="image" />
-                      <span className="tc-meta">No image</span>
+                  <Link
+                    className="tc-result-card-link"
+                    href={`/person/${person.tmdbId}`}
+                  >
+                    {person.profilePath ? (
+                      <Image
+                        alt=""
+                        className="tc-result-card-poster"
+                        height={278}
+                        src={`${PROFILE_BASE}${person.profilePath}`}
+                        width={185}
+                      />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="tc-result-card-poster tc-result-card-poster--empty"
+                      >
+                        <Icon name="image" />
+                        <span className="tc-meta">No image</span>
+                      </span>
+                    )}
+                    <span className="tc-ui tc-result-card-title">
+                      {person.name}
                     </span>
-                  )}
-                  <span className="tc-ui tc-result-card-title">
-                    {person.name}
-                  </span>
-                  {person.knownForDepartment && (
-                    <span className="tc-meta tc-result-card-meta">
-                      {person.knownForDepartment}
-                    </span>
-                  )}
+                    {person.knownForDepartment && (
+                      <span className="tc-meta tc-result-card-meta">
+                        {person.knownForDepartment}
+                      </span>
+                    )}
+                  </Link>
                 </li>
               ))}
             </ul>

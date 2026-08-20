@@ -323,10 +323,12 @@ export async function upcomingTitles(): Promise<UpcomingItem[]> {
     .limit(UPCOMING_LIMIT);
 }
 
-/** One person card on the People browse page. No tmdbId: person pages
- * aren't in the catalog yet, so the cards link nowhere. */
+/** One person card on the People browse page. tmdbId rides along
+ * because each card links to the person page, whose route speaks
+ * TMDB's ids, the title-page convention. */
 export type PersonCard = {
   id: number;
+  tmdbId: number;
   name: string;
   knownForDepartment: string | null;
   profilePath: string | null;
@@ -345,6 +347,7 @@ export async function popularPeople(limit: number): Promise<PersonCard[]> {
   return db
     .select({
       id: people.id,
+      tmdbId: people.tmdbId,
       name: people.name,
       knownForDepartment: people.knownForDepartment,
       profilePath: people.profilePath,
