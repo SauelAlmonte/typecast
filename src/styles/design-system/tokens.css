@@ -72,14 +72,29 @@
   );
   --blur-glass: 14px;
 
-  /* --- Media surfaces: the hero backdrop is always a dark photograph,
-     so text above it uses these theme-independent colors, and the scrim
-     gradients darken the photo's start corner for legibility. --- */
-  --color-media-base: oklch(0.16 0.02 260);
-  --color-scrim-strong: oklch(0.16 0.02 260 / 0.96);
-  --color-scrim-soft: oklch(0.16 0.02 260 / 0.7);
-  --color-on-media: oklch(0.95 0.012 90);
-  --color-on-media-muted: oklch(0.84 0.015 90);
+  /* --- Media surfaces (2026-08-20 palette pass): the photograph keeps
+     its own colors, but the band's ground, its scrim gradients, and
+     the text above them ride the theme — dark cinema in dark, a
+     canvas-matched wash with ink text in light, so the hero no longer
+     sits as a dark block on the light page. Alphas mirror across
+     themes so the scrim geometry keeps its meaning. --- */
+  --color-media-base: light-dark(
+    oklch(0.969 0.0062 255.47),
+    oklch(0.16 0.02 260)
+  );
+  --color-scrim-strong: light-dark(
+    oklch(0.969 0.0062 255.47 / 0.96),
+    oklch(0.16 0.02 260 / 0.96)
+  );
+  --color-scrim-soft: light-dark(
+    oklch(0.969 0.0062 255.47 / 0.7),
+    oklch(0.16 0.02 260 / 0.7)
+  );
+  --color-on-media: light-dark(oklch(0.19 0.025 260), oklch(0.95 0.012 90));
+  --color-on-media-muted: light-dark(
+    oklch(0.47 0.025 260),
+    oklch(0.84 0.015 90)
+  );
 
   /* --- Type scale (§2) — size / line-height pairs --- */
   /* Steep late ramp: laptops hold near the 3.25rem floor, the climb to
