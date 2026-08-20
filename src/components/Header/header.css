@@ -38,8 +38,8 @@
     }
 
     to {
-      /* Light: canvas-tinted glass so the nav text stands out.
-         Dark: fully transparent, the blur is the whole effect. */
+      /* Canvas-tinted glass in both themes: the text keeps its
+         ground while the blur shows through. */
       background-color: var(--color-glass);
       -webkit-backdrop-filter: blur(var(--blur-glass));
       backdrop-filter: blur(var(--blur-glass));
