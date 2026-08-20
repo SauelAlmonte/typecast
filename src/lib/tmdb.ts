@@ -19,6 +19,9 @@ export type TmdbListItem = {
   poster_path?: string | null;
   backdrop_path?: string | null;
   genre_ids?: number[];
+  // Person-list entries only (/person/popular).
+  known_for_department?: string;
+  profile_path?: string | null;
 };
 
 /** Envelope common to every paginated TMDB list endpoint. */
