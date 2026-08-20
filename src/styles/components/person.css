@@ -67,10 +67,9 @@
   color: var(--color-ink-muted);
 }
 
-/* The measure keeps TMDB's long biographies readable while running
-   wider than the title page's overview - no art column to clear. */
+/* Uncapped on purpose (Sauel's call, 2026-08-20): the biography runs
+   the full container width. */
 .tc-person__bio {
   display: grid;
   gap: var(--space-4);
-  max-inline-size: var(--measure-bio);
 }
