@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { RailItem } from "@/app/api/rails/route";
 import Icon from "@/components/Icon/Icon";
@@ -11,7 +10,6 @@ import { fetchTmdbPerson, type TmdbPersonDetail } from "@/lib/tmdb";
 const PORTRAIT_BASE = "https://image.tmdb.org/t/p/h632";
 
 const KNOWN_FOR_MAX = 12;
-const FILMOGRAPHY_MAX = 20;
 
 /** TMDB ids are positive ints; anything else 404s before touching TMDB. */
 function readTmdbId(id: string): number {
@@ -40,66 +38,34 @@ function formatDate(iso: string): string {
   }).format(date);
 }
 
-/** One acting credit after dedupe, feeding both credit surfaces. */
-type PersonCredit = {
-  tmdbId: number;
-  mediaType: "movie" | "tv";
-  title: string;
-  year: number | null;
-  date: string | null;
-  posterPath: string | null;
-  popularity: number;
-};
-
 /**
- * Acting credits deduped by (kind, id): a person repeats per TV
- * episode and job in combined_credits, and every surface wants each
- * title once.
+ * The credits worth a rail: acting credits reshaped into rail cards so
+ * MediaRail renders them unchanged. A person appears once per credit in
+ * combined_credits, so the same title repeats across TV episodes and
+ * jobs; the Map dedupes by (kind, id) before ranking by popularity.
  */
-function uniqueCredits(detail: TmdbPersonDetail): PersonCredit[] {
-  const byTitle = new Map<string, PersonCredit>();
+function knownForItems(detail: TmdbPersonDetail): RailItem[] {
+  const byTitle = new Map<string, RailItem & { popularity: number }>();
   for (const credit of detail.combined_credits?.cast ?? []) {
     const kind = credit.media_type;
-    if (kind !== "movie" && kind !== "tv") continue;
+    if ((kind !== "movie" && kind !== "tv") || !credit.poster_path) continue;
     const key = `${kind}-${credit.id}`;
     if (byTitle.has(key)) continue;
     const date = credit.release_date ?? credit.first_air_date;
     byTitle.set(key, {
+      id: credit.id,
       tmdbId: credit.id,
       mediaType: kind,
       title: credit.title ?? credit.name ?? "Untitled",
       year: date ? Number(date.slice(0, 4)) : null,
-      date: date ?? null,
-      posterPath: credit.poster_path ?? null,
+      posterPath: credit.poster_path,
       popularity: credit.popularity ?? 0,
     });
   }
-  return [...byTitle.values()];
-}
-
-/** The credits worth a rail: posterless entries sit out (the rail
- * card IS the poster), ranked by popularity, in MediaRail's shape. */
-function knownForItems(credits: PersonCredit[]): RailItem[] {
-  return credits
-    .filter((c) => c.posterPath)
+  return [...byTitle.values()]
     .sort((a, b) => b.popularity - a.popularity)
     .slice(0, KNOWN_FOR_MAX)
-    .map((c) => ({
-      id: c.tmdbId,
-      tmdbId: c.tmdbId,
-      mediaType: c.mediaType,
-      title: c.title,
-      year: c.year,
-      posterPath: c.posterPath as string,
-    }));
-}
-
-/** The laptop aside: every credit as a text row, newest first,
- * undated entries last. Capped; the caller shows the honest count. */
-function filmographyItems(credits: PersonCredit[]): PersonCredit[] {
-  return [...credits]
-    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
-    .slice(0, FILMOGRAPHY_MAX);
+    .map(({ popularity: _, ...item }) => item);
 }
 
 export async function generateMetadata({
@@ -128,9 +94,7 @@ export default async function PersonPage({
   const detail = await fetchTmdbPerson(readTmdbId(id));
   if (!detail) notFound();
 
-  const credits = uniqueCredits(detail);
-  const knownFor = knownForItems(credits);
-  const filmography = filmographyItems(credits);
+  const knownFor = knownForItems(detail);
   // TMDB pads absent biographies with "" and absent dates with null;
   // each fact renders only when it exists (honest empty states).
   const paragraphs = stripPronunciation(detail.biography ?? "")
@@ -202,41 +166,6 @@ export default async function PersonPage({
         <div className="tc-person__rail">
           <MediaRail items={knownFor} title="Known For" />
         </div>
-      )}
-      {filmography.length > 0 && (
-        <aside
-          aria-labelledby="tc-person-filmo-heading"
-          className="tc-person__filmo"
-        >
-          <h2 className="tc-h3" id="tc-person-filmo-heading">
-            Filmography
-          </h2>
-          {credits.length > filmography.length && (
-            <p className="tc-meta tc-person__filmo-count">
-              Latest {filmography.length} of {credits.length} credits
-            </p>
-          )}
-          {/* biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1). */}
-          <ul className="tc-person__filmo-list" role="list">
-            {filmography.map((c) => (
-              <li key={`${c.mediaType}-${c.tmdbId}`}>
-                <Link
-                  className="tc-person__filmo-link"
-                  href={`/title/${c.mediaType}/${c.tmdbId}`}
-                >
-                  <span className="tc-ui tc-person__filmo-title">
-                    {c.title}
-                  </span>
-                  {c.year && (
-                    <span className="tc-meta tc-person__filmo-year">
-                      {c.year}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </aside>
       )}
     </div>
   );
