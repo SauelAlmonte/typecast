@@ -37,11 +37,13 @@
   grid-area: intro;
 }
 
-/* Body size, not body-lg: the opener sits inside the hero, where it
-   supports the facts instead of leading the page. */
+/* Fixed 14px, not body: the opener sits inside the hero, where it
+   supports the facts instead of leading the page. Body's line-height
+   stays for paragraph legibility. */
 .tc-person__lead {
   grid-area: lead;
   max-inline-size: var(--measure-bio);
+  font-size: var(--type-person-lead);
 }
 
 /* 2:3 like poster art; object-fit crops odd sources instead of
