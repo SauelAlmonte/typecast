@@ -42,7 +42,7 @@
    stays for paragraph legibility. */
 .tc-person__lead {
   grid-area: lead;
-  max-inline-size: var(--measure-bio);
+  max-inline-size: var(--measure-person-lead);
   font-size: var(--type-person-lead);
 }
 
