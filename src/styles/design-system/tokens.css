@@ -116,7 +116,7 @@
   --measure-bio: 90ch;
   /* The hero opener runs narrower than the full biography (Sauel's
      call, 2026-08-20). */
-  --measure-person-lead: 75ch;
+  --measure-person-lead: 60ch;
   --container-search: 48rem; /* 768px  — the search column */
   --container-content: 64rem; /* 1024px — article and detail pages */
   --container-aside: 16rem; /*  256px — the facts column on detail pages */
