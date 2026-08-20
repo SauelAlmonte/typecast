@@ -82,18 +82,18 @@
      canvas-matched wash with ink text in light, so the hero no longer
      sits as a dark block on the light page. Alphas mirror across
      themes so the scrim geometry keeps its meaning. Light's wash sits
-     a step below the canvas (0.93 vs 0.969) so the hero reads as its
+     well below the canvas (0.88 vs 0.969) so the hero reads as its
      own region and the caption keeps its ground. --- */
   --color-media-base: light-dark(
-    oklch(0.93 0.0062 255.47),
+    oklch(0.88 0.0062 255.47),
     oklch(0.16 0.02 260)
   );
   --color-scrim-strong: light-dark(
-    oklch(0.93 0.0062 255.47 / 0.96),
+    oklch(0.88 0.0062 255.47 / 0.96),
     oklch(0.16 0.02 260 / 0.96)
   );
   --color-scrim-soft: light-dark(
-    oklch(0.93 0.0062 255.47 / 0.7),
+    oklch(0.88 0.0062 255.47 / 0.7),
     oklch(0.16 0.02 260 / 0.7)
   );
   --color-on-media: light-dark(oklch(0.19 0.025 260), oklch(0.95 0.012 90));
