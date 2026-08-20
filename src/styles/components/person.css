@@ -67,9 +67,10 @@
   color: var(--color-ink-muted);
 }
 
-/* The measure keeps TMDB's long biographies readable. */
+/* The measure keeps TMDB's long biographies readable while running
+   wider than the title page's overview - no art column to clear. */
 .tc-person__bio {
   display: grid;
   gap: var(--space-4);
-  max-inline-size: var(--measure-overview);
+  max-inline-size: var(--measure-bio);
 }

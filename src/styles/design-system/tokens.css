@@ -108,6 +108,9 @@
   /* Title-page tagline and overview: narrow enough to stay inside the
      headline's width, clear of the art. */
   --measure-overview: 55ch;
+  /* Person-page biography: no art column to clear, so it runs wider
+     (Sauel's call, 2026-08-20). */
+  --measure-bio: 75ch;
   --container-search: 48rem; /* 768px  — the search column */
   --container-content: 64rem; /* 1024px — article and detail pages */
   --container-aside: 16rem; /*  256px — the facts column on detail pages */
