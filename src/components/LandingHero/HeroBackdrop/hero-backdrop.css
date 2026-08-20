@@ -91,12 +91,16 @@
   }
 
   /* Phone-narrow: only the hand-off into the base color dims the
-     strip. */
+     strip. Light mode compresses the fade to the strip's last
+     quarter (via the overrides below): the copy sits under the
+     strip there, so the wash only needs to ground the caption. */
   @media (width <= 36rem) {
+    --scrim-fade-from: 0%;
+    --scrim-soft-stop: 60%;
     background: linear-gradient(
       to bottom,
-      transparent,
-      var(--color-scrim-soft) 60%,
+      transparent var(--scrim-fade-from),
+      var(--color-scrim-soft) var(--scrim-soft-stop),
       var(--color-media-base)
     );
   }
@@ -108,12 +112,16 @@
 :root[data-theme="light"] .tc-hero-backdrop__scrim {
   --scrim-mid: 25%;
   --scrim-reach: 45%;
+  --scrim-fade-from: 75%;
+  --scrim-soft-stop: 90%;
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) .tc-hero-backdrop__scrim {
     --scrim-mid: 25%;
     --scrim-reach: 45%;
+    --scrim-fade-from: 75%;
+    --scrim-soft-stop: 90%;
   }
 }
 
