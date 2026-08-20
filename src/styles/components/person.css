@@ -7,13 +7,37 @@
   padding-block: var(--space-7);
 }
 
-/* Portrait beside the intro at every width; phones just use the
-   smaller portrait size below. */
+/* Portrait beside the intro at every width; phones use the smaller
+   portrait size below. From tablets the biography climbs into the
+   intro's column, filling the height a tall portrait leaves open;
+   phones keep it full-width under the head. */
 .tc-person__head {
   display: grid;
   grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "portrait intro"
+    "bio bio";
   gap: var(--space-5);
   align-items: start;
+
+  @media (width > 36rem) {
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "portrait intro"
+      "portrait bio";
+  }
+}
+
+.tc-person__portrait {
+  grid-area: portrait;
+}
+
+.tc-person__intro {
+  grid-area: intro;
+}
+
+.tc-person__bio {
+  grid-area: bio;
 }
 
 /* 2:3 like poster art; object-fit crops odd sources instead of

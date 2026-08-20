@@ -148,16 +148,16 @@ export default async function PersonPage({
                 )}
               </dl>
             </div>
+            {paragraphs.length > 0 && (
+              <section aria-label="Biography" className="tc-person__bio">
+                {paragraphs.map((p) => (
+                  <p className="tc-body-lg" key={p.slice(0, 40)}>
+                    {p}
+                  </p>
+                ))}
+              </section>
+            )}
           </div>
-          {paragraphs.length > 0 && (
-            <section aria-label="Biography" className="tc-person__bio">
-              {paragraphs.map((p) => (
-                <p className="tc-body-lg" key={p.slice(0, 40)}>
-                  {p}
-                </p>
-              ))}
-            </section>
-          )}
           {knownFor.length > 0 && (
             <MediaRail items={knownFor} title="Known For" />
           )}
