@@ -13,18 +13,34 @@
     "portrait intro"
     "lead lead"
     "bio bio"
-    "rail rail";
+    "rail rail"
+    "filmo filmo";
   column-gap: var(--space-5);
   align-items: start;
   padding-block: var(--space-7);
 
   @media (width > 36rem) {
-    grid-template-rows: auto 1fr auto auto;
+    grid-template-rows: auto 1fr auto auto auto;
     grid-template-areas:
       "portrait intro"
       "portrait lead"
       "bio bio"
-      "rail rail";
+      "rail rail"
+      "filmo filmo";
+  }
+
+  /* Laptops: the filmography becomes the right column, spanning every
+     row, on the title page's aside track. Below 64rem it flows after
+     the rail instead of hiding — no content is width-gated. */
+  @media (width >= 64rem) {
+    grid-template-columns: auto 1fr var(--container-aside);
+    grid-template-rows: auto 1fr auto auto;
+    grid-template-areas:
+      "portrait intro filmo"
+      "portrait lead filmo"
+      "bio bio filmo"
+      "rail rail filmo";
+    column-gap: var(--space-6);
   }
 }
 
@@ -128,4 +144,47 @@
 .tc-person__rail {
   grid-area: rail;
   margin-block-start: var(--space-7);
+}
+
+/* The credit list: quiet text rows, newest first. */
+.tc-person__filmo {
+  display: grid;
+  grid-area: filmo;
+  gap: var(--space-3);
+  align-content: start;
+  margin-block-start: var(--space-7);
+
+  @media (width >= 64rem) {
+    margin-block-start: 0;
+  }
+}
+
+.tc-person__filmo-count {
+  color: var(--color-ink-muted);
+}
+
+.tc-person__filmo-list {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+/* One link per row, the rail-card contract: underline on hover
+   carried by the title, the year staying quiet. */
+.tc-person__filmo-link {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.tc-person__filmo-link:hover .tc-person__filmo-title,
+.tc-person__filmo-link:focus-visible .tc-person__filmo-title {
+  text-decoration: underline;
+}
+
+.tc-person__filmo-year {
+  color: var(--color-ink-muted);
 }
