@@ -2,23 +2,24 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** Production got hardened. The Dependabot board went to
-zero: pnpm overrides forced the patched `tmp` and `uuid` under the
-Lighthouse CLI, and the unpatched `extract-zip` was dismissed with
-its reasoning on record (PRs #51, #52). The same day, Vercel's image
-optimizer ran out of free-tier quota and started answering 402 for
-every poster, so TMDB art now loads straight from TMDB's CDN through
-a custom `next/image` loader — the quota can never bite again
-(PR #53). Sauel's own Lighthouse runs then read 99/100/100/100 on
-desktop; the mobile read traced its 4.0s LCP to the hero's client
-fetch waterfall, fixed by server-rendering the rotation (PR #54).
-A follow-up mobile read confirmed the fix (86 → 91, LCP 4.0s → 3.3s),
-and the landing's CI Lighthouse floor was ratcheted from 0.6 to 0.75
-to guard the new baseline (PR #56).
-The genre catalog, the WCAG pass, and the honest empty states from
-2026-08-18 all hold. Next up: the light palette pass, People then
-Awards content, the combobox's loading and error states, rate
-limiting before wide sharing, server cache, and the scheduled sync.
+**Phase:** The light question got answered and People shipped. An
+afternoon of live light-palette exploration with Sauel ended in the
+call to ship dark only: the toggle and every light token half are
+gone, and what survived the pass are dark-mode wins — sky as the CTA
+accent (chartreuse retired, yellow is warnings only), the scroll-gated
+glass header, the wordmark/headline rebalance, and the search bar's
+own focus accent (PR #58). People then landed in two phases: the
+`people` table and TMDB popular-people sync (60 people, PR #59), then
+the full read path — browse grid behind the People nav, `/person/[id]`
+detail pages fed by one cached TMDB request, and links from both the
+people cards and every title page's cast rail (PR #60). The same PR
+carried a structural cleanup Sauel called for: the skip link, icon
+sprite, Header, `main`, and Footer now render once in the root layout
+instead of being pasted into every page. Next up: people in the
+combobox (core, Sauel's build), the Awards data-source decision
+(hand-curation recommended), the combobox's loading and error states,
+rate limiting before wide sharing, server cache, and the scheduled
+sync.
 
 ---
 
@@ -86,19 +87,28 @@ limiting before wide sharing, server cache, and the scheduled sync.
 | 2026-08-20 | TMDB art skips the image optimizer | Vercel's free-tier image quota ran out and `/_next/image` began answering 402 for every poster and backdrop — TMDB already stores each image pre-sized, so the optimizer was spending quota re-encoding files that ship optimized. A custom loader (`src/lib/tmdb-image-loader.ts`) maps Next's requested widths onto TMDB's own size whitelist (shared across posters, backdrops, and profiles — verified empirically), capped at the w1280 ceiling the site already shipped; non-TMDB sources pass through. Zero Vercel transformations forever; the trade is JPEG-only delivery, no AVIF (PR #53). |
 | 2026-08-20 | Lighthouse floor follows the fix | Once PR #54 removed the hero waterfall, a fresh full `lhci` production run read the landing at 0.83–0.84 (up from the 0.73 the old 0.6 floor was set against). The floor moved to 0.75 — the same ~8-point variance margin the search/title floor (0.85 vs 0.88–0.93 measured) has proven workable — so a regression to the old waterfall behaviour now fails CI. Verified live: the post-merge main run passed the new assertion (PR #56). |
 | 2026-08-20 | Landing hero is server-rendered | The mobile Lighthouse read (86 perf, 4.0s LCP) traced ~2.9s to pure request delay: the hero fetched `/api/upcoming` after hydration, so the browser learned the backdrop's URL last. `upcomingTitles()` now lives in `db/queries`, `LandingHero` awaits it, and the first slide ships in the initial HTML with `fetchPriority="high"` on both first-paint layers (Lighthouse pinned the LCP on the instantly-visible underlay, not the fading current layer). The page regenerates hourly, tracking the daily sync. Rail posters also gained `sizes` mirroring the card widths, so phones fetch w154/w300 buckets instead of w500 (PR #54). |
+| 2026-08-20 | Dark only | Supersedes "Dark pinned, light parked". A live light-palette pass (Sauel's cool canvas, neutral surfaces, sky accent) kept fighting the always-dark media surfaces, and he called it: for simplicity the site ships a single dark palette. The ThemeToggle, the pre-paint theme script, the `data-theme` plumbing, and every `light-dark()` token collapsed to dark values; `feat/theme-toggle` and the light halves live only in merged-PR history now. A repo-wide sweep removed every light/theming reference from code comments and the README (PR #58). |
+| 2026-08-20 | Sky is the accent; yellow is warnings | Chartreuse retired entirely on Sauel's call — yellow exists only as `--tc-warning`, never as a brand accent. `--color-cta` points at the existing `--tc-sky` and feeds the focus ring and the combobox active-row marker (7.35:1 on canvas, 5.97:1 on raised). The search bar carries its own focus accent instead, warm paper white via `--color-focus-search` (PR #58). |
+| 2026-08-20 | Glass header, scroll-gated | Solid canvas at rest; once content scrolls beneath, a CSS scroll timeline (`animation-timeline: scroll()`, no JavaScript) fades in canvas-at-80% glass with a 14px backdrop blur. Browsers without scroll-driven animations keep the solid bar; Firefox needs a nonzero `animation-duration` even under a scroll timeline (CodeRabbit's catch — the value itself is meaningless). The decorative bottom border is gone. Iterated live with Sauel: blur-only was too naked, tinted-always read as a recolored bar; canvas-tinted-when-scrolled is the landing point (PR #58). |
+| 2026-08-20 | Type rebalance and wrap policy | The wordmark outranks the hero headline now: Gochi Hand ships no bold, so an em-scaled `-webkit-text-stroke` supplies the bulk while the display headline dropped to weight 600 with a trimmed clamp (2.75–5.5rem). Rail headings ("Popular Movies", genre rails, "Cast") are a fixed 1.5rem at 700 via `tc-carousel__heading`, leaving other `tc-h3` headings alone. Text wrapping became design-system policy in typography.css: headings `balance`, paragraphs `pretty`, no per-component opt-ins (PR #58). |
+| 2026-08-20 | Global chrome lives in the root layout | Sauel's call on reviewing the person page: the skip link, icon sprite, Header, `main` landmark, and Footer were pasted into all four pages; they now render once in `layout.tsx` around `{children}`. Verified one header/main/footer per route across every page, skip-link target and focus tabIndex intact, e2e 20/20 (PR #60). |
+| 2026-08-20 | People ships in phases | Phase one, the data layer: a `people` table on the media pattern (`tmdb_id` unique in its single namespace, `name_search` under the same trigram recipe, popularity as the one list's order, so no join table) and `pnpm db:sync-people` pulling three pages of `/person/popular` — 60 people (PR #59). Phase two, the read path: the People nav renders a browse grid of linked cards; `/person/[id]` is the title page's shape one column simpler — one TMDB request with `combined_credits` appended, cached a day, feeding portrait (h632; profiles have no w500), facts, biography, and a Known For rail deduped by (kind, id) since credits repeat per episode and job. Cast rails on title pages link to person pages too — TMDB cast ids are person ids. People aren't searchable yet; that's the combobox phase, core territory (PR #60). |
+| 2026-08-20 | Person-page prose rules | TMDB copies Wikipedia bios verbatim, IPA pronunciation included — `stripPronunciation` trims it from paragraphs and meta descriptions, keeping the "(born ...)" remainder. The opener paragraph lives in the hero beside the portrait (fluid 14→16px clamp, 60ch, 50ch in the tablet window); the rest reads below at a fixed 16px (`--type-person-bio` — Sauel wants person body text never past 16) with a 90ch measure, 75ch on tablets where 90 outruns the container. On phones the split disappears: one continuous column at paragraph rhythm. A filmography aside was built for the empty laptop column and removed the same hour on Sauel's call. |
+| 2026-08-20 | TMDB render fetches are bounded, without AbortSignal | CodeRabbit flagged the missing timeout; the suggested `AbortSignal.timeout` would have silently opted the fetch out of Next's per-render memoization (fetch.md documents this), and `generateMetadata` plus the page share one TMDB request only through it. `withTimeout` races the two page-blocking fetchers against 10s instead: the render fails fast, caching and memoization stay intact, a stalled request settles into the data cache (PR #60). |
+| 2026-08-20 | Full-bleed children borrow the container's edge | The hero's Featured caption hung a fixed 16px off the viewport edge while everything else aligns to `tc-container`. `--container-inset` in layout.css mirrors the container's exact box math (same tokens, same 93.5% frame, same sliding gutter) so absolutely positioned children of full-bleed sections can sit on the container's grid line; the caption is its first consumer (PR #60). |
 
 ---
 
 ## Open
 
-- **Light palette design pass (unparks the toggle)**: Sauel doesn't approve light mode's current look, so dark is pinned (PR #47). The pass redesigns the light tokens; shipping it is one `color-scheme` token back to `dark light` plus the parked `feat/theme-toggle` branch (complete three-state control, anti-flash script, hydration fix).
-- **People, then Awards**: People has a clear path — TMDB's popular-people endpoint synced into a `people` table on the media pattern, a browse page, later person detail and combobox inclusion (the sync currently drops person items). Awards has no TMDB data at all, so it needs a data-source decision first (Wikidata, hand-curation, or reshaping the page).
+- **People in the combobox**: the last People phase. The suggest pipeline still drops person items; including them touches the shared ranking and the combobox itself — core territory, Sauel's build. The browse grid honestly says people aren't searchable until then.
+- **Awards data source**: TMDB has none, so it needs a decision before any code. Recommendation on record: hand-curation (a small owned table of major awards keyed to `tmdb_id`s — bounded, dependency-free, joins cleanly to media and people) over Wikidata's SPARQL dependency and entity-matching cost. Sauel's call pending.
+- **Known For rail quality**: popularity ranking surfaces talk-show guest spots (Kimmel, Conan, WWE Raw) on actors' pages. A filter to films and scripted TV is small; flagged with Sauel, no call yet.
 - **Combobox loading and error states**: the audit's remaining high finding. The recents false "No matches" flash was fixed in PR #44, but there is still no loading state during the debounce window and `fetchSuggestions` has no `res.ok` check, so a 500 becomes a logged-and-swallowed failure with no user feedback. Core territory, Sauel's build.
 - **A11y deferred polish** (PR #44's list): ArrowUp-opens-panel and Alt+ArrowDown, `aria-current` on nav links (needs a client nav component), trailer backdrop light-dismiss, a focus target when the phone menu closes on viewport growth, the caret's strict 2.2.2 reading, and the hero furniture's DOM order before the h1.
-- **Branch cleanup pending Sauel**: `fix/a11y-audit` still exists local and remote; its only unmerged content is the accidental #45 toggle merge, which `feat/theme-toggle` duplicates. Deletable on his word. `feat/theme-toggle` is a deliberate keep.
 - **Query length cap** (audit, medium): `q` reaches `word_similarity` unbounded, so one 14KB request trigram-scans the catalog twice; a cap in `searchMedia` covers suggest and `/search` at once.
 - **Server hardening** (audit, low): a sync crash between upsert and prune persists a merged rail until the next sync; postponed titles that drop off TMDB keep stale future dates atop the hero rotation; one failed rail query fails all eight in `/api/rails`.
-- **Design-audit paper cuts**: a few untokenized values in component CSS (search-box.css's 3px active bar, the hero `12ch`, dot and caret em sizes, `steps(1)`), a stale chartreuse comment in landing-hero.css still naming the retired preview, and typography.css's header claiming no raw values while declaring font weights. The redundant physical width fell out with PR #30's band rework.
+- **Design-audit paper cuts**: a few untokenized values in component CSS (search-box.css's 3px active bar, the hero `12ch`, dot and caret em sizes, `steps(1)`), and typography.css's header claiming no raw values while declaring font weights. The stale chartreuse comment fell with the dark-only sweep (PR #58); the redundant physical width fell with PR #30's band rework.
 - **Playwright unpin, blocked again**: the Mac Pro's macOS 26 upgrade removed the original reason, but the MacBook Pro 2015 (macOS 12) rejoined the rotation on 2026-08-17, restoring it: 1.61.0 is the last release whose browser builds run there. The pin and the CI-only webkit gate stay until the macOS 12 machine leaves the rotation.
 - **Rate limiting before wide sharing**: the API routes have none. Fine for showing Jami; add Upstash rate limiting (and the Redis server cache) before the link travels.
 - **Scheduled sync**: a Vercel cron replacing manual `pnpm db:sync`, which now also maintains the eight category lists. Its `TMDB_READ_ACCESS_TOKEN` prerequisite landed 2026-08-17 with the title-page fix, so nothing blocks it.
@@ -187,6 +197,12 @@ limiting before wide sharing, server cache, and the scheduled sync.
 - [x] Shipped PR #54 (`923553d`): the hero LCP fix (server-rendered rotation, priority on both first-paint layers, hourly ISR) and rail poster `sizes`, both from Sauel's mobile Lighthouse read. Verified against the served production build before opening. Sauel's post-deploy mobile DevTools run confirmed it: 86 → 91 performance, LCP 4.0s → 3.3s, all three LCP-discovery checks passing.
 - [x] Shipped PR #55 (`014373b`): the 2026-08-20 session log — Phase rewrite, three Decided rows, Open list pruned.
 - [x] Shipped PR #56 (`5fffb14`): the landing Lighthouse floor ratcheted 0.6 → 0.75, grounded in a fresh six-run `lhci` production suite (landing 0.83–0.84, search/title 0.88–0.93, everything else 1.0). The post-merge main run passed the new floor live.
+- [x] Ran the light-palette pass live with Sauel: his cool canvas and sky CTA wired in, surfaces iterated (warm → cool → neutral → canvas-colored), the media tokens made theme-aware, scrim reaches and furniture darkness tuned per his screenshots — and then the whole second palette removed on his simplicity call. Fifteen-plus iterations, one afternoon, decision recorded rather than re-litigated.
+- [x] Shipped PR #58 (`9433adb`'s history): dark-only site plus the pass's dark-mode keepers — sky CTA, chartreuse retired, scroll-gated glass header without its border, wordmark stroke, calmer display clamp, 1.5rem/700 rail headings, the search bar's warm-white focus accent, and the repo-wide sweep of light/theming references. Worked both CodeRabbit threads: the Firefox nonzero-duration fix landed; the `currentcolor` casing skipped with reasons (no Stylelint in this repo, house spelling in five files). Both resolved.
+- [x] Shipped PR #59 (`f547321`): the People data layer — `people` table, `db:sync-people`, migration applied, first sync landed 60 people, verified against live Neon before the PR opened.
+- [x] Shipped PR #60: the People read path end to end — browse grid, `/person/[id]` (portrait, facts, biography with the hero opener, Known For rail), links from people cards and title-page cast rails, the IPA strip, and the root-layout chrome refactor with e2e 20/20 on both browsers. Built through heavy live iteration with Sauel: opener size/measure settled at a fluid 14→16px clamp on 60ch (50ch tablets), bio fixed at 16px on 90ch (75ch tablets), phone column made continuous, a filmography aside built and removed on his call, and the Known For rail's grid-overflow escape fixed with title.css's own `minmax(0, …)` lesson.
+- [x] Worked both CodeRabbit threads on PR #60: portrait `sizes` added (verified the custom loader implements width first, so it matters), and the TMDB timeout implemented via `Promise.race` after catching that the suggested `AbortSignal` would break per-render memoization and double TMDB traffic. Both replied to with the reasoning and resolved.
+- [x] Full post-merge cleanups for #58, #59, and #60, each verified MERGED via `gh pr view` first — plus the two stale branches (`feat/theme-toggle`, `fix/a11y-audit`) deleted on Sauel's word after proving both held zero unmerged content. Only `main` remains, local and remote.
 
 ---
 
