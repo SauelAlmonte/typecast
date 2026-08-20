@@ -20,6 +20,17 @@ function readTmdbId(id: string): number {
   return Number(id);
 }
 
+/**
+ * TMDB copies Wikipedia openers wholesale, IPA pronunciation included:
+ * "Jason Statham (/ˈsteɪθəm/ STAY-thəm; born 26 July 1967)". The
+ * notation means nothing here, so a parenthetical opening with "/" is
+ * trimmed to its first ";" (keeping "(born ...)"), and one that is
+ * pronunciation alone is removed outright.
+ */
+function stripPronunciation(text: string): string {
+  return text.replace(/\(\/[^)]*?;\s*/g, "(").replace(/\(\/[^)]*\)\s*/g, "");
+}
+
 /** "June 22, 1949" from TMDB's ISO date; bad input falls back as-is. */
 function formatDate(iso: string): string {
   const date = new Date(`${iso}T00:00:00Z`);
@@ -68,7 +79,8 @@ export async function generateMetadata({
   if (!detail) return { title: "Not found" };
   return {
     title: detail.name,
-    description: detail.biography?.slice(0, 160) || undefined,
+    description:
+      stripPronunciation(detail.biography ?? "").slice(0, 160) || undefined,
   };
 }
 
@@ -88,7 +100,7 @@ export default async function PersonPage({
   const knownFor = knownForItems(detail);
   // TMDB pads absent biographies with "" and absent dates with null;
   // each fact renders only when it exists (honest empty states).
-  const paragraphs = (detail.biography ?? "")
+  const paragraphs = stripPronunciation(detail.biography ?? "")
     .split(/\n+/)
     .map((p) => p.trim())
     .filter((p) => p !== "");
@@ -105,54 +117,52 @@ export default async function PersonPage({
       <Header />
       <main id="main" tabIndex={-1}>
         <div className="tc-container tc-person">
-          <div className="tc-person__head">
-            {detail.profile_path ? (
-              <Image
-                alt={`Portrait of ${detail.name}`}
-                className="tc-person__portrait"
-                height={632}
-                src={`${PORTRAIT_BASE}${detail.profile_path}`}
-                width={421}
-              />
-            ) : (
-              <span
-                aria-hidden="true"
-                className="tc-person__portrait tc-person__portrait--empty"
-              >
-                <Icon name="image" />
-                <span className="tc-meta">No image</span>
-              </span>
+          {detail.profile_path ? (
+            <Image
+              alt={`Portrait of ${detail.name}`}
+              className="tc-person__portrait"
+              height={632}
+              src={`${PORTRAIT_BASE}${detail.profile_path}`}
+              width={421}
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              className="tc-person__portrait tc-person__portrait--empty"
+            >
+              <Icon name="image" />
+              <span className="tc-meta">No image</span>
+            </span>
+          )}
+          <div className="tc-person__intro">
+            <h1 className="tc-h1">{detail.name}</h1>
+            {detail.known_for_department && (
+              <p className="tc-meta tc-meta-caps tc-person__department">
+                {detail.known_for_department}
+              </p>
             )}
-            <div className="tc-person__intro">
-              <h1 className="tc-h1">{detail.name}</h1>
-              {detail.known_for_department && (
-                <p className="tc-meta tc-meta-caps tc-person__department">
-                  {detail.known_for_department}
-                </p>
+            <dl className="tc-person__facts">
+              {detail.birthday && (
+                <div className="tc-person__fact">
+                  <dt className="tc-meta tc-person__fact-name">Born</dt>
+                  <dd className="tc-ui">{formatDate(detail.birthday)}</dd>
+                </div>
               )}
-              <dl className="tc-person__facts">
-                {detail.birthday && (
-                  <div className="tc-person__fact">
-                    <dt className="tc-meta tc-person__fact-name">Born</dt>
-                    <dd className="tc-ui">{formatDate(detail.birthday)}</dd>
-                  </div>
-                )}
-                {detail.deathday && (
-                  <div className="tc-person__fact">
-                    <dt className="tc-meta tc-person__fact-name">Died</dt>
-                    <dd className="tc-ui">{formatDate(detail.deathday)}</dd>
-                  </div>
-                )}
-                {detail.place_of_birth && (
-                  <div className="tc-person__fact">
-                    <dt className="tc-meta tc-person__fact-name">Birthplace</dt>
-                    <dd className="tc-ui">{detail.place_of_birth}</dd>
-                  </div>
-                )}
-              </dl>
-            </div>
-            {lead && <p className="tc-person__lead">{lead}</p>}
+              {detail.deathday && (
+                <div className="tc-person__fact">
+                  <dt className="tc-meta tc-person__fact-name">Died</dt>
+                  <dd className="tc-ui">{formatDate(detail.deathday)}</dd>
+                </div>
+              )}
+              {detail.place_of_birth && (
+                <div className="tc-person__fact">
+                  <dt className="tc-meta tc-person__fact-name">Birthplace</dt>
+                  <dd className="tc-ui">{detail.place_of_birth}</dd>
+                </div>
+              )}
+            </dl>
           </div>
+          {lead && <p className="tc-person__lead">{lead}</p>}
           {rest.length > 0 && (
             <section aria-label="Biography" className="tc-person__bio">
               {rest.map((p) => (
@@ -163,7 +173,9 @@ export default async function PersonPage({
             </section>
           )}
           {knownFor.length > 0 && (
-            <MediaRail items={knownFor} title="Known For" />
+            <div className="tc-person__rail">
+              <MediaRail items={knownFor} title="Known For" />
+            </div>
           )}
         </div>
       </main>

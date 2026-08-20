@@ -1,58 +1,37 @@
-/* Person page: portrait and facts up top, biography, known-for rail.
-   The title page's shape, one column simpler. */
+/* Person page: one grid, named areas, no nested layout boxes.
+   Phones read portrait + facts, then the biography as one continuous
+   column; from tablets the opener climbs beside the portrait (Sauel's
+   layout, 2026-08-20). Vertical rhythm is per-area margins, not
+   row-gap, because the phone needs the opener flowing into the
+   biography at paragraph distance while the rail keeps its section
+   distance. */
 
 .tc-person {
-  display: grid;
-  gap: var(--space-7);
-  padding-block: var(--space-7);
-}
-
-/* Portrait beside the intro at every width; phones use the smaller
-   portrait size below. From tablets the biography's first paragraph
-   climbs into the intro's column, filling the height a tall portrait
-   leaves open; phones keep it full-width under the head. The rest of
-   the biography reads below the whole block either way. */
-.tc-person__head {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-areas:
     "portrait intro"
-    "lead lead";
-  gap: var(--space-5);
+    "lead lead"
+    "bio bio"
+    "rail rail";
+  column-gap: var(--space-5);
   align-items: start;
+  padding-block: var(--space-7);
 
   @media (width > 36rem) {
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto 1fr auto auto;
     grid-template-areas:
       "portrait intro"
-      "portrait lead";
-  }
-}
-
-.tc-person__portrait {
-  grid-area: portrait;
-}
-
-.tc-person__intro {
-  grid-area: intro;
-}
-
-/* Fixed 14px, not body: the opener sits inside the hero, where it
-   supports the facts instead of leading the page. Body's line-height
-   stays for paragraph legibility. */
-.tc-person__lead {
-  grid-area: lead;
-  max-inline-size: var(--measure-person-lead);
-  font-size: var(--type-person-lead);
-
-  @media (36rem < width < 64rem) {
-    max-inline-size: var(--measure-person-lead-tablet);
+      "portrait lead"
+      "bio bio"
+      "rail rail";
   }
 }
 
 /* 2:3 like poster art; object-fit crops odd sources instead of
    squashing, and the empty-span fallback keeps the layout aligned. */
 .tc-person__portrait {
+  grid-area: portrait;
   inline-size: var(--size-poster-detail);
   block-size: auto;
   aspect-ratio: 2 / 3;
@@ -76,6 +55,7 @@
 
 .tc-person__intro {
   display: grid;
+  grid-area: intro;
   gap: var(--space-3);
   justify-items: start;
 }
@@ -99,14 +79,46 @@
   color: var(--color-ink-muted);
 }
 
-/* The measure keeps TMDB's long biographies readable while running
-   wider than the title page's overview - no art column to clear. */
+/* In the hero (tablets up) the opener supports the facts: smaller
+   fluid size, tighter measure. On phones it is simply the biography's
+   first paragraph, so it wears the biography's own size. */
+.tc-person__lead {
+  grid-area: lead;
+  max-inline-size: var(--measure-person-lead);
+  margin-block-start: var(--space-5);
+  font-size: var(--type-person-lead);
+
+  @media (width <= 36rem) {
+    font-size: var(--type-body-lg);
+    line-height: var(--leading-body-lg);
+  }
+
+  @media (36rem < width < 64rem) {
+    max-inline-size: var(--measure-person-lead-tablet);
+  }
+}
+
+/* The measure keeps TMDB's long biographies readable; the tablet
+   value exists because 90ch outruns the container there and never
+   bites. On phones the biography continues the opener at paragraph
+   distance — that margin is the whole reason rhythm is margins. */
 .tc-person__bio {
   display: grid;
+  grid-area: bio;
   gap: var(--space-4);
   max-inline-size: var(--measure-bio);
+  margin-block-start: var(--space-4);
+
+  @media (width > 36rem) {
+    margin-block-start: var(--space-7);
+  }
 
   @media (36rem < width < 64rem) {
     max-inline-size: var(--measure-bio-tablet);
   }
+}
+
+.tc-person__rail {
+  grid-area: rail;
+  margin-block-start: var(--space-7);
 }
