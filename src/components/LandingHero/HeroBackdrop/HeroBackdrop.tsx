@@ -37,7 +37,7 @@ type HeroBackdropProps = {
  * while the current one fades in over it, and the next one sits at
  * opacity 0 purely so the browser fetches it before its turn. The
  * backdrop is decorative, so an empty list renders nothing and the
- * hero falls back to the plain themed canvas.
+ * hero falls back to the plain canvas.
  */
 export default function HeroBackdrop({ items: allItems }: HeroBackdropProps) {
   const items = allItems.slice(0, ROTATION_MAX);

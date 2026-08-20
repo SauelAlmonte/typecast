@@ -87,8 +87,8 @@ request time, one appended request per title, cached for a day.
   with the React Compiler, TypeScript strict
 - **Database:** Neon Postgres over the serverless HTTP driver, Drizzle
   ORM, Drizzle Kit migrations, `pg_trgm`
-- **Styling:** hand-written CSS; design tokens in `oklch` with
-  `light-dark()`, BEM with native nesting, no component library
+- **Styling:** hand-written CSS; design tokens in `oklch`, BEM with
+  native nesting, no component library
 - **Testing:** Playwright end-to-end (Chromium, Firefox, WebKit in CI)
 - **Quality:** Biome for lint and format, `tsc --noEmit`, GitHub
   Actions CI with Lighthouse score budgets against production
@@ -109,23 +109,22 @@ Accessibility is a design input, not a retrofit:
 - Every page has landmarks, a skip link, and a single `h1`.
 - Focus rings are `outline`-based, so they survive forced-colors mode.
 - `prefers-reduced-motion` stops the caret blink and smooth scrolling.
-- Contrast pairs are chosen against WCAG thresholds in both themes.
+- Contrast pairs are chosen against WCAG thresholds.
 
 ## Design system
 
 One fluid layout system spaces every page: a single container whose
 cap and gutter scale with the viewport as proportions and clamps, not
 stepped breakpoints, so resizing moves in one motion. Hero bands scale
-with the width. Dark is the site's theme; a complete light palette
-lives in the `light-dark()` tokens, parked until its design pass.
+with the width. The site ships a single dark palette.
 
 ## Status
 
 The core is live: the hand-built combobox, the local catalog with
 genre rails on the browse pages, and the landing, search, and title
 pages. On the roadmap: combobox loading and error states, rate
-limiting, a scheduled sync, unit tests, the light theme's design
-pass, and People and Awards content.
+limiting, a scheduled sync, unit tests, and People and Awards
+content.
 
 ## Attribution
 

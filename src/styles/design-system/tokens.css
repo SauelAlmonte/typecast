@@ -2,16 +2,14 @@
    Component files consume these tokens and never declare raw values. */
 
 :root {
-  /* Dark only (Sauel's call, 2026-08-20): the light palette and the
-     theme toggle were removed for simplicity — the light halves live
-     in git history (feat/light-palette work) if that ever reopens. */
+  /* The site ships a single dark palette (2026-08-20). */
   color-scheme: dark;
 }
 
 :root {
-  /* --- Brand accents: shared across themes, kept inside sRGB.
-     Yellow is reserved for --tc-warning; it is not a brand accent
-     (2026-08-20 palette pass, which retired chartreuse). --- */
+  /* --- Brand accents, kept inside sRGB. Yellow is reserved for
+     --tc-warning; it is not a brand accent (2026-08-20 palette pass,
+     which retired chartreuse). --- */
   --tc-coral: oklch(0.65 0.21 30);
   --tc-lilac: oklch(0.72 0.11 300);
   --tc-sky: oklch(0.7 0.13 245);
@@ -40,6 +38,9 @@
      canvas, 5.97:1 on raised). */
   --color-cta: var(--tc-sky);
   --color-focus: var(--color-cta);
+  /* The search bar's own focus accent (Sauel's call, 2026-08-20):
+     warm paper white, wherever the search bar appears. */
+  --color-focus-search: oklch(0.975 0.012 90);
   --color-on-accent: oklch(0.19 0.025 260);
   --color-active-marker: var(--color-cta);
 
