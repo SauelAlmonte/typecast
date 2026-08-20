@@ -14,8 +14,9 @@
    for canvas-tinted glass across the first bar-height of scroll. At
    rest it is the solid canvas above, which is also the permanent
    state for browsers without scroll-driven animations or
-   backdrop-filter. Reduced-motion's 0.01ms duration cannot break
-   this: scroll timelines ignore duration entirely. */
+   backdrop-filter. Reduced-motion's 0.01ms duration is harmless:
+   with a scroll timeline, progress comes from scroll position, and
+   any nonzero duration satisfies Firefox (see below). */
 @supports (
     (backdrop-filter: blur(1px)) or
     (-webkit-backdrop-filter: blur(1px))
@@ -23,7 +24,11 @@
   (animation-timeline: scroll()) {
   .tc-header {
     animation: tc-header-glass linear both;
-    /* Longhands after the shorthand: `animation:` resets them. */
+    /* Longhands after the shorthand: `animation:` resets them. The
+       duration's value is meaningless under a scroll timeline, but
+       Firefox skips scroll-driven animations whose duration is the
+       0s default, so it must be nonzero. */
+    animation-duration: 1s;
     animation-timeline: scroll();
     animation-range: 0 var(--size-header);
   }
