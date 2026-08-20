@@ -20,9 +20,9 @@
 }
 
 :root {
-  /* --- Brand accents: shared across themes, kept inside sRGB --- */
-  --tc-chartreuse: oklch(0.88 0.175 105);
-  --tc-chartreuse-strong: oklch(0.78 0.155 105);
+  /* --- Brand accents: shared across themes, kept inside sRGB.
+     Yellow is reserved for --tc-warning; it is not a brand accent
+     (2026-08-20 palette pass, which retired chartreuse). --- */
   --tc-coral: oklch(0.65 0.21 30);
   --tc-lilac: oklch(0.72 0.11 300);
   --tc-sky: oklch(0.7 0.13 245);
