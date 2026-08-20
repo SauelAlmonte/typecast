@@ -75,6 +75,8 @@
   --leading-h2: 1.04;
   --type-h3: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
   --leading-h3: 1.15;
+  /* Rail headings only (Sauel's call, 2026-08-20): fixed 16px. */
+  --type-rail-heading: 1rem;
   --type-body-lg: clamp(1rem, 0.93rem + 0.55vw, 1.125rem);
   --leading-body-lg: 1.55;
   /* Body never clamps below 1rem: 16px is the iOS-zoom floor for the
