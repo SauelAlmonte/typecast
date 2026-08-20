@@ -2,17 +2,14 @@
    Component files consume these tokens and never declare raw values. */
 
 :root {
-  /* Pinned dark while the light palette awaits its design pass; the
-     light halves of the light-dark() tokens below stay live for that
-     day. Restoring light is `dark light` here plus the parked toggle
-     (feat/theme-toggle branch). */
+  /* The site ships a single dark palette (2026-08-20). */
   color-scheme: dark;
 }
 
 :root {
-  /* --- Brand accents: shared across themes, kept inside sRGB --- */
-  --tc-chartreuse: oklch(0.88 0.175 105);
-  --tc-chartreuse-strong: oklch(0.78 0.155 105);
+  /* --- Brand accents, kept inside sRGB. Yellow is reserved for
+     --tc-warning; it is not a brand accent (2026-08-20 palette pass,
+     which retired chartreuse). --- */
   --tc-coral: oklch(0.65 0.21 30);
   --tc-lilac: oklch(0.72 0.11 300);
   --tc-sky: oklch(0.7 0.13 245);
@@ -20,36 +17,45 @@
   --tc-warning: oklch(0.8 0.16 82);
   --tc-danger: oklch(0.61 0.22 28);
 
-  /* --- Surfaces: warm paper in light, blue-charcoal in dark, never pure black --- */
-  --color-canvas: light-dark(oklch(0.975 0.012 90), oklch(0.16 0.02 260));
-  --color-surface: light-dark(oklch(0.945 0.014 90), oklch(0.205 0.024 260));
-  --color-raised: light-dark(oklch(0.995 0.004 90), oklch(0.255 0.025 260));
+  /* --- Surfaces: blue-charcoal, never pure black --- */
+  --color-canvas: oklch(0.16 0.02 260);
+  --color-surface: oklch(0.205 0.024 260);
+  --color-raised: oklch(0.255 0.025 260);
 
   /* --- Text --- */
-  --color-ink: light-dark(oklch(0.19 0.025 260), oklch(0.945 0.012 90));
-  --color-ink-muted: light-dark(oklch(0.47 0.025 260), oklch(0.7 0.02 90));
+  --color-ink: oklch(0.945 0.012 90);
+  --color-ink-muted: oklch(0.7 0.02 90);
 
   /* --- Lines: two tokens, two jobs --- */
   /* Decorative separators only. Not permitted to be the sole definition of a control. */
-  --color-line: light-dark(oklch(0.86 0.018 260), oklch(0.32 0.024 260));
-  /* Control boundaries. Meets 3:1 against --color-surface in both themes
-     (light was 2.97:1 at L 0.63; 0.62 clears the threshold). */
-  --color-border: light-dark(oklch(0.62 0.022 260), oklch(0.5 0.026 260));
+  --color-line: oklch(0.32 0.024 260);
+  /* Control boundaries. Meets 3:1 against --color-surface. */
+  --color-border: oklch(0.5 0.026 260);
 
   /* --- Accent application --- */
-  --color-focus: light-dark(oklch(0.56 0.11 105), var(--tc-chartreuse));
+  /* CTA accent (2026-08-20 palette pass): sky replaced chartreuse.
+     Clears the 3:1 non-text floor everywhere it appears (7.35:1 on
+     canvas, 5.97:1 on raised). */
+  --color-cta: var(--tc-sky);
+  --color-focus: var(--color-cta);
+  /* The search bar's own focus accent (Sauel's call, 2026-08-20):
+     warm paper white, wherever the search bar appears. */
+  --color-focus-search: oklch(0.975 0.012 90);
   --color-on-accent: oklch(0.19 0.025 260);
-  /* The combobox's active-row bar: chartreuse reads on dark rows but
-     washes out on light (1.4:1), so light borrows the focus green. */
-  --color-active-marker: light-dark(oklch(0.56 0.11 105), var(--tc-chartreuse));
+  --color-active-marker: var(--color-cta);
 
-  /* --- Elevation (light-dark() takes colors, not whole shadow values) --- */
-  --shadow-popover: 0 18px 48px
-    light-dark(oklch(0.25 0.02 260 / 0.12), oklch(0.1 0.02 260 / 0.18));
+  /* --- Elevation --- */
+  --shadow-popover: 0 18px 48px oklch(0.1 0.02 260 / 0.18);
+
+  /* --- Glass: the fixed header over scrolled content keeps the
+     canvas as a translucent tint so the nav text stands out over the
+     blur (Sauel's call, 2026-08-20). --- */
+  --color-glass: oklch(0.16 0.02 260 / 0.8);
+  --blur-glass: 14px;
 
   /* --- Media surfaces: the hero backdrop is always a dark photograph,
-     so text above it uses these theme-independent colors, and the scrim
-     gradients darken the photo's start corner for legibility. --- */
+     so text above it uses these colors, and the scrim gradients darken
+     the photo's start corner for legibility. --- */
   --color-media-base: oklch(0.16 0.02 260);
   --color-scrim-strong: oklch(0.16 0.02 260 / 0.96);
   --color-scrim-soft: oklch(0.16 0.02 260 / 0.7);
@@ -57,9 +63,11 @@
   --color-on-media-muted: oklch(0.84 0.015 90);
 
   /* --- Type scale (§2) — size / line-height pairs --- */
-  /* Steep late ramp: laptops hold near the 3.25rem floor, the climb to
-     the 6.5rem cap happens between 1440 and 1920. */
-  --type-display: clamp(3.25rem, 8.3vw - 3.5rem, 6.5rem);
+  /* Steep late ramp: laptops hold near the 2.75rem floor, the climb to
+     the 5.5rem cap happens between ~1315 and ~1945. Trimmed from
+     3.25/6.5 in the 2026-08-20 rebalance so the headline yields to
+     the wordmark. */
+  --type-display: clamp(2.75rem, 7vw - 3rem, 5.5rem);
   --leading-display: 0.91;
   --type-h1: clamp(2.25rem, 4vw, 4.5rem);
   --leading-h1: 0.98;
@@ -67,6 +75,8 @@
   --leading-h2: 1.04;
   --type-h3: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
   --leading-h3: 1.15;
+  /* Rail headings only (Sauel's call, 2026-08-20): fixed 24px. */
+  --type-rail-heading: 1.5rem;
   --type-body-lg: clamp(1rem, 0.93rem + 0.55vw, 1.125rem);
   --leading-body-lg: 1.55;
   /* Body never clamps below 1rem: 16px is the iOS-zoom floor for the

@@ -49,7 +49,7 @@ export default function CastRail({ title, cast }: CastRailProps) {
   return (
     <section aria-labelledby={headingId} className="tc-carousel">
       <div className="tc-carousel__head">
-        <h2 className="tc-h3" id={headingId}>
+        <h2 className="tc-h3 tc-carousel__heading" id={headingId}>
           {title}
         </h2>
         <div className="tc-carousel__nav">

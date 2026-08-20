@@ -29,7 +29,9 @@ h3,
 .tc-display {
   font-size: var(--type-display);
   line-height: var(--leading-display);
-  font-weight: 700;
+  /* 600, not 700: the display headline yields visual weight to the
+     wordmark (2026-08-20 rebalance). */
+  font-weight: 600;
   letter-spacing: -0.025em;
 }
 
@@ -62,9 +64,8 @@ p,
   text-transform: uppercase;
 }
 
-/* Section eyebrow. Stays ink-muted, not --tc-lilac: lilac at meta size fails
-   4.5:1 on the light canvas, and no new accent enters without a measured
-   contrast check in both themes (§3). */
+/* Section eyebrow. Stays ink-muted, not --tc-lilac: no new accent
+   enters without a measured contrast check (§3). */
 .tc-eyebrow {
   color: var(--color-ink-muted);
 }

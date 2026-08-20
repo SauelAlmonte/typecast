@@ -54,12 +54,18 @@
   );
   padding-inline-end: var(--search-pad-inline);
   font-size: var(--type-body); /* 16px floor — never below 16 on mobile */
-  /* Explicit ink, not inherit: the hero forces the light media color,
-     which can vanish on this themed surface (white on cream). */
+  /* Explicit ink, not inherit: the hero band forces the on-media
+     color, and this control paints its own surface. */
   color: var(--color-ink);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
+
+  /* The search control carries its own focus accent instead of the
+     sky ring (Sauel's call, 2026-08-20). */
+  &:focus-visible {
+    outline-color: var(--color-focus-search);
+  }
 
   &::placeholder {
     color: var(--color-ink-muted);
@@ -85,8 +91,8 @@
   overflow: hidden;
   text-align: start;
   list-style: none;
-  /* Same opt-out as the input: the panel floats on a themed surface,
-     so it resets the hero's forced media color back to theme ink. */
+  /* Same opt-out as the input: the panel paints its own surface, so
+     it resets the hero's forced media color back to ink. */
   color: var(--color-ink);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);

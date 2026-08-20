@@ -8,7 +8,46 @@
   z-index: 1000;
   block-size: var(--size-header);
   background-color: var(--color-canvas);
-  border-block-end: 1px solid var(--color-line);
+}
+
+/* Glass only while scrolled: the scroll timeline swaps the solid bar
+   for canvas-tinted glass across the first bar-height of scroll. At
+   rest it is the solid canvas above, which is also the permanent
+   state for browsers without scroll-driven animations or
+   backdrop-filter. Reduced-motion's 0.01ms duration is harmless:
+   with a scroll timeline, progress comes from scroll position, and
+   any nonzero duration satisfies Firefox (see below). */
+@supports (
+    (backdrop-filter: blur(1px)) or
+    (-webkit-backdrop-filter: blur(1px))
+  ) and
+  (animation-timeline: scroll()) {
+  .tc-header {
+    animation: tc-header-glass linear both;
+    /* Longhands after the shorthand: `animation:` resets them. The
+       duration's value is meaningless under a scroll timeline, but
+       Firefox skips scroll-driven animations whose duration is the
+       0s default, so it must be nonzero. */
+    animation-duration: 1s;
+    animation-timeline: scroll();
+    animation-range: 0 var(--size-header);
+  }
+
+  @keyframes tc-header-glass {
+    from {
+      background-color: var(--color-canvas);
+      -webkit-backdrop-filter: blur(0);
+      backdrop-filter: blur(0);
+    }
+
+    to {
+      /* Canvas-tinted glass: the text keeps its ground while the
+         blur shows through. */
+      background-color: var(--color-glass);
+      -webkit-backdrop-filter: blur(var(--blur-glass));
+      backdrop-filter: blur(var(--blur-glass));
+    }
+  }
 }
 
 /* Passes the bar's height to the nav, which centers via block-size 100%.
