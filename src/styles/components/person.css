@@ -8,7 +8,9 @@
 
 .tc-person {
   display: grid;
-  grid-template-columns: auto 1fr;
+  /* minmax(0, ...) lets the Known For carousel scroll inside its area
+     instead of forcing the track wide (title.css's lesson). */
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
     "portrait intro"
     "lead lead"
@@ -33,7 +35,7 @@
      row, on the title page's aside track. Below 64rem it flows after
      the rail instead of hiding — no content is width-gated. */
   @media (width >= 64rem) {
-    grid-template-columns: auto 1fr var(--container-aside);
+    grid-template-columns: auto minmax(0, 1fr) var(--container-aside);
     grid-template-rows: auto 1fr auto auto;
     grid-template-areas:
       "portrait intro filmo"
@@ -143,6 +145,9 @@
 
 .tc-person__rail {
   grid-area: rail;
+  /* The grid item must be allowed to shrink below the track's
+     min-content, or the carousel slides under the aside. */
+  min-inline-size: 0;
   margin-block-start: var(--space-7);
 }
 
