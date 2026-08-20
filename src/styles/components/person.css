@@ -44,6 +44,10 @@
   grid-area: lead;
   max-inline-size: var(--measure-person-lead);
   font-size: var(--type-person-lead);
+
+  @media (36rem < width < 64rem) {
+    max-inline-size: var(--measure-person-lead-tablet);
+  }
 }
 
 /* 2:3 like poster art; object-fit crops odd sources instead of
