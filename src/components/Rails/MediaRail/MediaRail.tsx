@@ -86,10 +86,13 @@ export default function MediaRail({ title, items }: MediaRailProps) {
                   className="tc-carousel__card-link"
                   href={`/title/${item.mediaType}/${item.tmdbId}`}
                 >
+                  {/* sizes mirrors the card widths in carousel.css so
+                      phones fetch a small TMDB bucket, not w500. */}
                   <Image
                     alt=""
                     className="tc-carousel__poster"
                     height={278}
+                    sizes="(max-width: 48rem) 7.5rem, 9.5rem"
                     src={`${POSTER_BASE}${item.posterPath}`}
                     width={185}
                   />

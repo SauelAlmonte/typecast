@@ -275,3 +275,50 @@ export async function genreRails(kind: MediaKind): Promise<GenreRail[]> {
     (a, b) => position(a) - position(b) || a.name.localeCompare(b.name),
   );
 }
+
+/** One hero rotation entry; both art paths are non-null by query. The
+ * poster rides along for portrait viewports, where a widescreen backdrop
+ * would crop away its subject. */
+export type UpcomingItem = {
+  id: number;
+  mediaType: string;
+  title: string;
+  year: number | null;
+  backdropPath: string;
+  posterPath: string;
+};
+
+/* Enough for a full rail; the hero rotation takes its own smaller cut. */
+const UPCOMING_LIMIT = 18;
+
+/**
+ * Latest and upcoming titles for the hero's rotating backdrop.
+ *
+ * The catalog has no origin-list column, so "latest and upcoming" is
+ * derived from dates: anything released in the last 90 days or dated in
+ * the future. Descending release date puts unreleased titles first,
+ * then the freshest, with popularity breaking ties. Backdropless rows
+ * are excluded because the backdrop IS the feature.
+ */
+export async function upcomingTitles(): Promise<UpcomingItem[]> {
+  const db = getDb();
+  return db
+    .select({
+      id: media.id,
+      mediaType: media.mediaType,
+      title: media.title,
+      year: sql<number | null>`extract(year from ${media.releaseDate})::int`,
+      backdropPath: sql<string>`${media.backdropPath}`,
+      posterPath: sql<string>`${media.posterPath}`,
+    })
+    .from(media)
+    .where(
+      and(
+        isNotNull(media.backdropPath),
+        isNotNull(media.posterPath),
+        sql`${media.releaseDate} >= current_date - interval '90 days'`,
+      ),
+    )
+    .orderBy(desc(media.releaseDate), desc(media.popularity))
+    .limit(UPCOMING_LIMIT);
+}
