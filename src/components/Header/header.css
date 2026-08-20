@@ -38,7 +38,9 @@
     }
 
     to {
-      background-color: transparent;
+      /* Light: canvas-tinted glass so the nav text stands out.
+         Dark: fully transparent, the blur is the whole effect. */
+      background-color: var(--color-glass);
       -webkit-backdrop-filter: blur(var(--blur-glass));
       backdrop-filter: blur(var(--blur-glass));
     }

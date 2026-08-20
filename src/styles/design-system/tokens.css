@@ -63,8 +63,10 @@
   --shadow-popover: 0 18px 48px
     light-dark(oklch(0.25 0.02 260 / 0.12), oklch(0.1 0.02 260 / 0.18));
 
-  /* --- Glass: the fixed header over scrolled content. Blur only,
-     no tint of its own (Sauel's call, 2026-08-20). --- */
+  /* --- Glass: the fixed header over scrolled content. Light keeps
+     the canvas color as a translucent tint so the nav text stands
+     out; dark is blur only, no tint (Sauel's calls, 2026-08-20). --- */
+  --color-glass: light-dark(oklch(0.969 0.0062 255.47 / 0.8), transparent);
   --blur-glass: 14px;
 
   /* --- Media surfaces: the hero backdrop is always a dark photograph,
