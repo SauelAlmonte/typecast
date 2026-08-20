@@ -8,15 +8,16 @@
 }
 
 /* Portrait beside the intro at every width; phones use the smaller
-   portrait size below. From tablets the biography climbs into the
-   intro's column, filling the height a tall portrait leaves open;
-   phones keep it full-width under the head. */
+   portrait size below. From tablets the biography's first paragraph
+   climbs into the intro's column, filling the height a tall portrait
+   leaves open; phones keep it full-width under the head. The rest of
+   the biography reads below the whole block either way. */
 .tc-person__head {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-areas:
     "portrait intro"
-    "bio bio";
+    "lead lead";
   gap: var(--space-5);
   align-items: start;
 
@@ -24,7 +25,7 @@
     grid-template-rows: auto 1fr;
     grid-template-areas:
       "portrait intro"
-      "portrait bio";
+      "portrait lead";
   }
 }
 
@@ -36,8 +37,11 @@
   grid-area: intro;
 }
 
-.tc-person__bio {
-  grid-area: bio;
+/* Body size, not body-lg: the opener sits inside the hero, where it
+   supports the facts instead of leading the page. */
+.tc-person__lead {
+  grid-area: lead;
+  max-inline-size: var(--measure-bio);
 }
 
 /* 2:3 like poster art; object-fit crops odd sources instead of

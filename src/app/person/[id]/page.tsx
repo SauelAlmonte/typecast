@@ -92,6 +92,9 @@ export default async function PersonPage({
     .split(/\n+/)
     .map((p) => p.trim())
     .filter((p) => p !== "");
+  // The first paragraph opens in the hero beside the portrait; the
+  // rest read full-width below it.
+  const [lead, ...rest] = paragraphs;
 
   return (
     <>
@@ -148,16 +151,17 @@ export default async function PersonPage({
                 )}
               </dl>
             </div>
-            {paragraphs.length > 0 && (
-              <section aria-label="Biography" className="tc-person__bio">
-                {paragraphs.map((p) => (
-                  <p className="tc-body-lg" key={p.slice(0, 40)}>
-                    {p}
-                  </p>
-                ))}
-              </section>
-            )}
+            {lead && <p className="tc-person__lead">{lead}</p>}
           </div>
+          {rest.length > 0 && (
+            <section aria-label="Biography" className="tc-person__bio">
+              {rest.map((p) => (
+                <p className="tc-body-lg" key={p.slice(0, 40)}>
+                  {p}
+                </p>
+              ))}
+            </section>
+          )}
           {knownFor.length > 0 && (
             <MediaRail items={knownFor} title="Known For" />
           )}
