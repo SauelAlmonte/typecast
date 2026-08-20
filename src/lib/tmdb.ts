@@ -129,6 +129,35 @@ const DETAIL_APPEND = {
 /** Details drift about as fast as the catalog: a day of cache is fine. */
 const DETAIL_REVALIDATE_S = 86_400;
 
+/** How long a render waits on TMDB before failing the page. */
+const TMDB_TIMEOUT_MS = 10_000;
+
+/**
+ * Bounds the render's wait, not the request: passing an AbortSignal
+ * would opt the fetch out of Next's per-render memoization, and both
+ * detail fetchers run twice per render (generateMetadata plus the
+ * page) sharing one TMDB request only through it. A raced-out request
+ * keeps running and settles into the data cache; the render errors
+ * instead of hanging to the platform timeout.
+ */
+async function withTimeout<T>(promise: Promise<T>, what: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(
+          new Error(`TMDB timed out after ${TMDB_TIMEOUT_MS}ms on ${what}`),
+        ),
+      TMDB_TIMEOUT_MS,
+    );
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
  * Fetch one title's full detail record, sub-resources appended, so the
  * title page costs a single TMDB request. Cached in the framework data
@@ -155,13 +184,16 @@ export async function fetchTmdbDetail(
   // and the textless backdrops (iso_639_1 null) never arrive.
   url.searchParams.set("include_image_language", "null,en");
 
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-    next: { revalidate: DETAIL_REVALIDATE_S },
-  });
+  const res = await withTimeout(
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      next: { revalidate: DETAIL_REVALIDATE_S },
+    }),
+    `/${mediaType}/${tmdbId}`,
+  );
 
   if (res.status === 404) {
     return null;
@@ -197,13 +229,16 @@ export async function fetchTmdbPerson(
   const url = new URL(`${TMDB_BASE_URL}/person/${tmdbId}`);
   url.searchParams.set("append_to_response", "combined_credits");
 
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-    next: { revalidate: DETAIL_REVALIDATE_S },
-  });
+  const res = await withTimeout(
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+      next: { revalidate: DETAIL_REVALIDATE_S },
+    }),
+    `/person/${tmdbId}`,
+  );
 
   if (res.status === 404) {
     return null;

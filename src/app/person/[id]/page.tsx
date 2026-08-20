@@ -112,6 +112,9 @@ export default async function PersonPage({
           alt={`Portrait of ${detail.name}`}
           className="tc-person__portrait"
           height={632}
+          // Mirrors tc-person__portrait's widths so the loader serves
+          // the small TMDB buckets, not w500/w1280.
+          sizes="(max-width: 36rem) 9rem, 15rem"
           src={`${PORTRAIT_BASE}${detail.profile_path}`}
           width={421}
         />
