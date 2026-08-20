@@ -89,7 +89,7 @@
   font-size: var(--type-person-lead);
 
   @media (width <= 36rem) {
-    font-size: var(--type-body-lg);
+    font-size: var(--type-person-bio);
     line-height: var(--leading-body-lg);
   }
 
@@ -116,6 +116,13 @@
   @media (36rem < width < 64rem) {
     max-inline-size: var(--measure-bio-tablet);
   }
+}
+
+/* The p element rule would impose --type-body (up to 17px), so the
+   cap needs its own class, not inheritance. */
+.tc-person__bio-text {
+  font-size: var(--type-person-bio);
+  line-height: var(--leading-body-lg);
 }
 
 .tc-person__rail {

@@ -166,7 +166,7 @@ export default async function PersonPage({
           {rest.length > 0 && (
             <section aria-label="Biography" className="tc-person__bio">
               {rest.map((p) => (
-                <p className="tc-body-lg" key={p.slice(0, 40)}>
+                <p className="tc-person__bio-text" key={p.slice(0, 40)}>
                   {p}
                 </p>
               ))}

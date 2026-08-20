@@ -88,6 +88,9 @@
   /* Person-hero opening paragraph (Sauel's call, 2026-08-20): 14px at
      tablet widths, growing fluidly to 16px by ~1920. No snap. */
   --type-person-lead: clamp(0.875rem, 0.79rem + 0.17vw, 1rem);
+  /* Person-page biography body (Sauel's call, 2026-08-20): never past
+     16px, unlike the 16-18px body-lg the rest of the site reads. */
+  --type-person-bio: 1rem;
   --type-meta: 0.75rem;
   --leading-meta: 1.25;
 
