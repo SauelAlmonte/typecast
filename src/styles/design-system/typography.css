@@ -29,7 +29,9 @@ h3,
 .tc-display {
   font-size: var(--type-display);
   line-height: var(--leading-display);
-  font-weight: 700;
+  /* 600, not 700: the display headline yields visual weight to the
+     wordmark (2026-08-20 rebalance). */
+  font-weight: 600;
   letter-spacing: -0.025em;
 }
 

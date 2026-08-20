@@ -101,9 +101,11 @@
   );
 
   /* --- Type scale (§2) — size / line-height pairs --- */
-  /* Steep late ramp: laptops hold near the 3.25rem floor, the climb to
-     the 6.5rem cap happens between 1440 and 1920. */
-  --type-display: clamp(3.25rem, 8.3vw - 3.5rem, 6.5rem);
+  /* Steep late ramp: laptops hold near the 2.75rem floor, the climb to
+     the 5.5rem cap happens between ~1315 and ~1945. Trimmed from
+     3.25/6.5 in the 2026-08-20 rebalance so the headline yields to
+     the wordmark. */
+  --type-display: clamp(2.75rem, 7vw - 3rem, 5.5rem);
   --leading-display: 0.91;
   --type-h1: clamp(2.25rem, 4vw, 4.5rem);
   --leading-h1: 0.98;
