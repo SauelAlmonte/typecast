@@ -112,16 +112,16 @@
 :root[data-theme="light"] .tc-hero-backdrop__scrim {
   --scrim-mid: 25%;
   --scrim-reach: 45%;
-  --scrim-fade-from: 75%;
-  --scrim-soft-stop: 90%;
+  --scrim-fade-from: 60%;
+  --scrim-soft-stop: 95%;
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) .tc-hero-backdrop__scrim {
     --scrim-mid: 25%;
     --scrim-reach: 45%;
-    --scrim-fade-from: 75%;
-    --scrim-soft-stop: 90%;
+    --scrim-fade-from: 60%;
+    --scrim-soft-stop: 95%;
   }
 }
 
