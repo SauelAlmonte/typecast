@@ -31,11 +31,15 @@
   --tc-danger: oklch(0.61 0.22 28);
 
   /* --- Surfaces (2026-08-20 palette pass, which retired the warm
-     paper): in light, a cool-tinted canvas under achromatic surface
-     and raised, so controls read as plain neutral on the tinted page.
-     Dark stays blue-charcoal, never pure black. --- */
+     paper): in light, surface shares the canvas color (Sauel's call —
+     controls sit flush with the page, their borders carry the
+     delineation) with an achromatic raised step above it. Dark stays
+     blue-charcoal, never pure black. --- */
   --color-canvas: light-dark(oklch(0.969 0.0062 255.47), oklch(0.16 0.02 260));
-  --color-surface: light-dark(oklch(0.945 0 0), oklch(0.205 0.024 260));
+  --color-surface: light-dark(
+    oklch(0.969 0.0062 255.47),
+    oklch(0.205 0.024 260)
+  );
   --color-raised: light-dark(oklch(0.995 0 0), oklch(0.255 0.025 260));
 
   /* --- Text --- */
