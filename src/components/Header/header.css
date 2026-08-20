@@ -11,6 +11,22 @@
   border-block-end: 1px solid var(--color-line);
 }
 
+/* Glass: translucent canvas plus blur, so scrolled content reads
+   through in both themes. At rest nothing sits beneath the bar, so it
+   looks identical to the solid fallback above — which stays the path
+   for browsers without backdrop-filter, where translucency alone
+   would cost the nav its legibility. */
+@supports (
+    (backdrop-filter: blur(1px)) or
+    (-webkit-backdrop-filter: blur(1px))
+  ) {
+  .tc-header {
+    background-color: var(--color-glass);
+    -webkit-backdrop-filter: blur(var(--blur-glass));
+    backdrop-filter: blur(var(--blur-glass));
+  }
+}
+
 /* Passes the bar's height to the nav, which centers via block-size 100%.
    A mix on the container div, so the rule stays flat and this block
    never names the tc-container block. */

@@ -66,6 +66,12 @@
   --shadow-popover: 0 18px 48px
     light-dark(oklch(0.25 0.02 260 / 0.12), oklch(0.1 0.02 260 / 0.18));
 
+  /* --- Glass: the fixed header over scrolled content --- */
+  /* Derived from canvas so it tracks both themes and any future
+     canvas change; pair only with a backdrop blur, never alone. */
+  --color-glass: color-mix(in oklch, var(--color-canvas) 80%, transparent);
+  --blur-glass: 14px;
+
   /* --- Media surfaces: the hero backdrop is always a dark photograph,
      so text above it uses these theme-independent colors, and the scrim
      gradients darken the photo's start corner for legibility. --- */
