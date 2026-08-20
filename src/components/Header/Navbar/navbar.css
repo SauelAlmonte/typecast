@@ -28,22 +28,13 @@
   transition: color var(--duration-fast) var(--ease-out);
 }
 
-/* End-side cluster: theme toggle, GitHub, and the hamburger. */
-.tc-navbar__actions {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
-}
-
 /* After .tc-navbar__link on purpose: the GitHub hide shares its
    specificity, so only source order keeps display: none winning.
    The hamburger that replaces these is MobileNav's, shown by the
-   same breakpoint in mobile-nav.css. The toggle folds away too; the
-   phone menu carries its own. */
+   same breakpoint in mobile-nav.css. */
 @media (width <= 48rem) {
   .tc-navbar__links,
-  .tc-navbar__link--github,
-  .tc-navbar__theme {
+  .tc-navbar__link--github {
     display: none;
   }
 }

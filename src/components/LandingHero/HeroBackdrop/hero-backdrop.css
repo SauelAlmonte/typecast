@@ -67,14 +67,6 @@
   /* Wide band: the art's start edge dissolves into the base color;
      a short bottom run keeps the dots and caption readable. */
   @media (width >= 64rem) {
-    /* How far right the wash runs before the photo is clean, and
-       where its soft midpoint sits. Light mode pulls both in
-       (Sauel's call, 2026-08-20) via the overrides below this rule;
-       the midpoint keeps its ~0.56 share of the reach so the ramp's
-       shape survives the shorter run. */
-    --scrim-mid: 45%;
-    --scrim-reach: 80%;
-
     /* Image and scrim round to whole pixels separately; the 1px
        overhangs stop a sliver of art showing as a faint seam on
        either edge. */
@@ -85,14 +77,13 @@
       linear-gradient(
         to right,
         var(--color-media-base),
-        var(--color-scrim-soft) var(--scrim-mid),
-        transparent var(--scrim-reach)
+        var(--color-scrim-soft) 45%,
+        transparent 80%
       );
   }
 
   /* Phone-narrow: only the hand-off into the base color dims the
-     strip. Light mode removes this gradient entirely (the overrides
-     below). */
+     strip. */
   @media (width <= 36rem) {
     background: linear-gradient(
       to bottom,
@@ -100,31 +91,6 @@
       var(--color-scrim-soft) 60%,
       var(--color-media-base)
     );
-  }
-}
-
-/* The light half of the three-state theme — an explicit light choice,
-   or the OS preferring light with no stored choice — shortens the
-   wash so more of the photo shows clean. */
-:root[data-theme="light"] .tc-hero-backdrop__scrim {
-  --scrim-mid: 25%;
-  --scrim-reach: 45%;
-
-  /* Phones: no gradient at all in light, for the moment (Sauel's
-     call, 2026-08-20) — the photo runs clean to the copy below. */
-  @media (width <= 36rem) {
-    background: none;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .tc-hero-backdrop__scrim {
-    --scrim-mid: 25%;
-    --scrim-reach: 45%;
-
-    @media (width <= 36rem) {
-      background: none;
-    }
   }
 }
 
@@ -136,20 +102,6 @@
   inset-inline-end: var(--space-4);
   z-index: 1;
   color: var(--color-on-media-muted);
-
-  /* Light (both theme paths): full ink and bold so the caption holds
-     on the washed photo (Sauel's call, 2026-08-20). */
-  :root[data-theme="light"] & {
-    font-weight: 700;
-    color: var(--color-ink);
-  }
-
-  @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) & {
-      font-weight: 700;
-      color: var(--color-ink);
-    }
-  }
 
   /* Phone-narrow: the copy sits below the strip, so the caption
      anchors inside the strip, on the fade. */

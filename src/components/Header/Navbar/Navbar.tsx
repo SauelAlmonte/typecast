@@ -2,7 +2,6 @@ import Link from "next/link";
 import { CATALOG_LINKS, GITHUB_URL } from "@/components/Header/links";
 import MobileNav from "@/components/Header/MobileNav/MobileNav";
 import Icon from "@/components/Icon/Icon";
-import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 
 /**
  * The header's nav row: brand, catalog links, GitHub. Below the tablet
@@ -26,19 +25,14 @@ export default function Navbar() {
           </Link>
         ))}
       </div>
-      <div className="tc-navbar__actions">
-        {/* The phone menu carries its own toggle, so this one folds
-            away with the links. */}
-        <ThemeToggle className="tc-navbar__theme" />
-        <a
-          className="tc-ui tc-navbar__link tc-navbar__link--github"
-          href={GITHUB_URL}
-        >
-          <Icon name="github" size="sm" />
-          GitHub
-        </a>
-        <MobileNav />
-      </div>
+      <a
+        className="tc-ui tc-navbar__link tc-navbar__link--github"
+        href={GITHUB_URL}
+      >
+        <Icon name="github" size="sm" />
+        GitHub
+      </a>
+      <MobileNav />
     </nav>
   );
 }

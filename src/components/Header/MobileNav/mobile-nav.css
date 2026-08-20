@@ -54,13 +54,6 @@
   list-style: none;
 }
 
-/* The toggle sits under the links, aligned with their start edge. */
-.tc-mobile-nav__theme {
-  display: flex;
-  justify-content: start;
-  padding-block-start: var(--space-6);
-}
-
 /* Same voice as the desktop links: quiet until hovered. */
 .tc-mobile-nav__link {
   display: inline-flex;

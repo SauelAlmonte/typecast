@@ -2,20 +2,9 @@
    Component files consume these tokens and never declare raw values. */
 
 :root {
-  /* Dark wins when the user has no stated OS preference. ThemeToggle
-     stores an explicit choice as [data-theme]; a blocking script in the
-     layout replays it before first paint, so a stored choice never
-     flashes the OS theme. */
-  color-scheme: dark light;
-}
-
-/* An explicit choice overrides the OS: forcing color-scheme flips
-   every light-dark() token at once. No [data-theme] means System. */
-:root[data-theme="light"] {
-  color-scheme: light;
-}
-
-:root[data-theme="dark"] {
+  /* Dark only (Sauel's call, 2026-08-20): the light palette and the
+     theme toggle were removed for simplicity — the light halves live
+     in git history (feat/light-palette work) if that ever reopens. */
   color-scheme: dark;
 }
 
@@ -30,79 +19,47 @@
   --tc-warning: oklch(0.8 0.16 82);
   --tc-danger: oklch(0.61 0.22 28);
 
-  /* --- Surfaces (2026-08-20 palette pass, which retired the warm
-     paper): in light, surface shares the canvas color (Sauel's call —
-     controls sit flush with the page, their borders carry the
-     delineation) with an achromatic raised step above it. Dark stays
-     blue-charcoal, never pure black. --- */
-  --color-canvas: light-dark(oklch(0.969 0.0062 255.47), oklch(0.16 0.02 260));
-  --color-surface: light-dark(
-    oklch(0.969 0.0062 255.47),
-    oklch(0.205 0.024 260)
-  );
-  --color-raised: light-dark(oklch(0.995 0 0), oklch(0.255 0.025 260));
+  /* --- Surfaces: blue-charcoal, never pure black --- */
+  --color-canvas: oklch(0.16 0.02 260);
+  --color-surface: oklch(0.205 0.024 260);
+  --color-raised: oklch(0.255 0.025 260);
 
   /* --- Text --- */
-  --color-ink: light-dark(oklch(0.19 0.025 260), oklch(0.945 0.012 90));
-  --color-ink-muted: light-dark(oklch(0.47 0.025 260), oklch(0.7 0.02 90));
+  --color-ink: oklch(0.945 0.012 90);
+  --color-ink-muted: oklch(0.7 0.02 90);
 
   /* --- Lines: two tokens, two jobs --- */
   /* Decorative separators only. Not permitted to be the sole definition of a control. */
-  --color-line: light-dark(oklch(0.86 0.018 260), oklch(0.32 0.024 260));
-  /* Control boundaries. Meets 3:1 against --color-surface in both themes
-     (light was 2.97:1 at L 0.63; 0.62 clears the threshold). */
-  --color-border: light-dark(oklch(0.62 0.022 260), oklch(0.5 0.026 260));
+  --color-line: oklch(0.32 0.024 260);
+  /* Control boundaries. Meets 3:1 against --color-surface. */
+  --color-border: oklch(0.5 0.026 260);
 
   /* --- Accent application --- */
-  /* CTA accent under evaluation (2026-08-20): sky in both themes. Dark
-     clears the 3:1 non-text floor everywhere (7.35:1 on canvas, 5.97:1
-     on raised); light does not (2.42:1 on canvas), so if the hue holds
-     the light half needs a darker variant before this ships. */
+  /* CTA accent (2026-08-20 palette pass): sky replaced chartreuse.
+     Clears the 3:1 non-text floor everywhere it appears (7.35:1 on
+     canvas, 5.97:1 on raised). */
   --color-cta: var(--tc-sky);
   --color-focus: var(--color-cta);
   --color-on-accent: oklch(0.19 0.025 260);
   --color-active-marker: var(--color-cta);
 
-  /* --- Elevation (light-dark() takes colors, not whole shadow values) --- */
-  --shadow-popover: 0 18px 48px
-    light-dark(oklch(0.25 0.02 260 / 0.12), oklch(0.1 0.02 260 / 0.18));
+  /* --- Elevation --- */
+  --shadow-popover: 0 18px 48px oklch(0.1 0.02 260 / 0.18);
 
-  /* --- Glass: the fixed header over scrolled content. Both themes
-     keep their canvas color as a translucent tint so the nav text
-     stands out over the blur (Sauel's call, 2026-08-20). --- */
-  --color-glass: light-dark(
-    oklch(0.969 0.0062 255.47 / 0.8),
-    oklch(0.16 0.02 260 / 0.8)
-  );
+  /* --- Glass: the fixed header over scrolled content keeps the
+     canvas as a translucent tint so the nav text stands out over the
+     blur (Sauel's call, 2026-08-20). --- */
+  --color-glass: oklch(0.16 0.02 260 / 0.8);
   --blur-glass: 14px;
 
-  /* --- Media surfaces (2026-08-20 palette pass): the photograph keeps
-     its own colors, but the band's ground, its scrim gradients, and
-     the text above them ride the theme — dark cinema in dark, a
-     canvas-matched wash with ink text in light, so the hero no longer
-     sits as a dark block on the light page. Alphas mirror across
-     themes so the scrim geometry keeps its meaning. Light's wash sits
-     well below the canvas (0.88 vs 0.969) so the hero reads as its
-     own region and the caption keeps its ground. --- */
-  --color-media-base: light-dark(
-    oklch(0.88 0.0062 255.47),
-    oklch(0.16 0.02 260)
-  );
-  --color-scrim-strong: light-dark(
-    oklch(0.88 0.0062 255.47 / 0.96),
-    oklch(0.16 0.02 260 / 0.96)
-  );
-  --color-scrim-soft: light-dark(
-    oklch(0.88 0.0062 255.47 / 0.7),
-    oklch(0.16 0.02 260 / 0.7)
-  );
-  --color-on-media: light-dark(oklch(0.19 0.025 260), oklch(0.95 0.012 90));
-  /* Light: 0.35, darker than ink-muted on purpose — the dots, pause,
-     and Featured caption ride this over the washed photo. */
-  --color-on-media-muted: light-dark(
-    oklch(0.35 0.025 260),
-    oklch(0.84 0.015 90)
-  );
+  /* --- Media surfaces: the hero backdrop is always a dark photograph,
+     so text above it uses these colors, and the scrim gradients darken
+     the photo's start corner for legibility. --- */
+  --color-media-base: oklch(0.16 0.02 260);
+  --color-scrim-strong: oklch(0.16 0.02 260 / 0.96);
+  --color-scrim-soft: oklch(0.16 0.02 260 / 0.7);
+  --color-on-media: oklch(0.95 0.012 90);
+  --color-on-media-muted: oklch(0.84 0.015 90);
 
   /* --- Type scale (§2) — size / line-height pairs --- */
   /* Steep late ramp: laptops hold near the 2.75rem floor, the climb to
