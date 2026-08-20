@@ -2,7 +2,7 @@ allowBuilds:
   esbuild: true
 overrides:
   "@esbuild-kit/core-utils>esbuild": "^0.25.0"
-  # Dependabot #5/#3: symlink traversal in tmp (< 0.2.6), pulled in by @lhci/cli.
-  tmp: 0.2.6
+  # Dependabot #5/#3/#7: symlink traversal in tmp (< 0.2.7), pulled in by @lhci/cli.
+  tmp: 0.2.7
   # Dependabot #4: buffer bounds miss in uuid (< 11.1.1), pulled in by @lhci/cli.
   uuid: 11.1.1

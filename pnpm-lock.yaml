@@ -6,7 +6,7 @@ settings:
 
 overrides:
   '@esbuild-kit/core-utils>esbuild': ^0.25.0
-  tmp: 0.2.6
+  tmp: 0.2.7
   uuid: 11.1.1
 
 importers:
@@ -1903,8 +1903,8 @@ packages:
   tldts-icann@6.1.86:
     resolution: {integrity: sha512-NFxmRT2lAEMcCOBgeZ0NuM0zsK/xgmNajnY6n4S1mwAKocft2s2ise1O3nQxrH3c+uY6hgHUV9GGNVp7tUE4Sg==}
 
-  tmp@0.2.6:
-    resolution: {integrity: sha512-5sJPdPjfI5Kx+qbrDesxkglRBxW//g7hCsqspEjwkewGvBMGIKMOTKzLt1hFVJzyadba3lDUN20O9qhvbQUSTA==}
+  tmp@0.2.7:
+    resolution: {integrity: sha512-e0votIpp4Uo2AJYSzVHV6xCcawuiez3DzqDAbrTc3YxBkplN6e+dM13ZeIcZnDg/QpSuU2zfZ3rzwY8ukEnaXw==}
     engines: {node: '>=14.14'}
 
   toidentifier@1.0.1:
@@ -2421,7 +2421,7 @@ snapshots:
       lighthouse-logger: 1.2.0(supports-color@5.5.0)
       open: 7.4.2
       proxy-agent: 6.5.0(supports-color@5.5.0)
-      tmp: 0.2.6
+      tmp: 0.2.7
       uuid: 11.1.1
       yargs: 15.4.1
       yargs-parser: 13.1.2
@@ -2997,7 +2997,7 @@ snapshots:
     dependencies:
       chardet: 0.7.0
       iconv-lite: 0.4.24
-      tmp: 0.2.6
+      tmp: 0.2.7
 
   extract-zip@2.0.1(supports-color@5.5.0):
     dependencies:
@@ -3767,7 +3767,7 @@ snapshots:
     dependencies:
       tldts-core: 6.1.86
 
-  tmp@0.2.6: {}
+  tmp@0.2.7: {}
 
   toidentifier@1.0.1: {}
 
