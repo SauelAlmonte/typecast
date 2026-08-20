@@ -7,15 +7,13 @@
   padding-block: var(--space-7);
 }
 
-/* Portrait beside the intro from tablets; stacked on phones. */
+/* Portrait beside the intro at every width; phones just use the
+   smaller portrait size below. */
 .tc-person__head {
   display: grid;
+  grid-template-columns: auto 1fr;
   gap: var(--space-5);
-
-  @media (width > 36rem) {
-    grid-template-columns: auto 1fr;
-    align-items: start;
-  }
+  align-items: start;
 }
 
 /* 2:3 like poster art; object-fit crops odd sources instead of
