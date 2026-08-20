@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "html",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://localhost:3100",
     trace: "on-first-retry",
   },
   projects: [
@@ -21,10 +21,11 @@ export default defineConfig({
       : []),
   ],
   // CI tests the production build (built in the workflow step before this
-  // runs); locally the dev server is reused if one is already up.
+  // runs). E2E owns port 3100 so it never touches 3000, where Sauel's own
+  // dev server lives; a leftover 3100 server is reused locally.
   webServer: {
-    command: process.env.CI ? "pnpm start" : "pnpm dev",
-    url: "http://localhost:3000",
+    command: process.env.CI ? "pnpm start --port 3100" : "pnpm dev --port 3100",
+    url: "http://localhost:3100",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
