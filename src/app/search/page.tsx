@@ -11,13 +11,22 @@ import {
   type GenreRail,
   genreRails,
   type MediaKind,
+  type PersonCard,
+  popularPeople,
   searchMedia,
 } from "@/db/queries";
 
 /** w342 fills the widest grid cell this layout produces. */
 const POSTER_BASE = "https://image.tmdb.org/t/p/w342";
 
+/** w185 covers the card width at 2x device pixel ratio (CastRail's
+ * reasoning; profile stills are 2:3 like posters). */
+const PROFILE_BASE = "https://image.tmdb.org/t/p/w185";
+
 const RESULTS_LIMIT = 24;
+
+/** The whole synced popular-people list; the sync caps it, not the page. */
+const PEOPLE_LIMIT = 60;
 
 type SearchParams = { [key: string]: string | string[] | undefined };
 
@@ -28,8 +37,8 @@ function readParam(params: SearchParams, name: string): string {
 }
 
 /** The nav's type filter; anything unrecognized reads as no filter.
- * person and award are nav destinations without catalog data yet, so
- * they render an honest placeholder instead of a grid. */
+ * person browses the synced people list; award is a nav destination
+ * without catalog data yet, so it renders an honest placeholder. */
 type NavKind = MediaKind | "person" | "award";
 
 function readKind(params: SearchParams): NavKind | undefined {
@@ -64,7 +73,9 @@ export async function generateMetadata({
  * - `q` with `type`: the same ranking scoped to movies or TV.
  * - `type` alone: that kind's genre rails, the Movies and TV Shows
  *   nav destinations.
- * - `type=person` / `type=award`: honest empty states; not synced yet.
+ * - `type=person` alone: the synced people list, popularity order.
+ *   People aren't searchable yet, so `q` with person says so.
+ * - `type=award`: an honest empty state; no data source yet.
  */
 export default async function SearchPage({
   searchParams,
@@ -77,7 +88,12 @@ export default async function SearchPage({
 
   let results: Awaited<ReturnType<typeof searchMedia>> = [];
   let rails: GenreRail[] = [];
-  if (!placeholder) {
+  let people: PersonCard[] = [];
+  if (kind === "person") {
+    if (q === "") {
+      people = await popularPeople(PEOPLE_LIMIT);
+    }
+  } else if (!placeholder) {
     if (q !== "") {
       results = await searchMedia(q, RESULTS_LIMIT, scope);
     } else if (scope) {
@@ -103,11 +119,59 @@ export default async function SearchPage({
         <div className="tc-container tc-results">
           <SearchBox />
           <h1 className="tc-h2">{heading}</h1>
-          {placeholder && (
+          {kind === "award" && (
             <p className="tc-results-empty">
-              {kind === "person" ? "People aren’t" : "Awards aren’t"} in the
-              catalog yet; movies and TV shows are searchable today.
+              Awards aren’t in the catalog yet; movies and TV shows are
+              searchable today.
             </p>
+          )}
+          {kind === "person" && q !== "" && (
+            <p className="tc-results-empty">
+              People aren’t searchable yet; movies and TV shows are. Open People
+              from the nav to browse them.
+            </p>
+          )}
+          {kind === "person" && q === "" && people.length === 0 && (
+            <p className="tc-results-empty">
+              Nothing to browse yet; the catalog is still filling in.
+            </p>
+          )}
+          {people.length > 0 && (
+            // biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1).
+            <ul className="tc-results-grid" role="list">
+              {/* Not links, matching CastRail's contract: person pages
+                  aren't in the catalog yet, and a card that goes nowhere
+                  shouldn't dress like one that does. */}
+              {people.map((person) => (
+                <li className="tc-result-card" key={person.id}>
+                  {person.profilePath ? (
+                    <Image
+                      alt=""
+                      className="tc-result-card-poster"
+                      height={278}
+                      src={`${PROFILE_BASE}${person.profilePath}`}
+                      width={185}
+                    />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="tc-result-card-poster tc-result-card-poster--empty"
+                    >
+                      <Icon name="image" />
+                      <span className="tc-meta">No image</span>
+                    </span>
+                  )}
+                  <span className="tc-ui tc-result-card-title">
+                    {person.name}
+                  </span>
+                  {person.knownForDepartment && (
+                    <span className="tc-meta tc-result-card-meta">
+                      {person.knownForDepartment}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
           {!placeholder && q === "" && !scope && (
             <p className="tc-results-empty">

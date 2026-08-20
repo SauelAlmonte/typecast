@@ -1,6 +1,6 @@
 import { and, desc, eq, isNotNull, like, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { genres, media, mediaGenres } from "@/db/schema";
+import { genres, media, mediaGenres, people } from "@/db/schema";
 import { normalizeSearchText } from "@/lib/normalize";
 
 /** The two kinds the catalog holds; used to scope search and browse. */
@@ -321,4 +321,35 @@ export async function upcomingTitles(): Promise<UpcomingItem[]> {
     )
     .orderBy(desc(media.releaseDate), desc(media.popularity))
     .limit(UPCOMING_LIMIT);
+}
+
+/** One person card on the People browse page. No tmdbId: person pages
+ * aren't in the catalog yet, so the cards link nowhere. */
+export type PersonCard = {
+  id: number;
+  name: string;
+  knownForDepartment: string | null;
+  profilePath: string | null;
+};
+
+/**
+ * Browse people without a query: the synced popular-people list in
+ * popularity order, for the People nav destination. People carry no
+ * genres and belong to one list, so this is a flat ordered read, not
+ * rails.
+ *
+ * @param limit - Maximum rows to return; the caller enforces its cap.
+ */
+export async function popularPeople(limit: number): Promise<PersonCard[]> {
+  const db = getDb();
+  return db
+    .select({
+      id: people.id,
+      name: people.name,
+      knownForDepartment: people.knownForDepartment,
+      profilePath: people.profilePath,
+    })
+    .from(people)
+    .orderBy(desc(people.popularity))
+    .limit(limit);
 }
