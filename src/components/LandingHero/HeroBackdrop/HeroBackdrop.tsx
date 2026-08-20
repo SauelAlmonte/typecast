@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import type { UpcomingItem } from "@/app/api/upcoming/route";
 import Icon from "@/components/Icon/Icon";
+import type { UpcomingItem } from "@/db/queries";
 
 /** w1280 is TMDB's largest sized backdrop; the hero box renders it at
  * its own 16:9 in every band, so there is no portrait variant. */
@@ -23,6 +23,11 @@ const ROTATE_MS = 5_000;
  * the rail below the hero shows the endpoint's full list. */
 const ROTATION_MAX = 6;
 
+type HeroBackdropProps = {
+  /** Server-fetched so the first slide ships in the initial HTML. */
+  items: UpcomingItem[];
+};
+
 /**
  * Prime-style rotating hero background: one latest-or-upcoming backdrop
  * fills the section, crossfades to the next every ROTATE_MS, and dots
@@ -31,11 +36,11 @@ const ROTATION_MAX = 6;
  * Three layers render at a time: the previous image stays underneath
  * while the current one fades in over it, and the next one sits at
  * opacity 0 purely so the browser fetches it before its turn. The
- * backdrop is decorative, so a failed fetch renders nothing and the
+ * backdrop is decorative, so an empty list renders nothing and the
  * hero falls back to the plain themed canvas.
  */
-export default function HeroBackdrop() {
-  const [items, setItems] = useState<UpcomingItem[]>([]);
+export default function HeroBackdrop({ items: allItems }: HeroBackdropProps) {
+  const items = allItems.slice(0, ROTATION_MAX);
   const [index, setIndex] = useState(0);
   // The 2.2.2 stop control's state; dots stay usable while paused.
   const [paused, setPaused] = useState(false);
@@ -43,28 +48,6 @@ export default function HeroBackdrop() {
   function artSrc(item: UpcomingItem): string {
     return `${BACKDROP_BASE}${item.backdropPath}`;
   }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const res = await fetch("/api/upcoming", {
-          signal: controller.signal,
-        });
-        if (!res.ok) {
-          throw new Error(`upcoming request failed: ${res.status}`);
-        }
-        const data: UpcomingItem[] = await res.json();
-        setItems(data.slice(0, ROTATION_MAX));
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-        console.error(error);
-      }
-    })();
-    return () => controller.abort();
-  }, []);
 
   // One timeout per shown title instead of an interval: every index
   // change re-arms it, so a manual dot pick gets its full stay too.
@@ -92,13 +75,13 @@ export default function HeroBackdrop() {
     <>
       <div aria-hidden="true" className="tc-hero-backdrop">
         {/* Visible at first paint beneath the current layer's 900ms fade,
-            so it can be the LCP image; eager stops the lazy default. The
-            current layer alone adds fetchPriority: it wins the race among
-            the three concurrently mounted layers. */}
+            so this IS the LCP image; eager stops the lazy default and
+            fetchPriority wins the race among the three mounted layers. */}
         <div className="tc-hero-backdrop__layer" key={`p-${previous.id}`}>
           <Image
             alt=""
             className="tc-hero-backdrop__img"
+            fetchPriority="high"
             fill
             loading="eager"
             sizes={BACKDROP_SIZES}
@@ -110,9 +93,8 @@ export default function HeroBackdrop() {
           className="tc-hero-backdrop__layer tc-hero-backdrop__layer--current"
           key={`c-${current.id}`}
         >
-          {/* Not the deprecated priority or its successor preload: a head
-              preload link can't get ahead of a client-fetched src, and the
-              keyed remount would inject one per rotated title. */}
+          {/* Not the preload prop: the keyed remount would inject a head
+              preload link per rotated title. */}
           <Image
             alt=""
             className="tc-hero-backdrop__img"

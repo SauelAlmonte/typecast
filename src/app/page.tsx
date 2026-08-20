@@ -1,3 +1,7 @@
+/* The hero's upcoming list is baked in at build; regenerate hourly so
+   it tracks the daily sync without a per-request database round trip. */
+export const revalidate = 3600;
+
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import IconSprite from "@/components/Icon/IconSprite/IconSprite";
