@@ -126,6 +126,20 @@
   z-index: 1;
   color: var(--color-on-media-muted);
 
+  /* Light (both theme paths): full ink and a medium weight so the
+     caption holds on the washed photo (Sauel's call, 2026-08-20). */
+  :root[data-theme="light"] & {
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) & {
+      font-weight: 500;
+      color: var(--color-ink);
+    }
+  }
+
   /* Phone-narrow: the copy sits below the strip, so the caption
      anchors inside the strip, on the fade. */
   @media (width <= 36rem) {
