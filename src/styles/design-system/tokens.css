@@ -112,8 +112,10 @@
      headline's width, clear of the art. */
   --measure-overview: 55ch;
   /* Person-page biography: no art column to clear, so it runs wider
-     (Sauel's call, 2026-08-20). */
+     (Sauel's call, 2026-08-20). The tablet value exists because 90ch
+     outruns the container there and never bites. */
   --measure-bio: 90ch;
+  --measure-bio-tablet: 75ch;
   /* The hero opener runs narrower than the full biography, and
      narrower still in the tablet window where the portrait leaves
      less room (Sauel's calls, 2026-08-20). */

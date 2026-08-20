@@ -105,4 +105,8 @@
   display: grid;
   gap: var(--space-4);
   max-inline-size: var(--measure-bio);
+
+  @media (36rem < width < 64rem) {
+    max-inline-size: var(--measure-bio-tablet);
+  }
 }
