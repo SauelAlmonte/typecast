@@ -112,3 +112,39 @@ export const mediaGenres = pgTable(
 );
 
 export type MediaGenreRow = typeof mediaGenres.$inferInsert;
+
+/**
+ * People from TMDB's popular-people endpoint: the media pattern applied
+ * to humans. TMDB person ids are one namespace, so `tmdb_id` is unique
+ * on its own; `name` stays untouched for display while `name_search`
+ * (filled by normalizeSearchText at sync time) carries the matching,
+ * under the same trigram index recipe as media. No list join table:
+ * people belong to exactly one TMDB list, and its order is popularity.
+ */
+export const people = pgTable(
+  "people",
+  {
+    id: bigint("id", { mode: "number" })
+      .generatedAlwaysAsIdentity()
+      .primaryKey(),
+    tmdbId: integer("tmdb_id").notNull().unique(),
+    name: text("name").notNull(),
+    nameSearch: text("name_search").notNull().default(""),
+    // TMDB's department label ("Acting", "Directing"), the card subtitle.
+    knownForDepartment: text("known_for_department"),
+    popularity: real("popularity").notNull().default(0),
+    profilePath: text("profile_path"),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("people_name_search_trgm_idx").using(
+      "gin",
+      sql`${table.nameSearch} gin_trgm_ops`,
+    ),
+  ],
+);
+
+export type Person = typeof people.$inferSelect;
+export type NewPerson = typeof people.$inferInsert;
