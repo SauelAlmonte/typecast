@@ -2,6 +2,22 @@
    come from tokens.css; nothing here declares a raw value.
    CJK line-height overrides are deferred until a CJK locale ships. */
 
+/* Wrapping policy, system-wide: headings balance their lines,
+   paragraphs avoid orphans and bad rag. Balance is heading-only on
+   purpose — engines cap it at a few lines, and equalized lines read
+   wrong in running text. Unsupporting browsers wrap normally. The
+   landing lede's local balance stays the one deliberate exception. */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 h1,
 .tc-h1 {
   font-size: var(--type-h1);

@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { RailItem } from "@/app/api/rails/route";
-import Footer from "@/components/Footer/Footer";
-import Header from "@/components/Header/Header";
 import Icon from "@/components/Icon/Icon";
-import IconSprite from "@/components/Icon/IconSprite/IconSprite";
 import CastRail, { type CastCard } from "@/components/Rails/CastRail/CastRail";
 import MediaRail from "@/components/Rails/MediaRail/MediaRail";
 import TrailerDialog from "@/components/TrailerDialog/TrailerDialog";
@@ -219,212 +216,194 @@ export default async function TitlePage({
       : detail.production_companies?.[0]?.name;
 
   return (
-    <>
-      <a className="tc-skip-link" href="#main">
-        Skip to content
-      </a>
-      <IconSprite />
-      <Header />
-      <main id="main" tabIndex={-1}>
-        <article>
-          <section aria-labelledby="tc-title-heading" className="tc-title-hero">
-            {backdropPath && (
-              <div aria-hidden="true" className="tc-title-backdrop">
-                <Image
-                  alt=""
-                  className="tc-title-backdrop-img"
-                  fill
-                  preload
-                  sizes={BACKDROP_SIZES}
-                  src={`${BACKDROP_BASE}${backdropPath}`}
-                />
-                <div className="tc-title-scrim" />
-              </div>
-            )}
-            <div className="tc-container tc-title-hero-inner">
-              {detail.poster_path ? (
-                <Image
-                  alt={`${title} poster`}
-                  className="tc-title-poster"
-                  height={513}
-                  loading="eager"
-                  src={`${POSTER_BASE}${detail.poster_path}`}
-                  width={342}
-                />
-              ) : (
-                <span
-                  aria-hidden="true"
-                  className="tc-title-poster tc-title-poster--empty"
-                >
-                  <Icon name="image" />
-                  <span className="tc-meta">No image</span>
-                </span>
-              )}
-              {/* The headline rides beside the poster at every width
+    <article>
+      <section aria-labelledby="tc-title-heading" className="tc-title-hero">
+        {backdropPath && (
+          <div aria-hidden="true" className="tc-title-backdrop">
+            <Image
+              alt=""
+              className="tc-title-backdrop-img"
+              fill
+              preload
+              sizes={BACKDROP_SIZES}
+              src={`${BACKDROP_BASE}${backdropPath}`}
+            />
+            <div className="tc-title-scrim" />
+          </div>
+        )}
+        <div className="tc-container tc-title-hero-inner">
+          {detail.poster_path ? (
+            <Image
+              alt={`${title} poster`}
+              className="tc-title-poster"
+              height={513}
+              loading="eager"
+              src={`${POSTER_BASE}${detail.poster_path}`}
+              width={342}
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              className="tc-title-poster tc-title-poster--empty"
+            >
+              <Icon name="image" />
+              <span className="tc-meta">No image</span>
+            </span>
+          )}
+          {/* The headline rides beside the poster at every width
                   above the phone stack; the about block joins it there
                   only on wide screens and drops below on tablets. The
                   grid areas in title.css do the moving. */}
-              <div className="tc-title-headline">
-                <h1 className="tc-h2" id="tc-title-heading">
-                  {title}
-                  {year && <span className="tc-title-year"> ({year})</span>}
-                </h1>
-                {(cert || genres.length > 0 || runtime) && (
-                  <p className="tc-ui tc-title-meta">
-                    {cert && <span className="tc-title-cert">{cert}</span>}
-                    {genres.length > 0 && <span>{genres.join(", ")}</span>}
-                    {runtime && <span>{runtime}</span>}
+          <div className="tc-title-headline">
+            <h1 className="tc-h2" id="tc-title-heading">
+              {title}
+              {year && <span className="tc-title-year"> ({year})</span>}
+            </h1>
+            {(cert || genres.length > 0 || runtime) && (
+              <p className="tc-ui tc-title-meta">
+                {cert && <span className="tc-title-cert">{cert}</span>}
+                {genres.length > 0 && <span>{genres.join(", ")}</span>}
+                {runtime && <span>{runtime}</span>}
+              </p>
+            )}
+            {(score !== null || trailerKey) && (
+              <div className="tc-title-actions">
+                {score !== null && (
+                  <p className="tc-title-score">
+                    <strong className="tc-h3">{score}%</strong> User score
                   </p>
                 )}
-                {(score !== null || trailerKey) && (
-                  <div className="tc-title-actions">
-                    {score !== null && (
-                      <p className="tc-title-score">
-                        <strong className="tc-h3">{score}%</strong> User score
-                      </p>
-                    )}
-                    {trailerKey && (
-                      <TrailerDialog title={title} videoKey={trailerKey} />
-                    )}
-                  </div>
-                )}
-                {detail.tagline && (
-                  <p className="tc-title-tagline">
-                    {glueEmDashes(detail.tagline)}
-                  </p>
+                {trailerKey && (
+                  <TrailerDialog title={title} videoKey={trailerKey} />
                 )}
               </div>
-              {(detail.overview || credit) && (
-                <div className="tc-title-about">
-                  {detail.overview && (
-                    <>
-                      <h2 className="tc-h3">Overview</h2>
-                      <p className="tc-title-overview">
-                        {glueEmDashes(detail.overview)}
-                      </p>
-                    </>
-                  )}
-                  {credit && (
-                    <p className="tc-title-makers">
-                      <span className="tc-ui">{credit.names.join(", ")}</span>
-                      <span className="tc-meta tc-title-makers-role">
-                        {credit.role}
-                      </span>
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
-          <div className="tc-container tc-title-body">
-            <div className="tc-title-main">
-              <CastRail
-                cast={cast}
-                title={kind === "tv" ? "Series Cast" : "Top Billed Cast"}
-              />
-              {season && (
-                <section
-                  aria-labelledby="tc-title-season-heading"
-                  className="tc-title-season"
-                >
-                  <h2 className="tc-h3" id="tc-title-season-heading">
-                    Current Season
-                  </h2>
-                  <div className="tc-title-season-card">
-                    {season.poster_path ? (
-                      <Image
-                        alt=""
-                        className="tc-title-season-poster"
-                        height={278}
-                        src={`${POSTER_BASE}${season.poster_path}`}
-                        width={185}
-                      />
-                    ) : (
-                      <span
-                        aria-hidden="true"
-                        className="tc-title-season-poster tc-title-season-poster--empty"
-                      >
-                        <Icon name="image" />
-                        <span className="tc-meta">No image</span>
-                      </span>
-                    )}
-                    <div className="tc-title-season-text">
-                      <h3 className="tc-h3">{season.name}</h3>
-                      {(season.air_date || season.episode_count) && (
-                        <p className="tc-meta">
-                          {season.air_date ? season.air_date.slice(0, 4) : null}
-                          {season.air_date && season.episode_count
-                            ? " · "
-                            : null}
-                          {season.episode_count
-                            ? `${season.episode_count} episodes`
-                            : null}
-                        </p>
-                      )}
-                      {/* TMDB leaves many season overviews empty; an
-                          honest line beats a hollow card. */}
-                      <p className="tc-title-season-overview">
-                        {season.overview || "No overview yet."}
-                      </p>
-                    </div>
-                  </div>
-                </section>
-              )}
-              {recommendations.length > 0 && (
-                <MediaRail
-                  items={recommendations}
-                  title={`If you liked ${title}`}
-                />
-              )}
-            </div>
-            <aside aria-label="Facts" className="tc-title-aside">
-              <h2 className="tc-h3">Facts</h2>
-              <dl className="tc-title-facts">
-                {detail.status && (
-                  <>
-                    <dt className="tc-meta">Status</dt>
-                    <dd className="tc-ui">{detail.status}</dd>
-                  </>
-                )}
-                <dt className="tc-meta">Type</dt>
-                <dd className="tc-ui">
-                  {kind === "tv" ? "TV Series" : "Movie"}
-                </dd>
-                {language && (
-                  <>
-                    <dt className="tc-meta">Original Language</dt>
-                    <dd className="tc-ui">{language}</dd>
-                  </>
-                )}
-                {company && (
-                  <>
-                    <dt className="tc-meta">
-                      {kind === "tv" ? "Network" : "Studio"}
-                    </dt>
-                    <dd className="tc-ui">{company}</dd>
-                  </>
-                )}
-              </dl>
-              {keywords.length > 0 && (
+            )}
+            {detail.tagline && (
+              <p className="tc-title-tagline">{glueEmDashes(detail.tagline)}</p>
+            )}
+          </div>
+          {(detail.overview || credit) && (
+            <div className="tc-title-about">
+              {detail.overview && (
                 <>
-                  <h3 className="tc-meta tc-title-keywords-heading">
-                    Keywords
-                  </h3>
-                  {/* biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1). */}
-                  <ul className="tc-title-keywords" role="list">
-                    {keywords.map((word) => (
-                      <li className="tc-meta tc-title-keyword" key={word}>
-                        {word}
-                      </li>
-                    ))}
-                  </ul>
+                  <h2 className="tc-h3">Overview</h2>
+                  <p className="tc-title-overview">
+                    {glueEmDashes(detail.overview)}
+                  </p>
                 </>
               )}
-            </aside>
-          </div>
-        </article>
-      </main>
-      <Footer />
-    </>
+              {credit && (
+                <p className="tc-title-makers">
+                  <span className="tc-ui">{credit.names.join(", ")}</span>
+                  <span className="tc-meta tc-title-makers-role">
+                    {credit.role}
+                  </span>
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+      <div className="tc-container tc-title-body">
+        <div className="tc-title-main">
+          <CastRail
+            cast={cast}
+            title={kind === "tv" ? "Series Cast" : "Top Billed Cast"}
+          />
+          {season && (
+            <section
+              aria-labelledby="tc-title-season-heading"
+              className="tc-title-season"
+            >
+              <h2 className="tc-h3" id="tc-title-season-heading">
+                Current Season
+              </h2>
+              <div className="tc-title-season-card">
+                {season.poster_path ? (
+                  <Image
+                    alt=""
+                    className="tc-title-season-poster"
+                    height={278}
+                    src={`${POSTER_BASE}${season.poster_path}`}
+                    width={185}
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="tc-title-season-poster tc-title-season-poster--empty"
+                  >
+                    <Icon name="image" />
+                    <span className="tc-meta">No image</span>
+                  </span>
+                )}
+                <div className="tc-title-season-text">
+                  <h3 className="tc-h3">{season.name}</h3>
+                  {(season.air_date || season.episode_count) && (
+                    <p className="tc-meta">
+                      {season.air_date ? season.air_date.slice(0, 4) : null}
+                      {season.air_date && season.episode_count ? " · " : null}
+                      {season.episode_count
+                        ? `${season.episode_count} episodes`
+                        : null}
+                    </p>
+                  )}
+                  {/* TMDB leaves many season overviews empty; an
+                          honest line beats a hollow card. */}
+                  <p className="tc-title-season-overview">
+                    {season.overview || "No overview yet."}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+          {recommendations.length > 0 && (
+            <MediaRail
+              items={recommendations}
+              title={`If you liked ${title}`}
+            />
+          )}
+        </div>
+        <aside aria-label="Facts" className="tc-title-aside">
+          <h2 className="tc-h3">Facts</h2>
+          <dl className="tc-title-facts">
+            {detail.status && (
+              <>
+                <dt className="tc-meta">Status</dt>
+                <dd className="tc-ui">{detail.status}</dd>
+              </>
+            )}
+            <dt className="tc-meta">Type</dt>
+            <dd className="tc-ui">{kind === "tv" ? "TV Series" : "Movie"}</dd>
+            {language && (
+              <>
+                <dt className="tc-meta">Original Language</dt>
+                <dd className="tc-ui">{language}</dd>
+              </>
+            )}
+            {company && (
+              <>
+                <dt className="tc-meta">
+                  {kind === "tv" ? "Network" : "Studio"}
+                </dt>
+                <dd className="tc-ui">{company}</dd>
+              </>
+            )}
+          </dl>
+          {keywords.length > 0 && (
+            <>
+              <h3 className="tc-meta tc-title-keywords-heading">Keywords</h3>
+              {/* biome-ignore lint/a11y/noRedundantRoles: list-style:none strips list semantics in Safari/VoiceOver; the explicit role restores them (1.3.1). */}
+              <ul className="tc-title-keywords" role="list">
+                {keywords.map((word) => (
+                  <li className="tc-meta tc-title-keyword" key={word}>
+                    {word}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </aside>
+      </div>
+    </article>
   );
 }

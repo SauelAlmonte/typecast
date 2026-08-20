@@ -18,6 +18,27 @@
   }
 }
 
+/* Distance from the viewport edge to the container's content edge —
+   the same box math as .tc-container above, so absolutely positioned
+   children of full-bleed sections (the hero's Featured caption) can
+   sit on the container's grid line. Percentages resolve against the
+   full-width positioned ancestor at the point of use. */
+:root {
+  --container-inset: calc(
+    (100% - min(100%, max(var(--container-wide), 93.5%))) /
+    2 +
+    var(--space-6)
+  );
+
+  @media (width >= 64rem) {
+    --container-inset: calc(
+      (100% - min(100%, max(var(--container-wide), 93.5%))) /
+      2 +
+      clamp(var(--space-6), 21.8rem - 22.5vw, 2.5rem)
+    );
+  }
+}
+
 .tc-container-search,
 .tc-container-content,
 .tc-container-wide,

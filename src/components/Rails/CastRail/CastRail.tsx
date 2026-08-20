@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useId, useRef } from "react";
 import Icon from "@/components/Icon/Icon";
 
@@ -21,9 +22,9 @@ type CastRailProps = {
 
 /**
  * Top-billed cast as a horizontal rail. Shares the carousel classes
- * with MediaRail (profile stills are 2:3 like posters), but the cards
- * are people, not links: person pages aren't in the catalog yet, and a
- * card that goes nowhere shouldn't dress like one that does.
+ * with MediaRail (profile stills are 2:3 like posters); each card
+ * links to the person page — TMDB cast ids ARE person ids, the same
+ * namespace the /person route speaks.
  */
 export default function CastRail({ title, cast }: CastRailProps) {
   const track = useRef<HTMLUListElement>(null);
@@ -75,29 +76,34 @@ export default function CastRail({ title, cast }: CastRailProps) {
       <ul className="tc-carousel__track" ref={track} role="list">
         {cast.map((person) => (
           <li className="tc-carousel__card" key={person.id}>
-            {person.profilePath ? (
-              <Image
-                alt=""
-                className="tc-carousel__poster"
-                height={278}
-                src={`${PROFILE_BASE}${person.profilePath}`}
-                width={185}
-              />
-            ) : (
-              <span
-                aria-hidden="true"
-                className="tc-carousel__poster tc-carousel__poster--empty"
-              >
-                <Icon name="image" />
-                <span className="tc-meta">No image</span>
-              </span>
-            )}
-            <span className="tc-ui tc-carousel__title">{person.name}</span>
-            {person.character && (
-              <span className="tc-meta tc-carousel__meta">
-                {person.character}
-              </span>
-            )}
+            <Link
+              className="tc-carousel__card-link"
+              href={`/person/${person.id}`}
+            >
+              {person.profilePath ? (
+                <Image
+                  alt=""
+                  className="tc-carousel__poster"
+                  height={278}
+                  src={`${PROFILE_BASE}${person.profilePath}`}
+                  width={185}
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="tc-carousel__poster tc-carousel__poster--empty"
+                >
+                  <Icon name="image" />
+                  <span className="tc-meta">No image</span>
+                </span>
+              )}
+              <span className="tc-ui tc-carousel__title">{person.name}</span>
+              {person.character && (
+                <span className="tc-meta tc-carousel__meta">
+                  {person.character}
+                </span>
+              )}
+            </Link>
           </li>
         ))}
       </ul>
