@@ -11,19 +11,36 @@
   border-block-end: 1px solid var(--color-line);
 }
 
-/* Glass: translucent canvas plus blur, so scrolled content reads
-   through in both themes. At rest nothing sits beneath the bar, so it
-   looks identical to the solid fallback above — which stays the path
-   for browsers without backdrop-filter, where translucency alone
-   would cost the nav its legibility. */
+/* Glass only while scrolled: the scroll timeline swaps the solid bar
+   for translucent canvas plus blur across the first bar-height of
+   scroll, both themes. At rest the bar is the solid canvas above,
+   which is also the permanent state for browsers without scroll-driven
+   animations or backdrop-filter. Reduced-motion's 0.01ms duration
+   cannot break this: scroll timelines ignore duration entirely. */
 @supports (
     (backdrop-filter: blur(1px)) or
     (-webkit-backdrop-filter: blur(1px))
-  ) {
+  ) and
+  (animation-timeline: scroll()) {
   .tc-header {
-    background-color: var(--color-glass);
-    -webkit-backdrop-filter: blur(var(--blur-glass));
-    backdrop-filter: blur(var(--blur-glass));
+    animation: tc-header-glass linear both;
+    /* Longhands after the shorthand: `animation:` resets them. */
+    animation-timeline: scroll();
+    animation-range: 0 var(--size-header);
+  }
+
+  @keyframes tc-header-glass {
+    from {
+      background-color: var(--color-canvas);
+      -webkit-backdrop-filter: blur(0);
+      backdrop-filter: blur(0);
+    }
+
+    to {
+      background-color: var(--color-glass);
+      -webkit-backdrop-filter: blur(var(--blur-glass));
+      backdrop-filter: blur(var(--blur-glass));
+    }
   }
 }
 
