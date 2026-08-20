@@ -99,7 +99,9 @@
 .tc-hero-backdrop__featured {
   position: absolute;
   inset-block-end: var(--space-4);
-  inset-inline-end: var(--space-4);
+  /* On the container's grid line, not the viewport edge: the band is
+     full-bleed, so the caption borrows the container's inset. */
+  inset-inline-end: var(--container-inset);
   z-index: 1;
   color: var(--color-on-media-muted);
 
