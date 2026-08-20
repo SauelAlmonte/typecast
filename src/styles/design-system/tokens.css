@@ -85,8 +85,9 @@
   --leading-body: 1.5;
   --type-ui: clamp(0.875rem, 0.85rem + 0.25vw, 0.9375rem);
   --leading-ui: 1.25;
-  /* Person-hero opening paragraph (Sauel's call, 2026-08-20): fixed 14px. */
-  --type-person-lead: 0.875rem;
+  /* Person-hero opening paragraph (Sauel's call, 2026-08-20): 14px at
+     tablet widths, growing fluidly to 16px by ~1920. No snap. */
+  --type-person-lead: clamp(0.875rem, 0.79rem + 0.17vw, 1rem);
   --type-meta: 0.75rem;
   --leading-meta: 1.25;
 
