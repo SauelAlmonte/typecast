@@ -67,9 +67,12 @@
   /* Wide band: the art's start edge dissolves into the base color;
      a short bottom run keeps the dots and caption readable. */
   @media (width >= 64rem) {
-    /* How far right the wash runs before the photo is clean. Light
-       mode pulls it in (Sauel's call, 2026-08-20) via the overrides
-       below this rule. */
+    /* How far right the wash runs before the photo is clean, and
+       where its soft midpoint sits. Light mode pulls both in
+       (Sauel's call, 2026-08-20) via the overrides below this rule;
+       the midpoint keeps its ~0.56 share of the reach so the ramp's
+       shape survives the shorter run. */
+    --scrim-mid: 45%;
     --scrim-reach: 80%;
 
     /* Image and scrim round to whole pixels separately; the 1px
@@ -82,7 +85,7 @@
       linear-gradient(
         to right,
         var(--color-media-base),
-        var(--color-scrim-soft) 45%,
+        var(--color-scrim-soft) var(--scrim-mid),
         transparent var(--scrim-reach)
       );
   }
@@ -103,12 +106,14 @@
    or the OS preferring light with no stored choice — shortens the
    wash so more of the photo shows clean. */
 :root[data-theme="light"] .tc-hero-backdrop__scrim {
-  --scrim-reach: 65%;
+  --scrim-mid: 25%;
+  --scrim-reach: 45%;
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) .tc-hero-backdrop__scrim {
-    --scrim-reach: 65%;
+    --scrim-mid: 25%;
+    --scrim-reach: 45%;
   }
 }
 
