@@ -8,7 +8,15 @@ import CategoryRails from "@/components/Rails/CategoryRails/CategoryRails";
 import { categoryRails } from "@/db/queries";
 
 export default async function Home() {
-  const rails = await categoryRails();
+  // The rails are below-the-fold garnish: a failed query logs and
+  // collapses the stack (the client fetch this replaced degraded the
+  // same way) rather than taking the hero down with it.
+  let rails: Awaited<ReturnType<typeof categoryRails>> = [];
+  try {
+    rails = await categoryRails();
+  } catch (error) {
+    console.error("category rails query failed", error);
+  }
   return (
     <>
       <LandingHero />

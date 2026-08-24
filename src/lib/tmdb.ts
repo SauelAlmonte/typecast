@@ -163,32 +163,6 @@ const TMDB_MAX_CONCURRENT = 2;
  * degraded page would sit broken and public until the next deploy. */
 const TMDB_RETRIES = 3;
 
-/**
- * Bounds the render's wait, not the request: passing an AbortSignal
- * would opt the fetch out of Next's per-render memoization, and both
- * detail fetchers run twice per render (generateMetadata plus the
- * page) sharing one TMDB request only through it. A raced-out request
- * keeps running and settles into the data cache; the render errors
- * instead of hanging to the platform timeout.
- */
-async function withTimeout<T>(promise: Promise<T>, what: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () =>
-        reject(
-          new Error(`TMDB timed out after ${TMDB_TIMEOUT_MS}ms on ${what}`),
-        ),
-      TMDB_TIMEOUT_MS,
-    );
-  });
-  try {
-    return await Promise.race([promise, timeout]);
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 /** Per-process floor between request starts: ~3 req/s per process.
  * Concurrency alone is not a rate cap — measured 2026-08-24: 10 in
  * flight rode TMDB's warm ~65ms latencies to 144 req/s. With Next's
@@ -286,18 +260,32 @@ export async function tmdbRequest(
       }
       await rateGate();
       logTiming("start", what);
+      // A fresh controller per attempt: a timed-out request must be
+      // torn down, not left running while its semaphore slot moves
+      // on — otherwise one slow call can hold several connections.
+      // Aborting is safe for dedup because the detail fetchers share
+      // work through React cache(), not through fetch memoization.
+      const controller = new AbortController();
+      const timer = setTimeout(
+        () =>
+          controller.abort(
+            new Error(`TMDB timed out after ${TMDB_TIMEOUT_MS}ms on ${what}`),
+          ),
+        TMDB_TIMEOUT_MS,
+      );
       try {
-        const res = await withTimeout(
-          fetch(url, {
-            ...init,
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
-          }),
-          what,
-        );
+        const res = await fetch(url, {
+          ...init,
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
         if (res.status === 429 || res.status >= 500) {
+          // Drain the body so undici returns the connection to the
+          // pool; headers (Retry-After) stay readable afterwards.
+          await res.text().catch(() => {});
           lastError = res;
           continue;
         }
@@ -305,6 +293,7 @@ export async function tmdbRequest(
       } catch (error) {
         lastError = error;
       } finally {
+        clearTimeout(timer);
         logTiming("done", what);
       }
     }

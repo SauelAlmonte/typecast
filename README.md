@@ -44,7 +44,7 @@ flowchart LR
     DETAIL["detail endpoint"]
   end
 
-  SYNC["daily sync (GitHub Actions)<br/>pnpm db:sync"]
+  SYNC["daily sync (GitHub Actions)<br/>pnpm db:sync-people + db:sync"]
 
   subgraph NEON[Neon Postgres]
     MEDIA[("media")]

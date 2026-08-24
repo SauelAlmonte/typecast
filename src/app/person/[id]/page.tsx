@@ -75,9 +75,10 @@ function knownForItems(detail: TmdbPersonDetail): RailItem[] {
       popularity: credit.popularity ?? 0,
     });
   }
+  // No cap here: the page filters to in-catalog titles first, then
+  // caps, so a catalog member ranked below 12 still gets its shot.
   return [...byTitle.values()]
     .sort((a, b) => b.popularity - a.popularity)
-    .slice(0, KNOWN_FOR_MAX)
     .map(({ popularity: _, ...item }) => item);
 }
 
@@ -113,9 +114,9 @@ export default async function PersonPage({
   // same act. The bio prose still tells the person's whole story.
   const knownForAll = knownForItems(detail);
   const presentTitles = await presentTitleKeys(knownForAll);
-  const knownFor = knownForAll.filter((item) =>
-    presentTitles.has(`${item.mediaType}:${item.tmdbId}`),
-  );
+  const knownFor = knownForAll
+    .filter((item) => presentTitles.has(`${item.mediaType}:${item.tmdbId}`))
+    .slice(0, KNOWN_FOR_MAX);
   // TMDB pads absent biographies with "" and absent dates with null;
   // each fact renders only when it exists (honest empty states).
   const paragraphs = stripPronunciation(detail.biography ?? "")

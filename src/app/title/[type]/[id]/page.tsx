@@ -153,14 +153,15 @@ function currentSeason(detail: TmdbTitleDetail) {
 
 /** Recommendations reshaped into rail cards so MediaRail renders them
  * unchanged; TMDB recommendation ids ARE tmdb ids, so both id fields
- * carry the same value. */
+ * carry the same value. No cap here: the page filters to in-catalog
+ * titles first, then caps, so a catalog member ranked below 12 still
+ * gets its shot. */
 function recommendationItems(detail: TmdbTitleDetail): RailItem[] {
   return (detail.recommendations?.results ?? [])
     .filter(
       (r) =>
         (r.media_type === "movie" || r.media_type === "tv") && r.poster_path,
     )
-    .slice(0, RECOMMENDATIONS_MAX)
     .map((r) => ({
       id: r.id,
       tmdbId: r.id,
@@ -233,9 +234,9 @@ export default async function TitlePage({
     presentTitleKeys(recommendationsAll),
     presentPeopleIds(cast.map((c) => c.id)),
   ]);
-  const recommendations = recommendationsAll.filter((r) =>
-    presentTitles.has(`${r.mediaType}:${r.tmdbId}`),
-  );
+  const recommendations = recommendationsAll
+    .filter((r) => presentTitles.has(`${r.mediaType}:${r.tmdbId}`))
+    .slice(0, RECOMMENDATIONS_MAX);
   const linkedCast = cast.map((c) => ({
     ...c,
     linked: presentPeople.has(c.id),
