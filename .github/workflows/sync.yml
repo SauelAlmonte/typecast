@@ -29,7 +29,10 @@ jobs:
     name: Sync & redeploy
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # Two scopes, least privilege: CI reads with DATABASE_URL (a
+      # read-only Neon role); only this workflow writes, through the
+      # owner role stored separately as DATABASE_URL_ADMIN.
+      DATABASE_URL: ${{ secrets.DATABASE_URL_ADMIN }}
       TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
       VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
     steps:

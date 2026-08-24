@@ -189,6 +189,25 @@ async function withTimeout<T>(promise: Promise<T>, what: string): Promise<T> {
   }
 }
 
+/** Per-process floor between request starts: ~3 req/s per process.
+ * Concurrency alone is not a rate cap — measured 2026-08-24: 10 in
+ * flight rode TMDB's warm ~65ms latencies to 144 req/s. With Next's
+ * build peaking at 13 workers, this bounds the global worst case near
+ * 39 req/s by construction, under TMDB's ~50 advisory, however fast
+ * TMDB answers. */
+const TMDB_MIN_INTERVAL_MS = 334;
+
+let nextSlotAt = 0;
+
+async function rateGate(): Promise<void> {
+  const now = Date.now();
+  const at = Math.max(now, nextSlotAt);
+  nextSlotAt = at + TMDB_MIN_INTERVAL_MS;
+  if (at > now) {
+    await new Promise((resolve) => setTimeout(resolve, at - now));
+  }
+}
+
 /* A hand-rolled counting semaphore. Single-threaded JS makes the
  * bookkeeping race-free; release() hands its slot straight to the next
  * waiter so the in-flight count never overshoots the cap. */
@@ -265,6 +284,7 @@ export async function tmdbRequest(
             : 2 ** (attempt - 1) * 1000 + Math.random() * 250;
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
+      await rateGate();
       logTiming("start", what);
       try {
         const res = await withTimeout(

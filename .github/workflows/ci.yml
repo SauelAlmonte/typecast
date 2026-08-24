@@ -47,6 +47,16 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The framework data cache carries the build's TMDB responses
+      # between runs: the first build of a day refetches what the
+      # 24h fetch revalidate has expired, and every later build that
+      # day costs TMDB near zero. Restores the newest snapshot, saves
+      # under this commit's key.
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-cache-${{ github.sha }}
+          restore-keys: next-cache-
       - run: pnpm exec playwright install --with-deps
       - run: pnpm build
       # Playwright's webServer serves the build above via `pnpm start`.

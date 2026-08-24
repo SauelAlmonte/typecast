@@ -261,7 +261,10 @@ async function main() {
     .from(media);
   console.log(`Upserted ${values.length} rows; media table now has ${count}.`);
 
-  await syncPeopleFromCredits(values);
+  // The whole catalog, not just this run's list members: media rows
+  // are never pruned, so titles that have left TMDB's lists still
+  // have pages, and their cast deserves rows (and links) too.
+  await syncPeopleFromCredits(idRows);
 
   // Last, and only on success: with dynamicParams = false on the
   // detail routes, new rows have no pages until the next build.
@@ -279,16 +282,19 @@ const CREDITS_CAST_CAP = 10;
 const CREDITS_CREW_CAP = 2;
 
 /**
- * The people pass: one /credits call per synced title, top billing
+ * The people pass: one /credits call per catalog title, top billing
  * upserted into `people` so every prerendered person page and cast
  * link is backed by a row. Upsert-only, no prune, on purpose: rows
  * arrive from two sources (this pass and sync-people's popular list)
  * and pruning would have to reason across both; the set is bounded by
- * the catalog either way. tmdb.ts's semaphore paces the calls.
+ * the catalog either way. tmdb.ts's semaphore and rate gate pace the
+ * calls.
  *
- * @param titles - The rows this run just upserted.
+ * @param titles - Every catalog row, fresh from the media table.
  */
-async function syncPeopleFromCredits(titles: NewMedia[]): Promise<void> {
+async function syncPeopleFromCredits(
+  titles: { mediaType: string; tmdbId: number }[],
+): Promise<void> {
   const db = getDb();
   // Keyed by TMDB id; the more popular sighting wins so the card
   // metadata (department, portrait) comes from the stronger source.
