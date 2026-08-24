@@ -1,5 +1,9 @@
 name: CI
 
+# The token gets read access only; no job here writes to the repo.
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [main]
@@ -32,17 +36,43 @@ jobs:
     name: Build & e2e
     runs-on: ubuntu-latest
     steps:
+      # persist-credentials off: install lifecycle scripts must not
+      # find a token sitting in .git config.
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The framework data cache carries the build's TMDB responses
+      # between runs: the first build of a day refetches what the
+      # 24h fetch revalidate has expired, and every later build that
+      # day costs TMDB near zero. Restores the newest snapshot, saves
+      # under this commit's key.
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-cache-${{ github.sha }}
+          restore-keys: next-cache-
       - run: pnpm exec playwright install --with-deps
+      # The detail routes prerender the whole catalog from the database
+      # and TMDB (generateStaticParams + dynamicParams = false), so the
+      # build needs both secrets — DATABASE_URL is the read-only
+      # ci_read role. Step-scoped on purpose: dependency install runs
+      # without them, the `pull_request` trigger never hands them to
+      # fork PRs, and nothing here echoes them.
       - run: pnpm build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
       # Playwright's webServer serves the build above via `pnpm start`.
       - run: pnpm test:e2e
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
 
   # Audits the deployed site, not this build: CI has no database, so the
   # deployed pages are the only honest render. Push-to-main only, so a PR

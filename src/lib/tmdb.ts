@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 /**
@@ -37,8 +39,25 @@ export type TmdbCastMember = {
   name: string;
   character?: string;
   profile_path?: string | null;
+  // Credit endpoints only; the sync's people rows want both.
+  known_for_department?: string;
+  popularity?: number;
 };
-export type TmdbCrewMember = { id: number; name: string; job?: string };
+export type TmdbCrewMember = {
+  id: number;
+  name: string;
+  job?: string;
+  department?: string;
+  profile_path?: string | null;
+  known_for_department?: string;
+  popularity?: number;
+};
+
+/** The /credits sub-resource, fetched standalone by the sync. */
+export type TmdbCredits = {
+  cast?: TmdbCastMember[];
+  crew?: TmdbCrewMember[];
+};
 export type TmdbVideo = {
   key: string;
   site: string;
@@ -132,29 +151,160 @@ const DETAIL_REVALIDATE_S = 86_400;
 /** How long a render waits on TMDB before failing the page. */
 const TMDB_TIMEOUT_MS = 10_000;
 
-/**
- * Bounds the render's wait, not the request: passing an AbortSignal
- * would opt the fetch out of Next's per-render memoization, and both
- * detail fetchers run twice per render (generateMetadata plus the
- * page) sharing one TMDB request only through it. A raced-out request
- * keeps running and settles into the data cache; the render errors
- * instead of hanging to the platform timeout.
- */
-async function withTimeout<T>(promise: Promise<T>, what: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () =>
-        reject(
-          new Error(`TMDB timed out after ${TMDB_TIMEOUT_MS}ms on ${what}`),
-        ),
-      TMDB_TIMEOUT_MS,
-    );
+/** Parallel TMDB requests per process. Build workers multiply this:
+ * global concurrency is workers × this cap, tuned together with the
+ * staticGeneration settings in next.config.ts to stay under TMDB's
+ * ~50 req/s ceiling during a full prerender. */
+const TMDB_MAX_CONCURRENT = 2;
+
+/** Retries after the first attempt, for 429, 5xx, and network errors.
+ * Exhausting them throws, which fails the page and with it the build:
+ * a loudly failed build leaves the previous deploy serving, while a
+ * degraded page would sit broken and public until the next deploy. */
+const TMDB_RETRIES = 3;
+
+/** Per-process floor between request starts: ~3 req/s per process.
+ * Concurrency alone is not a rate cap — measured 2026-08-24: 10 in
+ * flight rode TMDB's warm ~65ms latencies to 144 req/s. With Next's
+ * build peaking at 13 workers, this bounds the global worst case near
+ * 39 req/s by construction, under TMDB's ~50 advisory, however fast
+ * TMDB answers. */
+const TMDB_MIN_INTERVAL_MS = 334;
+
+let nextSlotAt = 0;
+
+async function rateGate(): Promise<void> {
+  const now = Date.now();
+  const at = Math.max(now, nextSlotAt);
+  nextSlotAt = at + TMDB_MIN_INTERVAL_MS;
+  if (at > now) {
+    await new Promise((resolve) => setTimeout(resolve, at - now));
+  }
+}
+
+/* A hand-rolled counting semaphore. Single-threaded JS makes the
+ * bookkeeping race-free; release() hands its slot straight to the next
+ * waiter so the in-flight count never overshoots the cap. */
+let inFlight = 0;
+const waiters: (() => void)[] = [];
+
+function acquire(): Promise<void> {
+  if (inFlight < TMDB_MAX_CONCURRENT) {
+    inFlight++;
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    waiters.push(resolve);
   });
+}
+
+function release(): void {
+  const next = waiters.shift();
+  if (next) {
+    next(); // The slot transfers; inFlight stays counted.
+  } else {
+    inFlight--;
+  }
+}
+
+/** With TMDB_LOG_TIMING set, one line per request start and finish,
+ * timestamped, so a build log can be swept for observed concurrency
+ * and request rate across all worker processes. */
+function logTiming(phase: "start" | "done", what: string): void {
+  if (process.env.TMDB_LOG_TIMING) {
+    console.log(`[tmdb] ${Date.now()} ${phase} ${what}`);
+  }
+}
+
+/**
+ * The one path every TMDB request takes: token auth, the render
+ * timeout, the per-process concurrency cap, and retry with backoff.
+ *
+ * 429 and 5xx responses and thrown fetch errors retry up to
+ * {@link TMDB_RETRIES} times, honoring a numeric `Retry-After` and
+ * otherwise backing off exponentially (1s, 2s, 4s) with jitter.
+ * Anything else — 404 included — returns to the caller untouched.
+ *
+ * @param url - Full request URL.
+ * @param init - Extra fetch options (e.g. Next data-cache settings);
+ *   auth headers are added here.
+ * @param what - Short request label for errors and timing logs.
+ * @returns The first non-retryable response.
+ * @throws When the token is missing, or retries are exhausted.
+ */
+export async function tmdbRequest(
+  url: URL | string,
+  init: RequestInit & { next?: { revalidate?: number } },
+  what: string,
+): Promise<Response> {
+  const token = process.env.TMDB_READ_ACCESS_TOKEN;
+  if (!token) {
+    throw new Error("TMDB_READ_ACCESS_TOKEN is not set. Add it to .env.local.");
+  }
+
+  await acquire();
   try {
-    return await Promise.race([promise, timeout]);
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= TMDB_RETRIES; attempt++) {
+      if (attempt > 0) {
+        const retryAfter = Number(
+          lastError instanceof Response
+            ? lastError.headers.get("retry-after")
+            : Number.NaN,
+        );
+        const delayMs =
+          Number.isFinite(retryAfter) && retryAfter > 0
+            ? retryAfter * 1000
+            : 2 ** (attempt - 1) * 1000 + Math.random() * 250;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+      await rateGate();
+      logTiming("start", what);
+      // A fresh controller per attempt: a timed-out request must be
+      // torn down, not left running while its semaphore slot moves
+      // on — otherwise one slow call can hold several connections.
+      // Aborting is safe for dedup because the detail fetchers share
+      // work through React cache(), not through fetch memoization.
+      const controller = new AbortController();
+      const timer = setTimeout(
+        () =>
+          controller.abort(
+            new Error(`TMDB timed out after ${TMDB_TIMEOUT_MS}ms on ${what}`),
+          ),
+        TMDB_TIMEOUT_MS,
+      );
+      try {
+        const res = await fetch(url, {
+          ...init,
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+        if (res.status === 429 || res.status >= 500) {
+          // Drain the body so undici returns the connection to the
+          // pool; headers (Retry-After) stay readable afterwards.
+          await res.text().catch(() => {});
+          lastError = res;
+          continue;
+        }
+        return res;
+      } catch (error) {
+        lastError = error;
+      } finally {
+        clearTimeout(timer);
+        logTiming("done", what);
+      }
+    }
+    if (lastError instanceof Response) {
+      throw new Error(
+        `TMDB ${lastError.status} on ${what} after ${TMDB_RETRIES} retries`,
+      );
+    }
+    throw lastError;
   } finally {
-    clearTimeout(timer);
+    release();
   }
 }
 
@@ -169,29 +319,25 @@ async function withTimeout<T>(promise: Promise<T>, what: string): Promise<T> {
  *   the page can 404 instead of 500.
  * @throws When the token is missing or TMDB fails with anything but 404.
  */
-export async function fetchTmdbDetail(
+/* cache() dedupes the generateMetadata + page pair within one render.
+ * Measured before it existed: static generation made two real network
+ * calls per page (4,639 for 2,322 pages, build of 2026-08-24) — the
+ * fetch memoization the runtime relies on does not carry across the
+ * build's metadata and page passes. Outside React (the sync scripts),
+ * cache() runs the function directly, so nothing changes there. */
+export const fetchTmdbDetail = cache(async function fetchTmdbDetail(
   mediaType: "movie" | "tv",
   tmdbId: number,
 ): Promise<TmdbTitleDetail | null> {
-  const token = process.env.TMDB_READ_ACCESS_TOKEN;
-  if (!token) {
-    throw new Error("TMDB_READ_ACCESS_TOKEN is not set. Add it to .env.local.");
-  }
-
   const url = new URL(`${TMDB_BASE_URL}/${mediaType}/${tmdbId}`);
   url.searchParams.set("append_to_response", DETAIL_APPEND[mediaType]);
   // Without this, appended images are filtered to the request language
   // and the textless backdrops (iso_639_1 null) never arrive.
   url.searchParams.set("include_image_language", "null,en");
 
-  const res = await withTimeout(
-    fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-      next: { revalidate: DETAIL_REVALIDATE_S },
-    }),
+  const res = await tmdbRequest(
+    url,
+    { next: { revalidate: DETAIL_REVALIDATE_S } },
     `/${mediaType}/${tmdbId}`,
   );
 
@@ -206,7 +352,7 @@ export async function fetchTmdbDetail(
   }
 
   return (await res.json()) as TmdbTitleDetail;
-}
+});
 
 /**
  * Fetch one person's detail record with combined credits appended, so
@@ -218,25 +364,15 @@ export async function fetchTmdbDetail(
  *   the page can 404 instead of 500.
  * @throws When the token is missing or TMDB fails with anything but 404.
  */
-export async function fetchTmdbPerson(
+export const fetchTmdbPerson = cache(async function fetchTmdbPerson(
   tmdbId: number,
 ): Promise<TmdbPersonDetail | null> {
-  const token = process.env.TMDB_READ_ACCESS_TOKEN;
-  if (!token) {
-    throw new Error("TMDB_READ_ACCESS_TOKEN is not set. Add it to .env.local.");
-  }
-
   const url = new URL(`${TMDB_BASE_URL}/person/${tmdbId}`);
   url.searchParams.set("append_to_response", "combined_credits");
 
-  const res = await withTimeout(
-    fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-      next: { revalidate: DETAIL_REVALIDATE_S },
-    }),
+  const res = await tmdbRequest(
+    url,
+    { next: { revalidate: DETAIL_REVALIDATE_S } },
     `/person/${tmdbId}`,
   );
 
@@ -251,6 +387,37 @@ export async function fetchTmdbPerson(
   }
 
   return (await res.json()) as TmdbPersonDetail;
+});
+
+/**
+ * Fetch one title's cast and crew alone, without the full detail
+ * append. The sync's people pass wants exactly this and nothing else,
+ * so the payload stays a tenth of the detail response. Uncached: the
+ * sync runs outside Next, where the data cache doesn't exist.
+ *
+ * @param mediaType - Which TMDB namespace the id lives in.
+ * @param tmdbId - TMDB's own id for the title.
+ * @returns The credits, or null when TMDB has no such title.
+ * @throws When the token is missing or TMDB fails with anything but 404.
+ */
+export async function fetchTmdbCredits(
+  mediaType: "movie" | "tv",
+  tmdbId: number,
+): Promise<TmdbCredits | null> {
+  const url = `${TMDB_BASE_URL}/${mediaType}/${tmdbId}/credits`;
+  const res = await tmdbRequest(url, {}, `/${mediaType}/${tmdbId}/credits`);
+
+  if (res.status === 404) {
+    return null;
+  }
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `TMDB ${res.status} on /${mediaType}/${tmdbId}/credits: ${body.slice(0, 200)}`,
+    );
+  }
+
+  return (await res.json()) as TmdbCredits;
 }
 
 /**
@@ -264,17 +431,11 @@ export async function fetchTmdbPerson(
 export async function fetchTmdbGenres(
   mediaType: "movie" | "tv",
 ): Promise<TmdbGenre[]> {
-  const token = process.env.TMDB_READ_ACCESS_TOKEN;
-  if (!token) {
-    throw new Error("TMDB_READ_ACCESS_TOKEN is not set. Add it to .env.local.");
-  }
-
-  const res = await fetch(`${TMDB_BASE_URL}/genre/${mediaType}/list`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-  });
+  const res = await tmdbRequest(
+    `${TMDB_BASE_URL}/genre/${mediaType}/list`,
+    {},
+    `/genre/${mediaType}/list`,
+  );
 
   if (!res.ok) {
     const body = await res.text();
@@ -302,20 +463,10 @@ export async function fetchTmdbList(
   path: string,
   page = 1,
 ): Promise<TmdbListResponse> {
-  const token = process.env.TMDB_READ_ACCESS_TOKEN;
-  if (!token) {
-    throw new Error("TMDB_READ_ACCESS_TOKEN is not set. Add it to .env.local.");
-  }
-
   const url = new URL(`${TMDB_BASE_URL}${path}`);
   url.searchParams.set("page", String(page));
 
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-  });
+  const res = await tmdbRequest(url, {}, path);
 
   if (!res.ok) {
     const body = await res.text();

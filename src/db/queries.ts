@@ -1,6 +1,6 @@
-import { and, desc, eq, isNotNull, like, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, like, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { genres, media, mediaGenres, people } from "@/db/schema";
+import { genres, media, mediaGenres, mediaList, people } from "@/db/schema";
 import { normalizeSearchText } from "@/lib/normalize";
 
 /** The two kinds the catalog holds; used to scope search and browse. */
@@ -55,12 +55,17 @@ const selection = {
  * @param kind - Optional scope: only movies or only TV shows.
  * @returns Ranked matches, empty when the fragment normalizes to "".
  */
+/** Longer than any real title fragment; junk past it never reaches
+ * Postgres, where word_similarity cost scales with query length.
+ * Capped here so every caller — suggest, results page — is covered. */
+const MAX_QUERY_LENGTH = 100;
+
 export async function searchMedia(
   rawQuery: string,
   limit: number,
   kind?: MediaKind,
 ): Promise<MediaMatch[]> {
-  const q = normalizeSearchText(rawQuery);
+  const q = normalizeSearchText(rawQuery.slice(0, MAX_QUERY_LENGTH));
   if (q === "") {
     return [];
   }
@@ -355,4 +360,144 @@ export async function popularPeople(limit: number): Promise<PersonCard[]> {
     .from(people)
     .orderBy(desc(people.popularity))
     .limit(limit);
+}
+
+/** One card in a category rail; posterPath is non-null by query.
+ * tmdbId is the card's link target: title routes speak TMDB ids. */
+export type RailItem = {
+  id: number;
+  tmdbId: number;
+  mediaType: string;
+  title: string;
+  year: number | null;
+  posterPath: string;
+};
+
+/** One category rail: TMDB's list, in TMDB's order. */
+export type Rail = {
+  slug: string;
+  title: string;
+  items: RailItem[];
+};
+
+/**
+ * The landing page's rails, mirroring TMDB's Movies and TV Shows
+ * menus. Slugs are the contract with scripts/sync-media.ts, which
+ * fills `media_list` from the endpoints of the same names.
+ */
+const RAIL_DEFS = [
+  { slug: "movie-popular", title: "Popular Movies" },
+  { slug: "movie-now-playing", title: "Now Playing in Theaters" },
+  { slug: "movie-upcoming", title: "Upcoming Movies" },
+  { slug: "movie-top-rated", title: "Top Rated Movies" },
+  { slug: "tv-popular", title: "Popular TV Shows" },
+  { slug: "tv-airing-today", title: "TV Airing Today" },
+  { slug: "tv-on-the-air", title: "TV On the Air" },
+  { slug: "tv-top-rated", title: "Top Rated TV Shows" },
+];
+
+const RAIL_LIMIT = 20;
+
+/**
+ * Every category rail in one call, so the landing page costs one
+ * render instead of a client fetch per visitor. Order within each
+ * rail is TMDB's own ranking (`media_list.position`), not popularity.
+ * Posterless rows are excluded because the card IS the poster.
+ *
+ * @returns Rails in menu order.
+ */
+export async function categoryRails(): Promise<Rail[]> {
+  const db = getDb();
+  return Promise.all(
+    RAIL_DEFS.map(async ({ slug, title }) => ({
+      slug,
+      title,
+      items: await db
+        .select({
+          id: media.id,
+          tmdbId: media.tmdbId,
+          mediaType: media.mediaType,
+          title: media.title,
+          year: sql<
+            number | null
+          >`extract(year from ${media.releaseDate})::int`,
+          posterPath: sql<string>`${media.posterPath}`,
+        })
+        .from(mediaList)
+        .innerJoin(media, eq(mediaList.mediaId, media.id))
+        .where(and(eq(mediaList.listSlug, slug), isNotNull(media.posterPath)))
+        .orderBy(asc(mediaList.position))
+        .limit(RAIL_LIMIT),
+    })),
+  );
+}
+
+/**
+ * Every catalog title as route params for `generateStaticParams`.
+ * With `dynamicParams = false` on the title route, this list IS the
+ * public id space: pages exist for exactly these rows, and the daily
+ * sync's deploy hook is what admits new ones.
+ */
+export async function titleParams(): Promise<{ type: string; id: string }[]> {
+  const db = getDb();
+  const rows = await db
+    .select({ mediaType: media.mediaType, tmdbId: media.tmdbId })
+    .from(media);
+  return rows.map((r) => ({ type: r.mediaType, id: String(r.tmdbId) }));
+}
+
+/** The person-route half of the same contract as {@link titleParams}. */
+export async function personParams(): Promise<{ id: string }[]> {
+  const db = getDb();
+  const rows = await db.select({ tmdbId: people.tmdbId }).from(people);
+  return rows.map((r) => ({ id: String(r.tmdbId) }));
+}
+
+/**
+ * Which of the given titles exist in the catalog, as `type:tmdbId`
+ * keys. The bounded routes 404 outside the catalog, so rails built
+ * from TMDB payloads (recommendations, known-for) filter through this
+ * before linking.
+ *
+ * @param refs - Candidate titles from a TMDB payload.
+ * @returns Keys (`movie:603`, `tv:1399`) of the ones with pages.
+ */
+export async function presentTitleKeys(
+  refs: { mediaType: string; tmdbId: number }[],
+): Promise<Set<string>> {
+  if (refs.length === 0) {
+    return new Set();
+  }
+  const db = getDb();
+  const rows = await db
+    .select({ mediaType: media.mediaType, tmdbId: media.tmdbId })
+    .from(media)
+    .where(
+      sql`(${media.mediaType}, ${media.tmdbId}) in (${sql.join(
+        refs.map((r) => sql`(${r.mediaType}, ${r.tmdbId})`),
+        sql`, `,
+      )})`,
+    );
+  return new Set(rows.map((r) => `${r.mediaType}:${r.tmdbId}`));
+}
+
+/**
+ * Which of the given TMDB person ids have rows, and with them pages.
+ * The cast rail keeps every card but only links these.
+ *
+ * @param tmdbIds - Candidate person ids from a credits payload.
+ * @returns The subset present in `people`.
+ */
+export async function presentPeopleIds(
+  tmdbIds: number[],
+): Promise<Set<number>> {
+  if (tmdbIds.length === 0) {
+    return new Set();
+  }
+  const db = getDb();
+  const rows = await db
+    .select({ tmdbId: people.tmdbId })
+    .from(people)
+    .where(inArray(people.tmdbId, tmdbIds));
+  return new Set(rows.map((r) => r.tmdbId));
 }

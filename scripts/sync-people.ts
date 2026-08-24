@@ -61,6 +61,8 @@ async function main() {
     .select({ count: sql<number>`count(*)::int` })
     .from(people);
   console.log(`Upserted ${values.length} rows; people table now has ${count}.`);
+  // No deploy hook here on purpose: the scheduled workflow runs this
+  // before sync-media, whose hook covers both in one rebuild.
 }
 
 main().catch((error) => {

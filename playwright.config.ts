@@ -1,5 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
+/* Production mode: serve the prior `pnpm build` instead of the dev
+ * server. CI always runs this way; locally, E2E_PROD=1 opts in. The
+ * bounded-route specs demand it — `next dev` enforces neither
+ * generateStaticParams nor dynamicParams, so a dev-server run proves
+ * nothing about what actually ships. */
+const prod = !!process.env.CI || !!process.env.E2E_PROD;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -20,11 +27,10 @@ export default defineConfig({
       ? [{ name: "webkit", use: { ...devices["Desktop Safari"] } }]
       : []),
   ],
-  // CI tests the production build (built in the workflow step before this
-  // runs). E2E owns port 3100 so it never touches 3000, where Sauel's own
+  // E2E owns port 3100 so it never touches 3000, where Sauel's own
   // dev server lives; a leftover 3100 server is reused locally.
   webServer: {
-    command: process.env.CI ? "pnpm start --port 3100" : "pnpm dev --port 3100",
+    command: prod ? "pnpm start --port 3100" : "pnpm dev --port 3100",
     url: "http://localhost:3100",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

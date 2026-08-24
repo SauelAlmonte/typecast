@@ -96,16 +96,18 @@
   white-space: nowrap;
 }
 
-/* MediaRail only: its whole card is one link; hover restates the
-   underline on the title. CastRail cards are not links. */
+/* The whole card is one block. Cast cards for people outside the
+   database render this class on a plain span (no page to link to),
+   so the hover underline is scoped to real anchors: a non-link must
+   never advertise clickability. */
 .tc-carousel__card-link {
   display: grid;
   gap: var(--space-1);
   color: var(--color-ink);
   text-decoration: none;
 
-  &:hover .tc-carousel__title,
-  &:focus-visible .tc-carousel__title {
+  &:is(a):hover .tc-carousel__title,
+  &:is(a):focus-visible .tc-carousel__title {
     text-decoration: underline;
   }
 }
