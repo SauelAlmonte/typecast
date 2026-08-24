@@ -1,3 +1,8 @@
+/* Each visited path renders once, then the route cache serves it for a
+   day — the TMDB data cache's own window. Rendering per request let
+   crawler traffic run the free-tier CPU meter (2026-08 pause). */
+export const revalidate = 86400;
+
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -5,6 +10,13 @@ import type { RailItem } from "@/app/api/rails/route";
 import Icon from "@/components/Icon/Icon";
 import MediaRail from "@/components/Rails/MediaRail/MediaRail";
 import { fetchTmdbPerson, type TmdbPersonDetail } from "@/lib/tmdb";
+
+/** Nothing prerenders at build — the id space is TMDB's, not the
+ * catalog's — but an empty list still opts the route into ISR, so
+ * every path caches on first visit instead of rendering per request. */
+export function generateStaticParams(): { id: string }[] {
+  return [];
+}
 
 /** h632 is TMDB's large profile bucket; profiles have no w500. */
 const PORTRAIT_BASE = "https://image.tmdb.org/t/p/h632";

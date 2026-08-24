@@ -3,11 +3,16 @@ import { type MediaMatch, searchMedia } from "@/db/queries";
 /** One suggestion row, the shape the combobox renders. */
 export type SuggestResult = MediaMatch;
 
-/** Repeat queries die at the CDN; the catalog changes once a day at most. */
-const CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300";
+/** Repeat queries die at the CDN; the catalog changes once a day at
+ * most, so an hour fresh plus a day stale matches the rails route. */
+const CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400";
 
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 20;
+
+/** Longer than any real title fragment; junk past it never reaches
+ * Postgres, where word_similarity cost scales with query length. */
+const MAX_QUERY_LENGTH = 100;
 
 /**
  * Suggest catalog titles for a search-as-you-type fragment.
@@ -21,7 +26,7 @@ const MAX_LIMIT = 20;
  */
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q") ?? "";
+  const q = (searchParams.get("q") ?? "").slice(0, MAX_QUERY_LENGTH);
   // Only a positive integer may reach SQL's LIMIT; anything else
   // (missing, NaN, zero, negative, fractional) gets the default.
   const parsed = Number(searchParams.get("limit"));

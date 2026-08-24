@@ -1,0 +1,20 @@
+# Search and API routes render per request and their parameter space is
+# unbounded; nothing there is worth indexing. Detail pages stay open to
+# search engines — they cache for a day (see the page files).
+User-Agent: *
+Disallow: /search
+Disallow: /api/
+
+# AI-training and bulk-scrape crawlers get nothing: this demo proxies
+# TMDB's whole graph through dynamic pages, and sustained bot crawl of
+# that unbounded space is what paused the free tier (2026-08).
+User-Agent: GPTBot
+User-Agent: ClaudeBot
+User-Agent: CCBot
+User-Agent: Bytespider
+User-Agent: Amazonbot
+User-Agent: meta-externalagent
+User-Agent: PerplexityBot
+User-Agent: Google-Extended
+User-Agent: Applebot-Extended
+Disallow: /
