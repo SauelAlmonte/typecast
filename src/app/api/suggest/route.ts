@@ -31,7 +31,11 @@ export async function GET(request: Request): Promise<Response> {
   // limited client shows no suggestions instead of breaking.
   const limiter = suggestLimiter();
   if (limiter) {
+    // x-real-ip is written by Vercel itself; x-forwarded-for can carry
+    // a client-supplied chain, and keying on it would let a caller
+    // rotate fake IPs into fresh rate-limit buckets.
     const ip =
+      request.headers.get("x-real-ip")?.trim() ||
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       "unknown";
     const { success } = await limiter.limit(ip);
