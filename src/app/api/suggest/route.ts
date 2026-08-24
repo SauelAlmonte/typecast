@@ -1,4 +1,5 @@
 import { type MediaMatch, searchMedia } from "@/db/queries";
+import { suggestLimiter } from "@/lib/rate-limit";
 
 /** One suggestion row, the shape the combobox renders. */
 export type SuggestResult = MediaMatch;
@@ -25,6 +26,23 @@ const MAX_QUERY_LENGTH = 100;
  * @returns JSON array of {@link SuggestResult}, empty for a blank `q`.
  */
 export async function GET(request: Request): Promise<Response> {
+  // Env-gated: null outside production (see rate-limit.ts). The 429
+  // body stays the empty-array shape the combobox renders, so a
+  // limited client shows no suggestions instead of breaking.
+  const limiter = suggestLimiter();
+  if (limiter) {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "unknown";
+    const { success } = await limiter.limit(ip);
+    if (!success) {
+      return Response.json([], {
+        status: 429,
+        headers: { "Retry-After": "10", "Cache-Control": "no-store" },
+      });
+    }
+  }
+
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") ?? "").slice(0, MAX_QUERY_LENGTH);
   // Only a positive integer may reach SQL's LIMIT; anything else
