@@ -1,0 +1,46 @@
+name: Daily sync
+
+# The freshness pipeline: sync TMDB into Neon, then the media script
+# fires the Vercel Deploy Hook so the bounded detail routes (which
+# only build pages for database rows) get rebuilt with the new ids.
+# A failed step fails the run, and GitHub emails the owner on failed
+# scheduled runs — that email IS the alerting for a broken pipeline;
+# the 7-day route revalidate is the safety net underneath it.
+#
+# Caveats, on the record:
+# - GitHub suspends schedules after ~60 days without repo activity;
+#   the workflow_dispatch button revives it.
+# - This repo is public, so these logs are world-readable. Nothing
+#   here or in the scripts echoes an env value, and all three values
+#   live only in repository secrets (fork PRs never see secrets, and
+#   this workflow has no pull_request surface at all).
+on:
+  schedule:
+    # 09:30 UTC daily, before US evening traffic.
+    - cron: "30 9 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: daily-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync & redeploy
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+      VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # People first, media second: only sync-media fires the deploy
+      # hook, so the rebuild picks up both syncs in one deploy.
+      - run: pnpm db:sync-people
+      - run: pnpm db:sync

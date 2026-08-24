@@ -1,21 +1,22 @@
-/* Each visited path renders once, then the route cache serves it for a
-   day — the TMDB data cache's own window. Rendering per request let
-   crawler traffic run the free-tier CPU meter (2026-08 pause). */
-export const revalidate = 86400;
+/* The route is bounded: pages exist for exactly the people table's
+   rows, prerendered at build, and anything else is a static 404 with
+   no render and no database trip. Crawlers walking TMDB's open id
+   space are what ran the free-tier CPU meter (2026-08 pause).
+   Freshness is the daily sync's deploy hook; the 7-day revalidate is
+   only the safety net for a silently broken pipeline. */
+export const revalidate = 604800;
+export const dynamicParams = false;
 
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import type { RailItem } from "@/app/api/rails/route";
 import Icon from "@/components/Icon/Icon";
 import MediaRail from "@/components/Rails/MediaRail/MediaRail";
+import { personParams, presentTitleKeys, type RailItem } from "@/db/queries";
 import { fetchTmdbPerson, type TmdbPersonDetail } from "@/lib/tmdb";
 
-/** Nothing prerenders at build — the id space is TMDB's, not the
- * catalog's — but an empty list still opts the route into ISR, so
- * every path caches on first visit instead of rendering per request. */
-export function generateStaticParams(): { id: string }[] {
-  return [];
+export async function generateStaticParams(): Promise<{ id: string }[]> {
+  return personParams();
 }
 
 /** h632 is TMDB's large profile bucket; profiles have no w500. */
@@ -106,7 +107,15 @@ export default async function PersonPage({
   const detail = await fetchTmdbPerson(readTmdbId(id));
   if (!detail) notFound();
 
-  const knownFor = knownForItems(detail);
+  // The title route is bounded, so Known For filters to credits with
+  // pages: the rail is our own editorial cut (top of hundreds of
+  // credits), and picking the most popular in-catalog ones is the
+  // same act. The bio prose still tells the person's whole story.
+  const knownForAll = knownForItems(detail);
+  const presentTitles = await presentTitleKeys(knownForAll);
+  const knownFor = knownForAll.filter((item) =>
+    presentTitles.has(`${item.mediaType}:${item.tmdbId}`),
+  );
   // TMDB pads absent biographies with "" and absent dates with null;
   // each fact renders only when it exists (honest empty states).
   const paragraphs = stripPronunciation(detail.biography ?? "")
@@ -177,7 +186,8 @@ export default async function PersonPage({
           ))}
         </section>
       )}
-      {knownFor.length > 0 && (
+      {/* One survivor alone reads as a mistake; two is the floor. */}
+      {knownFor.length >= 2 && (
         <div className="tc-person__rail">
           <MediaRail items={knownFor} title="Known For" />
         </div>

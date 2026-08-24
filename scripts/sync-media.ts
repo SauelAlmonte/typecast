@@ -8,13 +8,17 @@ import {
   mediaGenres,
   mediaList,
   type NewMedia,
+  type NewPerson,
+  people,
 } from "../src/db/schema";
 import { normalizeSearchText } from "../src/lib/normalize";
 import {
+  fetchTmdbCredits,
   fetchTmdbGenres,
   fetchTmdbList,
   type TmdbListItem,
 } from "../src/lib/tmdb";
+import { fireDeployHook } from "./deploy-hook";
 
 /**
  * A TMDB list to ingest: the endpoint, how many pages, and which media
@@ -256,6 +260,107 @@ async function main() {
     .select({ count: sql<number>`count(*)::int` })
     .from(media);
   console.log(`Upserted ${values.length} rows; media table now has ${count}.`);
+
+  await syncPeopleFromCredits(values);
+
+  // Last, and only on success: with dynamicParams = false on the
+  // detail routes, new rows have no pages until the next build.
+  await fireDeployHook();
+}
+
+/** Cast billing cap per title. The title page shows 12 cast cards
+ * (CAST_MAX); 10 keeps the build's person-page count near 2,000 while
+ * covering the top billing — the unlinked tail renders as plain
+ * cards, so nothing breaks visually. */
+const CREDITS_CAST_CAP = 10;
+/** Directors per movie. TV creators live only in the detail payload
+ * (`created_by`), not in /credits, so TV contributes cast alone —
+ * documented tradeoff, not an oversight. */
+const CREDITS_CREW_CAP = 2;
+
+/**
+ * The people pass: one /credits call per synced title, top billing
+ * upserted into `people` so every prerendered person page and cast
+ * link is backed by a row. Upsert-only, no prune, on purpose: rows
+ * arrive from two sources (this pass and sync-people's popular list)
+ * and pruning would have to reason across both; the set is bounded by
+ * the catalog either way. tmdb.ts's semaphore paces the calls.
+ *
+ * @param titles - The rows this run just upserted.
+ */
+async function syncPeopleFromCredits(titles: NewMedia[]): Promise<void> {
+  const db = getDb();
+  // Keyed by TMDB id; the more popular sighting wins so the card
+  // metadata (department, portrait) comes from the stronger source.
+  const rows = new Map<number, NewPerson>();
+
+  let creditsFetched = 0;
+  await Promise.all(
+    titles.map(async ({ mediaType, tmdbId }) => {
+      const credits = await fetchTmdbCredits(
+        mediaType as "movie" | "tv",
+        tmdbId,
+      );
+      if (!credits) return;
+      creditsFetched++;
+
+      const billed = (credits.cast ?? []).slice(0, CREDITS_CAST_CAP);
+      const directors =
+        mediaType === "movie"
+          ? (credits.crew ?? [])
+              .filter((c) => c.job === "Director")
+              .slice(0, CREDITS_CREW_CAP)
+          : [];
+
+      for (const person of [...billed, ...directors]) {
+        if (!person.id || !person.name) continue;
+        const existing = rows.get(person.id);
+        if (
+          existing &&
+          (existing.popularity ?? 0) >= (person.popularity ?? 0)
+        ) {
+          continue;
+        }
+        rows.set(person.id, {
+          tmdbId: person.id,
+          name: person.name,
+          nameSearch: normalizeSearchText(person.name),
+          knownForDepartment:
+            person.known_for_department ??
+            ("job" in person && person.job === "Director"
+              ? "Directing"
+              : "Acting"),
+          popularity: person.popularity ?? 0,
+          profilePath: person.profile_path ?? null,
+        });
+      }
+    }),
+  );
+
+  const values = [...rows.values()];
+  if (values.length > 0) {
+    await db
+      .insert(people)
+      .values(values)
+      .onConflictDoUpdate({
+        target: people.tmdbId,
+        set: {
+          name: sql`excluded.name`,
+          nameSearch: sql`excluded.name_search`,
+          knownForDepartment: sql`excluded.known_for_department`,
+          popularity: sql`excluded.popularity`,
+          profilePath: sql`excluded.profile_path`,
+          updatedAt: sql`now()`,
+        },
+      });
+  }
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(people);
+  console.log(
+    `credits: ${creditsFetched} titles read, ${values.length} people upserted; people table now has ${count}.`,
+  );
 }
 
 main().catch((error) => {

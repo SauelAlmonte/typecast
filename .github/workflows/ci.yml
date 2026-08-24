@@ -31,6 +31,14 @@ jobs:
   e2e:
     name: Build & e2e
     runs-on: ubuntu-latest
+    # The detail routes prerender the whole catalog from the database
+    # and TMDB (generateStaticParams + dynamicParams = false), so the
+    # build now requires both secrets. The `pull_request` trigger never
+    # hands secrets to fork PRs; nothing here echoes them, and the
+    # deploy hook URL is deliberately absent from CI.
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      TMDB_READ_ACCESS_TOKEN: ${{ secrets.TMDB_READ_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4

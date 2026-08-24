@@ -1,23 +1,31 @@
-/* Each visited path renders once, then the route cache serves it for a
-   day — the TMDB data cache's own window. Rendering per request let
-   crawler traffic run the free-tier CPU meter (2026-08 pause). */
-export const revalidate = 86400;
+/* The route is bounded: pages exist for exactly the catalog's rows,
+   prerendered at build, and anything else is a static 404 with no
+   render and no database trip. Crawlers walking TMDB's open id space
+   are what ran the free-tier CPU meter (2026-08 pause). Freshness is
+   the daily sync's deploy hook; the 7-day revalidate is only the
+   safety net for a silently broken pipeline. */
+export const revalidate = 604800;
+export const dynamicParams = false;
 
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import type { RailItem } from "@/app/api/rails/route";
 import Icon from "@/components/Icon/Icon";
-import CastRail, { type CastCard } from "@/components/Rails/CastRail/CastRail";
+import CastRail from "@/components/Rails/CastRail/CastRail";
 import MediaRail from "@/components/Rails/MediaRail/MediaRail";
 import TrailerDialog from "@/components/TrailerDialog/TrailerDialog";
+import {
+  presentPeopleIds,
+  presentTitleKeys,
+  type RailItem,
+  titleParams,
+} from "@/db/queries";
 import { fetchTmdbDetail, type TmdbTitleDetail } from "@/lib/tmdb";
 
-/** Nothing prerenders at build — the id space is TMDB's, not the
- * catalog's — but an empty list still opts the route into ISR, so
- * every path caches on first visit instead of rendering per request. */
-export function generateStaticParams(): { type: string; id: string }[] {
-  return [];
+export async function generateStaticParams(): Promise<
+  { type: string; id: string }[]
+> {
+  return titleParams();
 }
 
 /** w1280 backdrop fills the hero band; w500 covers the poster at 2x. */
@@ -208,16 +216,30 @@ export default async function TitlePage({
       : null;
   const credit = makers(detail, kind);
   const trailerKey = pickTrailer(detail);
-  const cast: CastCard[] = (detail.credits?.cast ?? [])
-    .slice(0, CAST_MAX)
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      character: c.character ?? null,
-      profilePath: c.profile_path ?? null,
-    }));
+  const cast = (detail.credits?.cast ?? []).slice(0, CAST_MAX).map((c) => ({
+    id: c.id,
+    name: c.name,
+    character: c.character ?? null,
+    profilePath: c.profile_path ?? null,
+  }));
   const season = kind === "tv" ? currentSeason(detail) : null;
-  const recommendations = recommendationItems(detail);
+  // Bounded routes 404 outside the catalog, so the rails check the
+  // database before linking: recommendations filter to titles with
+  // pages (a mostly-dead rail reads as broken, a shorter one as
+  // curated), while cast keeps every card — billing is fact, not
+  // navigation — and just withholds links from people without pages.
+  const recommendationsAll = recommendationItems(detail);
+  const [presentTitles, presentPeople] = await Promise.all([
+    presentTitleKeys(recommendationsAll),
+    presentPeopleIds(cast.map((c) => c.id)),
+  ]);
+  const recommendations = recommendationsAll.filter((r) =>
+    presentTitles.has(`${r.mediaType}:${r.tmdbId}`),
+  );
+  const linkedCast = cast.map((c) => ({
+    ...c,
+    linked: presentPeople.has(c.id),
+  }));
   const keywords = (detail.keywords?.keywords ?? detail.keywords?.results ?? [])
     .slice(0, KEYWORDS_MAX)
     .map((k) => k.name);
@@ -319,7 +341,7 @@ export default async function TitlePage({
       <div className="tc-container tc-title-body">
         <div className="tc-title-main">
           <CastRail
-            cast={cast}
+            cast={linkedCast}
             title={kind === "tv" ? "Series Cast" : "Top Billed Cast"}
           />
           {season && (
@@ -368,7 +390,8 @@ export default async function TitlePage({
               </div>
             </section>
           )}
-          {recommendations.length > 0 && (
+          {/* One survivor alone reads as a mistake; two is the floor. */}
+          {recommendations.length >= 2 && (
             <MediaRail
               items={recommendations}
               title={`If you liked ${title}`}

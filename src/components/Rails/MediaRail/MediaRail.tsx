@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useId, useRef } from "react";
-import type { RailItem } from "@/app/api/rails/route";
 import Icon from "@/components/Icon/Icon";
+import type { RailItem } from "@/db/queries";
 
 /** w342 covers the card width at 2x device pixel ratio. */
 const POSTER_BASE = "https://image.tmdb.org/t/p/w342";

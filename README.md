@@ -44,42 +44,50 @@ flowchart LR
     DETAIL["detail endpoint"]
   end
 
-  SYNC["sync script<br/>pnpm db:sync"]
+  SYNC["daily sync (GitHub Actions)<br/>pnpm db:sync"]
 
   subgraph NEON[Neon Postgres]
     MEDIA[("media")]
     LIST[("media_list")]
     GEN[("genres")]
     MG[("media_genres")]
+    PPL[("people")]
   end
 
   subgraph APP[Next.js on Vercel]
     Q["query layer<br/>pg_trgm search, genre rails"]
-    SUG["GET /api/suggest"]
-    RAILS["GET /api/rails"]
-    UP["GET /api/upcoming"]
+    SUG["GET /api/suggest<br/>rate limited (Upstash)"]
     LAND["landing page"]
     SRCH["search and browse"]
-    TITLE["title page"]
+    TITLE["title pages"]
+    PERSON["person pages"]
   end
 
   SB["SearchBox combobox<br/>debounce, cancellation, cache,<br/>keyboard, ARIA"]
 
   LISTS --> SYNC --> NEON
+  SYNC -->|"deploy hook"| APP
   NEON --> Q
   Q --> SUG --> SB
   Q --> SRCH
-  NEON --> RAILS --> LAND
-  NEON --> UP --> LAND
-  DETAIL -->|"request time, cached 24h"| TITLE
+  Q --> LAND
+  DETAIL -->|"build time, via the data cache"| TITLE
+  DETAIL -->|"build time, via the data cache"| PERSON
 ```
 
-The sync script pulls TMDB's trending, category, and genre endpoints
-and upserts four tables. The Neon HTTP driver has no transactions, so
-list and genre memberships are replaced upsert-then-prune: each
-statement is atomic on its own, and readers never see an empty set
-mid-sync. The title page is the one surface that talks to TMDB at
-request time, one appended request per title, cached for a day.
+The sync pulls TMDB's trending, category, genre, and credits
+endpoints and upserts five tables, then fires a Vercel Deploy Hook.
+The Neon HTTP driver has no transactions, so list and genre
+memberships are replaced upsert-then-prune: each statement is atomic
+on its own, and readers never see an empty set mid-sync.
+
+The title and person routes are bounded: `generateStaticParams` reads
+the catalog from the database, `dynamicParams` is off, and every page
+is prerendered at build, so an id outside the catalog is a static 404
+that never renders or touches the database. New rows get pages
+through the sync's deploy hook rebuild. TMDB detail data is fetched
+at build through the framework data cache, one appended request per
+page, cached for a day.
 
 ## Tech stack
 
@@ -87,6 +95,8 @@ request time, one appended request per title, cached for a day.
   with the React Compiler, TypeScript strict
 - **Database:** Neon Postgres over the serverless HTTP driver, Drizzle
   ORM, Drizzle Kit migrations, `pg_trgm`
+- **Rate limiting:** Upstash Redis, sliding window per IP on the
+  suggest endpoint
 - **Styling:** hand-written CSS; design tokens in `oklch`, BEM with
   native nesting, no component library
 - **Testing:** Playwright end-to-end (Chromium, Firefox, WebKit in CI)
@@ -121,10 +131,12 @@ with the width. The site ships a single dark palette.
 ## Status
 
 The core is live: the hand-built combobox, the local catalog with
-genre rails on the browse pages, and the landing, search, and title
-pages. On the roadmap: combobox loading and error states, rate
-limiting, a scheduled sync, unit tests, and People and Awards
-content.
+genre rails on the browse pages, the landing, search, and title
+pages, and People — a browse grid and prerendered person pages fed by
+the sync's credits pass. The suggest endpoint is rate limited through
+Upstash, and a scheduled GitHub Actions sync keeps the catalog and
+the prerendered pages fresh. On the roadmap: people in the combobox,
+combobox loading and error states, unit tests, and Awards content.
 
 ## Attribution
 

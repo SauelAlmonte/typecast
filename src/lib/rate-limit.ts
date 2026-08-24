@@ -24,6 +24,14 @@ export function suggestLimiter(): Ratelimit | null {
   }
   const configured =
     process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Fail-open is deliberate (an env slip must not break search), but
+  // never silent: unconfigured production says so in the logs. Runs
+  // once per instance because the result is memoized above.
+  if (!configured && process.env.VERCEL_ENV === "production") {
+    console.warn(
+      "suggest rate limiting is OFF: Upstash env vars are not set in production",
+    );
+  }
   limiter = configured
     ? new Ratelimit({
         redis: Redis.fromEnv(),
