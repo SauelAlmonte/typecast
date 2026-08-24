@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 /**
@@ -308,7 +310,13 @@ export async function tmdbRequest(
  *   the page can 404 instead of 500.
  * @throws When the token is missing or TMDB fails with anything but 404.
  */
-export async function fetchTmdbDetail(
+/* cache() dedupes the generateMetadata + page pair within one render.
+ * Measured before it existed: static generation made two real network
+ * calls per page (4,639 for 2,322 pages, build of 2026-08-24) — the
+ * fetch memoization the runtime relies on does not carry across the
+ * build's metadata and page passes. Outside React (the sync scripts),
+ * cache() runs the function directly, so nothing changes there. */
+export const fetchTmdbDetail = cache(async function fetchTmdbDetail(
   mediaType: "movie" | "tv",
   tmdbId: number,
 ): Promise<TmdbTitleDetail | null> {
@@ -335,7 +343,7 @@ export async function fetchTmdbDetail(
   }
 
   return (await res.json()) as TmdbTitleDetail;
-}
+});
 
 /**
  * Fetch one person's detail record with combined credits appended, so
@@ -347,7 +355,7 @@ export async function fetchTmdbDetail(
  *   the page can 404 instead of 500.
  * @throws When the token is missing or TMDB fails with anything but 404.
  */
-export async function fetchTmdbPerson(
+export const fetchTmdbPerson = cache(async function fetchTmdbPerson(
   tmdbId: number,
 ): Promise<TmdbPersonDetail | null> {
   const url = new URL(`${TMDB_BASE_URL}/person/${tmdbId}`);
@@ -370,7 +378,7 @@ export async function fetchTmdbPerson(
   }
 
   return (await res.json()) as TmdbPersonDetail;
-}
+});
 
 /**
  * Fetch one title's cast and crew alone, without the full detail
