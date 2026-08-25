@@ -14,20 +14,35 @@ needs nothing else.
   after the un-pause.
 - Daily sync fired 2026-08-25 06:00 EDT and failed at the deploy-hook
   gate as designed. Sauel's call: the gate now skips with a warning
-  annotation instead of failing (`chore/post-64-housekeeping`), so the
+  annotation instead of failing (PR #65), so the
   syncs keep the catalog current through the pause, the run stays
   green, and setting `VERCEL_DEPLOY_HOOK_URL` is the whole switch.
-  The workflow stays enabled.
+  The workflow stays enabled. Merged as PR #65 (`d96b129`); `main`'s
+  CI on it: lint, build, and e2e (39/39) green, Lighthouse red on the
+  402 only.
 - The 3,011 detail pages split 385 titles + 2,626 people (route table
-  of the merged build, CI run 32739240712).
+  of the merged build, CI run 32739240712; unchanged in PR #65's run
+  32866904237, since no sync has written to the database yet).
+- Vercel Firewall set 2026-08-25 while paused: Bot Protection to
+  Challenge, AI Bots to Deny. Part of the fix, not a footnote:
+  bounded routes cut CPU, invocations, and origin transfer, but a
+  crawler still costs an edge request per URL, and the firewall is
+  the only lever on that meter for crawlers that ignore robots.txt.
+- Upstash env vars are already in Vercel Production (added during
+  the pause). The limiter is env-gated at module load, so it comes
+  on with the first deploy after the un-pause; nothing to add then.
 
 ## Why this work exists
 
 Vercel paused the Hobby team "Sauel Almonte's projects" on
-2026-08-23 (~11pm EST notice). The usage window (~17 days) showed
-11h 54m Fluid Active CPU against a 4h allowance (project typecast =
-98.6% of it), 2.2M function invocations / 1M, 2.5M edge requests /
-1M, 26 GB Fast Origin Transfer / 10 GB, and only 813 ISR reads.
+2026-08-23 (~11pm EST notice). The usage window (~17 days) had four
+meters over: Fluid Active CPU 11h 54m against a 4h allowance
+(project typecast = 98.6% of it), Invocations 2,207,478 / 1M, Edge
+Requests 2,700,927 / 1M, Fast Origin Transfer 26.09 GB / 10 GB. ISR
+Reads were 813, well under. Which part of the fix addresses which
+meter is in PROGRESS.md's "Free tier means bounded rendering" row;
+in short, bounded routes handle CPU, invocations, and origin
+transfer, and the Vercel Firewall handles edge requests.
 Root cause: every route except the landing page was server-rendered
 per request, and the detail pages link TMDB's entire id space through
 recommendation and cast rails, so crawlers never ran out of fresh
@@ -148,20 +163,27 @@ are chromium+firefox (26/26), the config gates webkit to CI.
    on `c6e2fc0` was green (Lighthouse skipped on PRs by design).
 2. ~~After merge: disable the "Daily sync" workflow.~~ Superseded:
    the gate skips with a warning now. Leave the workflow enabled.
-3. **Un-pause request to Vercel**: already drafted and possibly
-   already posted via vercel.com/help chat (Sauel was in the widget
-   2026-08-24 ~09:00; body text lives in the session log and can be
-   reconstructed from this doc + PR bodies). Pause date for forms:
-   August 23, 2026, ~11:05pm EST.
-4. **After un-pause, in order**: (a) add Upstash env vars
-   UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (values in
-   .env.local / Upstash console, database typecast-ratelimit,
-   us-east-1) to Vercel Production env BEFORE the first redeploy;
-   (b) create the Deploy Hook (project Settings → Git → Deploy
-   Hooks, name daily-sync, branch main — creation was blocked while
-   paused); (c) add its URL as Actions secret VERCEL_DEPLOY_HOOK_URL —
-   the next scheduled run deploys on its own; (d) redeploy.
-5. ISR-writes watch item: glance at the Usage page the first week.
+3. **Un-pause request to Vercel**: drafted, not yet sent as of this
+   edit; every claim in it was audited against `main` at `d96b129`
+   on 2026-08-25. Pause date for forms: August 23, 2026, ~11:05pm
+   EST.
+4. **After un-pause, in order**: (a) create the Deploy Hook (project
+   Settings → Git → Deploy Hooks, name daily-sync, branch main —
+   creation is blocked while paused, which PR #65's skip covers);
+   (b) add its URL as Actions secret VERCEL_DEPLOY_HOOK_URL — the
+   next scheduled run deploys on its own; (c) redeploy. The Upstash
+   env vars are already in Vercel Production; the limiter is
+   env-gated at module load, so it comes on with that deploy.
+5. Usage-page watch, first week: ISR writes (raise both revalidates
+   to 7d if trending past ~100K/month) and edge requests (the
+   firewall's meter).
+6. **Lighthouse will fail after the un-pause, and not for a real
+   reason**: Bot Protection (Challenge) challenges non-browser
+   sources, and CI's Lighthouse job audits the production URL on
+   pushes to `main`. Add a firewall allow exception for the job; do
+   not debug it as a score regression.
+7. Warm-cache build wall time is tracked in issue #66: the TMDB gate
+   paces every call before Next's fetch cache answers.
 
 ## Re-verify from cold
 
