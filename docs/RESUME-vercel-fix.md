@@ -51,7 +51,8 @@ needs nothing else.
   so a local `vercel build` needs `.env.local`'s values.
 - Hardening in PR #67: `DETAIL_REVALIDATE_S` 604800 (closes the
   expiry-vs-rebuild race, since builds land 10:00–10:30 UTC),
-  `prefetch={false}` on rail cards, Lighthouse parked. WAF rule to
+  `prefetch={false}` on rail cards, Lighthouse parked behind a repo
+  variable. WAF rule to
   configure: "Document rate cap", Request Path does not start with
   `/_next/` AND Header `rsc` does not exist, Rate Limit 150 requests /
   1 hour / IP / fixed window / 429.
@@ -202,9 +203,10 @@ are chromium+firefox (26/26), the config gates webkit to CI.
 6. **Configure the WAF rule** with the values above; then Upstash
    Preview scope; then Settings → Deployment Protection: Vercel
    Authentication on, Standard Protection (previews need a login).
-7. Lighthouse is parked (`if: false`); restoring it needs a firewall
-   allow rule for the runner. Warm-cache build wall time is issue
-   #66.
+7. Lighthouse is parked behind the `LIGHTHOUSE_ENABLED` repository
+   variable (unset). Restoring it: firewall allow rule for the runner,
+   then set the variable to `true`; no commit. Warm-cache build wall
+   time is issue #66.
 
 ## Re-verify from cold
 
