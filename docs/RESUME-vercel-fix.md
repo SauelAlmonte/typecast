@@ -59,6 +59,11 @@ needs nothing else.
   Limit 25 requests / 600 s / IP / fixed window / 429. Not 150 per
   hour: Hobby and Pro cap windows at 600 s (longer is Enterprise);
   same rate, smaller window.
+- Seven-day window proven on the artifact: local `vercel build` of
+  `2f4fcb8` puts `expiration: 604800` in every prerender config, and
+  the deployed build's log (`typecast-bvhjsi3t1`, Ready 14:06 EDT)
+  shows `1w` in the Revalidate column for both detail routes, 3,021
+  pages by one worker in 16.8 min. Production builds are ~17 min.
 - Baseline ~17:30 UTC 2026-08-25: Fluid Active CPU 11h 54m,
   Invocations 2,207,488, Edge Requests 2,703,830, Fast Origin
   Transfer 26.09 GB. Preceding 90 min: Edge Requests +2,903,
