@@ -77,9 +77,13 @@ jobs:
   # Audits the deployed site, not this build: CI has no database, so the
   # deployed pages are the only honest render. Push-to-main only, so a PR
   # is never failed by a production regression it didn't cause.
+  # Parked for Vercel's courtesy window (to ~2026-09-24): every audit is
+  # nine document loads against the metered site, three of them /search
+  # renders, and Bot Protection challenges the runner anyway. To restore:
+  # put the push condition back and add a firewall allow rule for the job.
   lighthouse:
     name: Lighthouse
-    if: github.event_name == 'push'
+    if: false # was: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

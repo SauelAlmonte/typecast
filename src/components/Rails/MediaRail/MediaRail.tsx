@@ -82,9 +82,14 @@ export default function MediaRail({ title, items }: MediaRailProps) {
                 className="tc-carousel__card"
                 key={`${item.mediaType}-${item.id}`}
               >
+                {/* No prefetch: a rail puts up to 20 links in the viewport
+                    at once and every prefetch is an edge request, the meter
+                    the free tier runs closest to. Clicks still navigate
+                    client-side; the route loads on click. */}
                 <Link
                   className="tc-carousel__card-link"
                   href={`/title/${item.mediaType}/${item.tmdbId}`}
+                  prefetch={false}
                 >
                   {/* sizes mirrors the card widths in carousel.css so
                       phones fetch a small TMDB bucket, not w500. */}

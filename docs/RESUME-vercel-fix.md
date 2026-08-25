@@ -28,9 +28,33 @@ needs nothing else.
   bounded routes cut CPU, invocations, and origin transfer, but a
   crawler still costs an edge request per URL, and the firewall is
   the only lever on that meter for crawlers that ignore robots.txt.
-- Upstash env vars are already in Vercel Production (added during
-  the pause). The limiter is env-gated at module load, so it comes
-  on with the first deploy after the un-pause; nothing to add then.
+- Correction: the Upstash env vars were NOT on the project until
+  the afternoon of 2026-08-25 (`vercel env ls` showed only the TMDB
+  token and DATABASE_URL; the attempt during the pause never saved).
+  Added for Production after the un-pause, Preview to follow. The
+  limiter is env-gated at module load, so it is live from the next
+  deploy after the add.
+- Un-paused 2026-08-25 on a one-time 3x courtesy for 30 days (to
+  ~2026-09-24). Spent usage stands, so the real headroom: Fluid
+  Active CPU 6 min, Invocations 792,522, Edge Requests 299,073, Fast
+  Origin Transfer 3.91 GB. Over the limits after the window means Pro.
+- Deploy Hook created (`daily-sync`, branch `main`), secret set, fired
+  by hand: HTTP 201, deployment `typecast-8l2eho0mf` Ready after an
+  18-minute build (Vercel's build machine: one static-generation
+  worker at the ~3 req/s gate). `robots.txt` serves; the Aug 20 build
+  is off.
+- Build Output proof (`vercel build` locally): 28 routes, no function
+  route for `/title/…` or `/person/…`, every prerendered page a
+  filesystem entry with `expiration` from the fetch constant, catch-all
+  `{"src":"/.*","status":404}` to `static/404.html`. Enumeration costs
+  edge requests only. `vercel pull` cannot fetch Sensitive variables,
+  so a local `vercel build` needs `.env.local`'s values.
+- Hardening in PR #67: `DETAIL_REVALIDATE_S` 604800 (closes the
+  expiry-vs-rebuild race, since builds land 10:00–10:30 UTC),
+  `prefetch={false}` on rail cards, Lighthouse parked. WAF rule to
+  configure: "Document rate cap", Request Path does not start with
+  `/_next/` AND Header `rsc` does not exist, Rate Limit 150 requests /
+  1 hour / IP / fixed window / 429.
 
 ## Why this work exists
 
@@ -163,27 +187,24 @@ are chromium+firefox (26/26), the config gates webkit to CI.
    on `c6e2fc0` was green (Lighthouse skipped on PRs by design).
 2. ~~After merge: disable the "Daily sync" workflow.~~ Superseded:
    the gate skips with a warning now. Leave the workflow enabled.
-3. **Un-pause request to Vercel**: drafted, not yet sent as of this
-   edit; every claim in it was audited against `main` at `d96b129`
-   on 2026-08-25. Pause date for forms: August 23, 2026, ~11:05pm
-   EST.
-4. **After un-pause, in order**: (a) create the Deploy Hook (project
-   Settings → Git → Deploy Hooks, name daily-sync, branch main —
-   creation is blocked while paused, which PR #65's skip covers);
-   (b) add its URL as Actions secret VERCEL_DEPLOY_HOOK_URL — the
-   next scheduled run deploys on its own; (c) redeploy. The Upstash
-   env vars are already in Vercel Production; the limiter is
-   env-gated at module load, so it comes on with that deploy.
-5. Usage-page watch, first week: ISR writes (raise both revalidates
-   to 7d if trending past ~100K/month) and edge requests (the
-   firewall's meter).
-6. **Lighthouse will fail after the un-pause, and not for a real
-   reason**: Bot Protection (Challenge) challenges non-browser
-   sources, and CI's Lighthouse job audits the production URL on
-   pushes to `main`. Add a firewall allow exception for the job; do
-   not debug it as a score regression.
-7. Warm-cache build wall time is tracked in issue #66: the TMDB gate
-   paces every call before Next's fetch cache answers.
+3. ~~Un-pause request to Vercel.~~ Sent and granted 2026-08-25:
+   one-time 3x for 30 days, to ~2026-09-24.
+4. ~~Deploy Hook, secret, first deploy.~~ Done 2026-08-25 16:43 UTC.
+   Tomorrow's 09:30 UTC run should show no annotation, the status
+   step's "is set" line, and `deploy hook: fired` at the end of
+   `pnpm db:sync`; a build failure surfaces only in Vercel
+   (Deployments → Error, plus the deployment-failed email), the
+   workflow stays green, and the previous deployment keeps serving.
+5. **Courtesy-window watch**: record the Usage page baseline once
+   the bounded build has served for a few hours, then Edge Requests
+   daily and the other meters weekly. The two revalidates are both
+   7d now, so ISR writes should stay near zero.
+6. **Configure the WAF rule** with the values above; then Upstash
+   Preview scope; then Settings → Deployment Protection: Vercel
+   Authentication on, Standard Protection (previews need a login).
+7. Lighthouse is parked (`if: false`); restoring it needs a firewall
+   allow rule for the runner. Warm-cache build wall time is issue
+   #66.
 
 ## Re-verify from cold
 

@@ -2,31 +2,35 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** Vercel paused the Hobby team on 2026-08-23 and the two
-days since went to the free-tier fix. Four meters were over: Fluid
-Active CPU 11h 54m against 4h, Invocations 2,207,478 against 1M,
-Edge Requests 2,700,927 against 1M, Fast Origin Transfer 26.09 GB
-against 10 GB (ISR Reads sat at 813, well under). Volume, not
-weight: every route but the landing page rendered per request, and
-the detail pages' rails linked TMDB's whole id space, so crawlers
-never ran out of fresh URLs. Round one (PR #63) put on-demand ISR on
-the detail routes, added `robots.txt`, capped and CDN-cached suggest,
-and landed Upstash rate limiting. Round two (PR #64) closed the hole
-round one left — `dynamicParams` defaulted true over an empty params
-list, so nothing prerendered — by bounding the detail routes to the
-catalog: 385 titles + 2,626 people from a full-catalog credits pass,
-3,011 prerendered pages, unknown ids as static 404s. It also brought
-the daily GitHub Actions sync with a Vercel Deploy Hook, a rate gate
-in the TMDB client, a read-only Neon role for CI, and e2e against the
-production build. Bounded routes cut CPU, invocations, and origin
-transfer, but a crawler still costs an edge request per URL, so the
-Vercel Firewall (Bot Protection: Challenge, AI Bots: Deny, set
-2026-08-25) is the lever on that meter. The site answers 402 until
-Vercel lifts the pause; the un-pause checklist lives in
-`docs/RESUME-vercel-fix.md`. Next up is unchanged: people in the
-combobox (core, Sauel's build), the Awards data-source decision
-(hand-curation recommended), and the combobox's loading and error
-states.
+**Phase:** Vercel paused the Hobby team on 2026-08-23, un-paused it
+on 2026-08-25 on a one-time 3x courtesy that runs to about
+2026-09-24, and the days between went to the free-tier fix. Four
+meters were over: Fluid Active CPU 11h 54m against 4h, Invocations
+2,207,478 against 1M, Edge Requests 2,700,927 against 1M, Fast Origin
+Transfer 26.09 GB against 10 GB (ISR Reads sat at 813, well under).
+Volume, not weight: every route but the landing page rendered per
+request, and the detail pages' rails linked TMDB's whole id space, so
+crawlers never ran out of fresh URLs. Round one (PR #63) put on-demand
+ISR on the detail routes, added `robots.txt`, capped and CDN-cached
+suggest, and landed Upstash rate limiting. Round two (PR #64) closed
+the hole round one left — `dynamicParams` defaulted true over an empty
+params list, so nothing prerendered — by bounding the detail routes to
+the catalog: 385 titles + 2,626 people from a full-catalog credits
+pass, 3,011 prerendered pages, unknown ids as static 404s, proven on
+Vercel's own Build Output. It also brought the daily GitHub Actions
+sync with a Vercel Deploy Hook, a rate gate in the TMDB client, a
+read-only Neon role for CI, and e2e against the production build. The
+bounded build went live at 16:43 UTC on 2026-08-25 through the hook.
+What was spent before the pause still counts, so the window's real
+headroom is six minutes of CPU and ~299K edge requests: the Vercel
+Firewall (Bot Protection: Challenge, AI Bots: Deny) plus a WAF rate
+cap guard the edge-request meter, and PR #67 lengthens the detail
+revalidate to seven days, drops rail prefetching, and parks the
+Lighthouse job. The playbook lives in `docs/RESUME-vercel-fix.md`.
+Next up: bound `/search` (the main navigation, the only dynamic page)
+before sharing the site, then the unchanged core list: people in the
+combobox (Sauel's build), the Awards decision, the combobox's loading
+and error states.
 
 ---
 
@@ -110,6 +114,8 @@ states.
 | 2026-08-24 | Least privilege for the database | CI reads, the sync writes: `scripts/create-ci-role.mjs` (run by Sauel, since it handles credentials) provisions a read-only `ci_read` Neon role; `ci.yml`'s `DATABASE_URL` is that role's URL and `sync.yml` writes through `DATABASE_URL_ADMIN`. Both workflows run with `permissions: contents: read`, `persist-credentials: false` on checkout, and secrets scoped to the steps that use them, so dependency install never sees one. The deploy-hook URL is absent from CI on purpose. Rate limiting is env-gated the same way (`src/lib/rate-limit.ts`, sliding window of 30 per 10s per IP, keyed on `x-real-ip`): local, CI, and Playwright have no Upstash credentials and skip it; the Vercel env vars go in after the un-pause. |
 | 2026-08-25 | Firewall is part of the fix | Set in the Vercel dashboard while the team was still paused: Bot Protection to Challenge, AI Bots to Deny. Bounding the routes cut CPU, invocations, and origin transfer, but every URL a crawler walks is still an edge request, and that meter (2,700,927 against 1M) has no code-side lever beyond `robots.txt`, which only compliant crawlers honor. Sauel's call, and not a footnote. Known cost: Bot Protection challenges non-browser clients, and CI's Lighthouse job audits the production URL on pushes to `main`, so expect it to fail after the un-pause for that reason and need an allow exception (see Open). |
 | 2026-08-25 | Hero controls: hit-testing, not stacking | The rotation's pause button and dots had no hover and took no clicks wherever the band was content-sized (phones, tablets, and laptops until the 37.5vw floor outgrows the copy; Sauel saw the edge at 1440, a default Chromium puts it between 1200 and 1280): the copy container (`position: relative; z-index: 1`) and the dot row (`z-index: 1`) tie, DOM order paints the copy on top, and its padded box reaches the band's edge. Raising the dots' z-index was the wrong fix — the suggestion panel's `z-index: 10` lives inside the copy's stacking context, so the dots would have painted over an open panel on phones. Instead the copy passes pointer events through (`pointer-events: none`) and its children take them back, leaving the paint order alone. Proven with Playwright hit-tests at 390 through 1600 before and after, plus the panel-over-dots case (PR #67). |
+| 2026-08-25 | Un-paused on a one-time courtesy; the bounded build is live | Vercel granted a one-time 3x limit raise for 30 days (to ~2026-09-24); what was already spent stands, so the real headroom that afternoon was Fluid Active CPU 6 min, Invocations 792,522, Edge Requests 299,073, Fast Origin Transfer 3.91 GB. The pause had put the August 20 build back online, unbounded routes and all, so Sauel created the Deploy Hook (Settings → Git → Deploy Hooks, `daily-sync`, branch `main`), set `VERCEL_DEPLOY_HOOK_URL` in Actions, and fired it by hand: HTTP 201, deployment `typecast-8l2eho0mf` Ready after an 18-minute build (Vercel's build machine runs one static-generation worker at the ~3 req/s gate; CI's 4 vCPUs take 5.6 min), `robots.txt` serving where the old build 404'd. The Upstash variables were not on the project until that afternoon — an attempt during the pause never saved, and the un-pause message overstated it — then added for Production, Preview to follow. Proof the fix holds on Vercel came from `vercel build` locally: 28 routes in the Build Output `config.json`, no function route for either detail path, every prerendered page its own filesystem entry with `expiration` taken from the fetch-level constant, and anything else caught by `{"src":"/.*","status":404}` served from `static/404.html`. Enumeration costs edge requests and nothing else. (`vercel pull` cannot fetch Sensitive variables, so a local `vercel build` needs the values supplied from `.env.local`.) |
+| 2026-08-25 | Courtesy-window hardening | Edge Requests, not CPU, is the meter closest to the line once enumeration is static. Four moves, one PR (#67): (1) `DETAIL_REVALIDATE_S` 86400 → 604800, so the fetch floor matches the route segments' 7d; the daily rebuild carries freshness, and an 18-minute build landing at 10:00–10:30 UTC had made a same-time expiry race routine; the cost if rebuilds fail is up to a week of stale TMDB fields, never missing pages. (2) `prefetch={false}` on rail cards (MediaRail, CastRail): a landing scroll prefetched ~160 detail routes, each an edge request; clicks still navigate client-side. (3) The Lighthouse job parked (`if: false`): nine document loads per `main` push, three of them `/search` renders, and Bot Protection challenges the runner anyway; restoring it needs a firewall allow rule. (4) A WAF rate-limit rule, "Document rate cap", configured in the dashboard: Request Path not starting `/_next/` and no `rsc` header (the Build Output routes RSC requests to static `.rsc` files, so this counts full-document requests only), 150 per hour per IP, fixed window, 429 on limit — a human lands in single digits an hour, Googlebot per IP well under, and one abusive IP is capped at 3,600 documents a day. The real per-render figure stays the incident's average, 19.4 ms per invocation and ~12 KB per response; a cleaner number needs a throwaway preview branch with a 60 s revalidate. |
 
 ---
 
@@ -123,8 +129,9 @@ states.
 - **Server hardening** (audit, low): a sync crash between upsert and prune persists a merged rail until the next sync; postponed titles that drop off TMDB keep stale future dates atop the hero rotation; one failed rail query still fails all eight in the raw `/api/rails` endpoint (the landing page's own rails call is wrapped since PR #64, so a Neon failure can't take down the hero).
 - **Design-audit paper cuts**: a few untokenized values in component CSS (search-box.css's 3px active bar, the hero `12ch`, dot and caret em sizes, `steps(1)`), and typography.css's header claiming no raw values while declaring font weights. The stale chartreuse comment fell with the dark-only sweep (PR #58); the redundant physical width fell with PR #30's band rework.
 - **Playwright unpin, blocked again**: the Mac Pro's macOS 26 upgrade removed the original reason, but the MacBook Pro 2015 (macOS 12) rejoined the rotation on 2026-08-17, restoring it: 1.61.0 is the last release whose browser builds run there. The pin and the CI-only webkit gate stay until the macOS 12 machine leaves the rotation.
-- **Vercel un-pause, then in order**: the Upstash env vars are already in Vercel Production (added during the pause; the limiter is env-gated at module load, so it comes on with the first deploy). Remaining: (a) create the Deploy Hook (Settings → Git → Deploy Hooks, `daily-sync`, branch `main`; creation is blocked while paused, which PR #65's skip covers); (b) add its URL as the `VERCEL_DEPLOY_HOOK_URL` Actions secret — the next scheduled run deploys on its own; (c) redeploy. Then watch the Usage page for a week: ISR writes (the move-to-7d trigger sits at ~100K/month) and edge requests (the firewall's meter). `main`'s Lighthouse job stays red until then: it audits the paused production URL, which answers 402. Full checklist in `docs/RESUME-vercel-fix.md`.
-- **Lighthouse vs Bot Protection, an expected phantom**: Bot Protection (Challenge) challenges non-browser sources, and the CI Lighthouse job hits the production URL on pushes to `main`. Once the 402 clears, expect that job to fail on the challenge rather than on a real score regression; the fix is a firewall allow exception for the job, not a code change. Do not debug it as a performance drop.
+- **Courtesy window watch (to ~2026-09-24)**: configure the WAF rule (values in the 2026-08-25 hardening row), add the Upstash Preview scope, check Deployment Protection (Settings → Deployment Protection → Vercel Authentication on, Standard Protection) so preview URLs need a login, record the Usage page baseline, then read Edge Requests daily and the other three weekly. Each morning's sync run should show `deploy hook: fired`. The goal is to be under normal limits with nothing new accrued when the window closes; going over after it means Pro or nothing.
+- **Lighthouse job parked** (`if: false` in ci.yml) for the courtesy window. Restoring it: put the push condition back and add a firewall allow rule for the runner, since Bot Protection (Challenge) stops it; without the rule it fails on the challenge, not on a score.
+- **Bound `/search`** (design first, before sharing the site): the nav's Movies, TV, People, and Awards links all resolve to `/search?type=…`, the only dynamic page, so every nav click is a function invocation plus a Neon query. Options on the table: ISR browse pages per type with `/search` kept for typed queries; or a `Vercel-CDN-Cache-Control` header so the CDN holds `/search` responses per query string. The `/search?type=person` grid (60+ cards) also still prefetches every card.
 - **TMDB gate paces cached calls** (#66): the rate gate runs before Next's fetch cache answers, so a warm `.next/cache` saves API calls but not build wall time (5.6 min on CI's 3 workers either way). Gating only real network calls would restore warm-build speed. Tracked in the issue; not started.
 - **Redis server cache for suggest**: parked. Hour-fresh/day-stale CDN caching absorbs repeats now; revisit only if the Usage page shows suggest invocations mattering.
 - **Full Cast & Crew subpage**: the title page's cast rail is top-billed only; the department-grouped `/title/{type}/{id}/cast` page was deliberately deferred to its own PR.
@@ -230,6 +237,9 @@ states.
 - [x] Sauel set the Vercel Firewall while paused (2026-08-25): Bot Protection to Challenge, AI Bots to Deny — the only mitigation on the edge-request meter for crawlers that ignore `robots.txt`.
 - [x] Docs pass after PR #65 on Sauel's corrections: the un-pause order (Upstash vars already in Vercel), the firewall recorded as part of the fix, the Lighthouse-vs-Bot-Protection watch item, the four-meter incident record with a fix-to-meter map, and issue #66 for the gate-vs-cache build time.
 - [x] Fixed the hero rotation controls on Sauel's report: below ~1440 the pause button never flipped to play and the dots gave no hover, because the copy container sat on them. One CSS rule; click, icon flip, and hover verified at seven widths, and the suggestion panel still paints over the dot row (PR #67).
+- [x] Vercel un-paused on a one-time 3x courtesy (to ~2026-09-24). Sauel created the Deploy Hook, set the secret, and fired it: `typecast-8l2eho0mf` live 16:43 UTC after an 18-minute build, `robots.txt` serving, the August 20 build off. Secret name verified against `scripts/deploy-hook.ts` and `sync.yml`.
+- [x] Proved the fix on Vercel's own artifact with a local `vercel build`: 28 routes, no function route for either detail path, static catch-all 404, `expiration` in every prerender config. The strongest verification of the whole effort.
+- [x] Courtesy-window hardening in PR #67: seven-day fetch revalidate (robots.txt and README comments with it), `prefetch={false}` on rail cards, Lighthouse parked, WAF rule values handed over at Sauel's 150/h, the Upstash correction recorded.
 
 ---
 

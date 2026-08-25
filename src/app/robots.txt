@@ -1,6 +1,6 @@
 # Search and API routes render per request and their parameter space is
 # unbounded; nothing there is worth indexing. Detail pages stay open to
-# search engines — they cache for a day (see the page files).
+# search engines — they cache for seven days (see the page files).
 User-Agent: *
 Disallow: /search
 Disallow: /api/
