@@ -52,6 +52,19 @@
   padding-block: var(--space-7);
   text-align: start;
 
+  /* Wherever content governs the band's height (phones, tablets, and
+     laptops until the 37.5vw floor outgrows the copy) this padded box
+     reaches the band's edge and paints above the dot row, so the
+     rotation controls got no hover and no clicks. The box passes
+     pointer events through and the children take them back: text
+     stays selectable, the search panel keeps its place in the paint
+     order, and the controls are reachable at every width. */
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+
   /* Phone-narrow: copy sits below the full-width strip; the end
      padding reserves the dot row's ground. 48px floor: the dots top
      out 36px above the band's edge. */
