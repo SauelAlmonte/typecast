@@ -44,18 +44,22 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # This pipeline exists to produce pages; the script's env-gated
-      # skip is right for local runs but a silent green here would
-      # mean new rows never get pages. Until the Vercel un-pause lets
-      # the hook exist, this step fails by design — keep the workflow
-      # disabled in the Actions tab until the secret is set.
-      - name: Require deploy hook
+      # The hook itself is env-gated in scripts/deploy-hook.ts: without
+      # the secret, db:sync logs a skip and the catalog still syncs.
+      # While Vercel's pause blocks creating the hook that is the wanted
+      # behaviour — rows stay current and the first deploy after the
+      # un-pause builds their pages. This step only makes the skip
+      # visible: a warning annotation on the run summary, not a failed
+      # run, so nothing sits disabled waiting to be re-enabled. Setting
+      # the secret is the whole switch; the next run syncs and deploys.
+      - name: Report deploy hook status
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
         run: |
           if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
-            echo "VERCEL_DEPLOY_HOOK_URL secret is not set; refusing a sync whose pages could never ship."
-            exit 1
+            echo "::warning title=Deploy hook skipped::VERCEL_DEPLOY_HOOK_URL secret is not set. The syncs run, but no redeploy follows, so new rows get no pages until the secret exists."
+          else
+            echo "VERCEL_DEPLOY_HOOK_URL is set; db:sync fires the deploy hook after both syncs."
           fi
       # People first, media second: only sync-media fires the deploy
       # hook, so the rebuild picks up both syncs in one deploy.
