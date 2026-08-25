@@ -2,24 +2,26 @@
 
 Running log of where the project stands, what's been decided, and what's still open.
 
-**Phase:** The light question got answered and People shipped. An
-afternoon of live light-palette exploration with Sauel ended in the
-call to ship dark only: the toggle and every light token half are
-gone, and what survived the pass are dark-mode wins — sky as the CTA
-accent (chartreuse retired, yellow is warnings only), the scroll-gated
-glass header, the wordmark/headline rebalance, and the search bar's
-own focus accent (PR #58). People then landed in two phases: the
-`people` table and TMDB popular-people sync (60 people, PR #59), then
-the full read path — browse grid behind the People nav, `/person/[id]`
-detail pages fed by one cached TMDB request, and links from both the
-people cards and every title page's cast rail (PR #60). The same PR
-carried a structural cleanup Sauel called for: the skip link, icon
-sprite, Header, `main`, and Footer now render once in the root layout
-instead of being pasted into every page. Next up: people in the
-combobox (core, Sauel's build), the Awards data-source decision
-(hand-curation recommended), the combobox's loading and error states,
-rate limiting before wide sharing, server cache, and the scheduled
-sync.
+**Phase:** Vercel paused the Hobby team on 2026-08-23 and the two
+days since went to the free-tier fix. The usage window read 11h 54m
+of Fluid Active CPU against a 4h allowance, 2.2M invocations and
+2.5M edge requests against 1M each, and just 813 ISR reads: volume,
+not weight. Every route but the landing page rendered per request,
+and the detail pages' rails linked TMDB's whole id space, so crawlers
+never ran out of fresh URLs. Round one (PR #63) put on-demand ISR on
+the detail routes, added `robots.txt`, capped and CDN-cached suggest,
+and landed Upstash rate limiting. Round two (PR #64) closed the hole
+round one left — `dynamicParams` defaulted true over an empty params
+list, so nothing prerendered — by bounding the detail routes to the
+catalog: 385 titles + 2,626 people from a full-catalog credits pass,
+3,011 prerendered pages, unknown ids as static 404s. It also brought
+the daily GitHub Actions sync with a Vercel Deploy Hook, a rate gate
+in the TMDB client, a read-only Neon role for CI, and e2e against the
+production build. The site answers 402 until Vercel lifts the pause;
+the un-pause checklist lives in `docs/RESUME-vercel-fix.md`. Next up
+is unchanged: people in the combobox (core, Sauel's build), the
+Awards data-source decision (hand-curation recommended), and the
+combobox's loading and error states.
 
 ---
 
@@ -96,6 +98,11 @@ sync.
 | 2026-08-20 | Person-page prose rules | TMDB copies Wikipedia bios verbatim, IPA pronunciation included — `stripPronunciation` trims it from paragraphs and meta descriptions, keeping the "(born ...)" remainder. The opener paragraph lives in the hero beside the portrait (fluid 14→16px clamp, 60ch, 50ch in the tablet window); the rest reads below at a fixed 16px (`--type-person-bio` — Sauel wants person body text never past 16) with a 90ch measure, 75ch on tablets where 90 outruns the container. On phones the split disappears: one continuous column at paragraph rhythm. A filmography aside was built for the empty laptop column and removed the same hour on Sauel's call. |
 | 2026-08-20 | TMDB render fetches are bounded, without AbortSignal | CodeRabbit flagged the missing timeout; the suggested `AbortSignal.timeout` would have silently opted the fetch out of Next's per-render memoization (fetch.md documents this), and `generateMetadata` plus the page share one TMDB request only through it. `withTimeout` races the two page-blocking fetchers against 10s instead: the render fails fast, caching and memoization stay intact, a stalled request settles into the data cache (PR #60). |
 | 2026-08-20 | Full-bleed children borrow the container's edge | The hero's Featured caption hung a fixed 16px off the viewport edge while everything else aligns to `tc-container`. `--container-inset` in layout.css mirrors the container's exact box math (same tokens, same 93.5% frame, same sliding gutter) so absolutely positioned children of full-bleed sections can sit on the container's grid line; the caption is its first consumer (PR #60). |
+| 2026-08-24 | Free tier means bounded rendering | Vercel paused the Hobby team on 2026-08-23 (~11pm EST): 11h 54m Fluid Active CPU against 4h, 2.2M invocations and 2.5M edge requests against 1M each, 26 GB origin transfer against 10 GB, 813 ISR reads. Not one heavy route but volume — every route except the landing page rendered per request (~20ms each), and the detail pages' recommendation and cast rails linked TMDB's entire id space, so crawlers never ran out of fresh URLs. The fix is architectural: anything a bot can enumerate is served from cache or refused, and the render budget is spent once, at build. Round one (PR #63) put on-demand ISR on the detail routes, a `robots.txt` that bars `/search` and `/api/` for everyone and AI/bulk crawlers site-wide, a 100-char `q` cap with hour-fresh/day-stale CDN headers on suggest, and Upstash rate limiting. The separate Image Optimization overage was already fixed by the custom loader. |
+| 2026-08-24 | Detail routes are bounded to the catalog | Round one left the hole its own audit named: `dynamicParams` defaulted to true over an empty `generateStaticParams`, so nothing prerendered and every fresh id still rendered on first hit, now with an ISR write attached. PR #64 closes it: both detail routes read their params from the database and set `dynamicParams = false`, so the build prerenders exactly the catalog — 385 titles + 2,626 people = 3,011 pages, 3,021 with the fixed routes — and an id outside it is a static 404 (4–11ms, no render, no database). People come from a full-catalog credits pass (top 10 billed plus up to two movie directors per title; TV creators live only in the detail payload), 60 → 2,626 rows. Rails filter to in-catalog before the 12-cap; cast keeps every card and withholds only the link. Route `revalidate` reads 7d but the fetch-level 1d floors it to 1d in practice (visible in the build table and in `s-maxage=86400`), deliberate as the safety net under the daily rebuild. Worst-case ISR writes ≈ 3,011 × 30 + the landing's 24 × 30 ≈ 91K/month against 200K; path ceiling at 1d ≈ 6,642, about five months of growth. Trigger to move both revalidates to 7d: Usage-page ISR writes trending past ~100K/month. CI proves it: e2e runs against the production build (`E2E_PROD=1` locally) and asserts prerendered HTML counts equal row counts exactly. |
+| 2026-08-24 | Freshness is a GitHub Actions pipeline | Not a Vercel cron: `.github/workflows/sync.yml` runs `db:sync-people` then `db:sync` daily, and the media script's last await fires a Vercel Deploy Hook so the bounded routes rebuild with the new ids; sync-people has no hook on purpose, so one deploy carries both. Alerting is the failure email GitHub sends on scheduled runs. The hook is env-gated in `scripts/deploy-hook.ts`; the workflow's gate step failed the run while the secret was absent (Vercel's pause blocks creating the hook) and was to sit disabled meanwhile — Sauel reversed that on 2026-08-25: disabling stops the syncs and leaves a re-enable step to forget, so the step now skips with a warning annotation, the syncs keep the catalog current, and setting `VERCEL_DEPLOY_HOOK_URL` is the whole switch. |
+| 2026-08-24 | TMDB client: concurrency cap and a rate gate | Concurrency is not a rate cap: ten in flight rode TMDB's warm ~65ms latencies to a measured 144 req/s. The client keeps a per-process semaphore of 2 and adds a per-process floor of 334ms between request starts (~3 req/s); Next's build workers multiply it, so the 13-worker local build measured a flat 21 req/s in every one-second bucket (peak concurrency 6) with a by-construction ceiling near 39, under TMDB's ~50 advisory. 429/5xx/network failures retry three times honoring `Retry-After`, then the build fails loudly so the previous deploy keeps serving. Supersedes "TMDB render fetches are bounded, without AbortSignal": fetch memoization was measured fetching the metadata + page pair twice, so React `cache()` now owns that dedupe, which freed the timeout to become a real per-attempt `AbortController` — a stalled request is torn down instead of holding its semaphore slot past 10s; `withTimeout` is gone. Cold build: 2m 37s locally (3,021 pages in 2.4min, 13 workers); CI's 3 workers take 5.6min because the gate paces every call before the framework cache answers, cache hit or not. |
+| 2026-08-24 | Least privilege for the database | CI reads, the sync writes: `scripts/create-ci-role.mjs` (run by Sauel, since it handles credentials) provisions a read-only `ci_read` Neon role; `ci.yml`'s `DATABASE_URL` is that role's URL and `sync.yml` writes through `DATABASE_URL_ADMIN`. Both workflows run with `permissions: contents: read`, `persist-credentials: false` on checkout, and secrets scoped to the steps that use them, so dependency install never sees one. The deploy-hook URL is absent from CI on purpose. Rate limiting is env-gated the same way (`src/lib/rate-limit.ts`, sliding window of 30 per 10s per IP, keyed on `x-real-ip`): local, CI, and Playwright have no Upstash credentials and skip it; the Vercel env vars go in after the un-pause. |
 
 ---
 
@@ -106,12 +113,11 @@ sync.
 - **Known For rail quality**: popularity ranking surfaces talk-show guest spots (Kimmel, Conan, WWE Raw) on actors' pages. A filter to films and scripted TV is small; flagged with Sauel, no call yet.
 - **Combobox loading and error states**: the audit's remaining high finding. The recents false "No matches" flash was fixed in PR #44, but there is still no loading state during the debounce window and `fetchSuggestions` has no `res.ok` check, so a 500 becomes a logged-and-swallowed failure with no user feedback. Core territory, Sauel's build.
 - **A11y deferred polish** (PR #44's list): ArrowUp-opens-panel and Alt+ArrowDown, `aria-current` on nav links (needs a client nav component), trailer backdrop light-dismiss, a focus target when the phone menu closes on viewport growth, the caret's strict 2.2.2 reading, and the hero furniture's DOM order before the h1.
-- **Query length cap** (audit, medium): `q` reaches `word_similarity` unbounded, so one 14KB request trigram-scans the catalog twice; a cap in `searchMedia` covers suggest and `/search` at once.
-- **Server hardening** (audit, low): a sync crash between upsert and prune persists a merged rail until the next sync; postponed titles that drop off TMDB keep stale future dates atop the hero rotation; one failed rail query fails all eight in `/api/rails`.
+- **Server hardening** (audit, low): a sync crash between upsert and prune persists a merged rail until the next sync; postponed titles that drop off TMDB keep stale future dates atop the hero rotation; one failed rail query still fails all eight in the raw `/api/rails` endpoint (the landing page's own rails call is wrapped since PR #64, so a Neon failure can't take down the hero).
 - **Design-audit paper cuts**: a few untokenized values in component CSS (search-box.css's 3px active bar, the hero `12ch`, dot and caret em sizes, `steps(1)`), and typography.css's header claiming no raw values while declaring font weights. The stale chartreuse comment fell with the dark-only sweep (PR #58); the redundant physical width fell with PR #30's band rework.
 - **Playwright unpin, blocked again**: the Mac Pro's macOS 26 upgrade removed the original reason, but the MacBook Pro 2015 (macOS 12) rejoined the rotation on 2026-08-17, restoring it: 1.61.0 is the last release whose browser builds run there. The pin and the CI-only webkit gate stay until the macOS 12 machine leaves the rotation.
-- **Rate limiting before wide sharing**: the API routes have none. Fine for showing Jami; add Upstash rate limiting (and the Redis server cache) before the link travels.
-- **Scheduled sync**: a Vercel cron replacing manual `pnpm db:sync`, which now also maintains the eight category lists. Its `TMDB_READ_ACCESS_TOKEN` prerequisite landed 2026-08-17 with the title-page fix, so nothing blocks it.
+- **Vercel un-pause, then in order**: (a) add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to the Vercel Production env before the first redeploy — the limiter is env-gated, so without them the site deploys with no rate limiting; (b) create the Deploy Hook (Settings → Git → Deploy Hooks, `daily-sync`, branch `main`); (c) add its URL as the `VERCEL_DEPLOY_HOOK_URL` Actions secret — the next scheduled run deploys on its own; (d) redeploy. Then watch the Usage page's ISR writes for a week (the move-to-7d trigger sits at ~100K/month). `main`'s Lighthouse job stays red until then: it audits the paused production URL, which answers 402. Full checklist in `docs/RESUME-vercel-fix.md`.
+- **Redis server cache for suggest**: parked. Hour-fresh/day-stale CDN caching absorbs repeats now; revisit only if the Usage page shows suggest invocations mattering.
 - **Full Cast & Crew subpage**: the title page's cast rail is top-billed only; the department-grouped `/title/{type}/{id}/cast` page was deliberately deferred to its own PR.
 - **Hero art curation**: the title page's consensus picker (most-voted textless backdrop) could serve the landing rotation too; today the rotation still uses the sync's stored default `backdrop_path`.
 - **Vitest unit tests**: `normalizeSearchText` and the ranking query are the first candidates. Also unlocks affected tests in `stop-check`.
@@ -203,6 +209,15 @@ sync.
 - [x] Shipped PR #60: the People read path end to end — browse grid, `/person/[id]` (portrait, facts, biography with the hero opener, Known For rail), links from people cards and title-page cast rails, the IPA strip, and the root-layout chrome refactor with e2e 20/20 on both browsers. Built through heavy live iteration with Sauel: opener size/measure settled at a fluid 14→16px clamp on 60ch (50ch tablets), bio fixed at 16px on 90ch (75ch tablets), phone column made continuous, a filmography aside built and removed on his call, and the Known For rail's grid-overflow escape fixed with title.css's own `minmax(0, …)` lesson.
 - [x] Worked both CodeRabbit threads on PR #60: portrait `sizes` added (verified the custom loader implements width first, so it matters), and the TMDB timeout implemented via `Promise.race` after catching that the suggested `AbortSignal` would break per-render memoization and double TMDB traffic. Both replied to with the reasoning and resolved.
 - [x] Full post-merge cleanups for #58, #59, and #60, each verified MERGED via `gh pr view` first — plus the two stale branches (`feat/theme-toggle`, `fix/a11y-audit`) deleted on Sauel's word after proving both held zero unmerged content. Only `main` remains, local and remote.
+- [x] Shipped PR #62 (`b47dfe2`): Playwright owns port 3100 end to end (baseURL, webServer, explicit `--port` on both start commands), so a local e2e run can never attach to Sauel's dev server on 3000.
+- [x] Read the pause: Vercel's usage window root-caused to per-request rendering of every non-landing route plus rails that link TMDB's whole id space (~20ms × 2.2M invocations); the Image Optimization overage was separate and already fixed by the custom loader.
+- [x] Shipped PR #63 (`8343130`): round one — on-demand ISR on the detail routes, `robots.txt`, the 100-char suggest cap with hour-fresh/day-stale CDN headers, Upstash sliding-window rate limiting on `/api/suggest` (keyed on `x-real-ip` after review; 30 in 10s then 429, released after 10s), and pnpm 11.23.0.
+- [x] Audited round one against a production build and found it incomplete (`dynamicParams` unset over an empty params list); shipped PR #64 (`ec77c0b`) as round two: catalog-bounded detail routes, the full-catalog credits pass (60 → 2,626 people), rails link integrity, the daily GitHub Actions sync with the deploy hook, React `cache()` on the metadata/page fetch pair, the TMDB rate gate, `E2E_PROD` mode with exact-equality specs, `.next/cache` carried across CI runs, and a README truth pass.
+- [x] Answered Sauel's seven pre-merge questions with measurements, not estimates: 385 + 2,626 = 3,011 detail pages = 3,011 build calls, HTML on disk equal to `select count(*)`, flat 21 req/s, zero 429s across ~10K real calls, 2m 37s cold build, ~91K worst-case ISR writes a month against 200K.
+- [x] Worked all eight CodeRabbit threads on PR #64 (`d36cb92`): workflow-level `contents: read` and `persist-credentials: false` with step-scoped secrets in both workflows, the deploy-hook gate, both sync commands in the README diagram, in-catalog filtering before the rail cap, the hover underline scoped to linked cast cards, the landing rails query wrapped so Neon can't take down the hero, and a per-attempt `AbortController` with drained 429/5xx bodies in the TMDB client (proven against mocks: two 429s then 200 in three attempts, `Retry-After` honored to the ms). All replied to and resolved.
+- [x] Sauel provisioned the read-only `ci_read` Neon role and set both database secrets; CI went green on the read-only URL.
+- [x] Post-merge cleanup for #64, verified MERGED via `gh pr view` first: remote and local branch deleted, `main` fast-forwarded to `ec77c0b`, prune clean.
+- [x] Switched the Daily sync's deploy-hook gate from fail to skip-with-warning on Sauel's call, so the syncs keep running through the pause and nothing needs re-enabling.
 
 ---
 

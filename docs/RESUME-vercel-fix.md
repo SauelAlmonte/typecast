@@ -1,7 +1,25 @@
 # Resume: Vercel free-tier fix (PR #64)
 
-Self-contained state of the Vercel un-pause work as of 2026-08-24,
-~10:30 EDT. A fresh session needs nothing else.
+Self-contained state of the Vercel un-pause work, written 2026-08-24
+~10:30 EDT and corrected 2026-08-25 after the merge. A fresh session
+needs nothing else.
+
+## Since the merge (2026-08-25)
+
+- PR #64 merged 2026-08-24 10:46 EDT (`ec77c0b`); the branch is
+  deleted local and remote, `main` is clean.
+- `main`'s post-merge CI is red on the Lighthouse job only: it audits
+  the production URL, which answers 402 while the team is paused.
+  Lint, build, and e2e passed. It clears on the first `main` push
+  after the un-pause.
+- Daily sync fired 2026-08-25 06:00 EDT and failed at the deploy-hook
+  gate as designed. Sauel's call: the gate now skips with a warning
+  annotation instead of failing (`chore/post-64-housekeeping`), so the
+  syncs keep the catalog current through the pause, the run stays
+  green, and setting `VERCEL_DEPLOY_HOOK_URL` is the whole switch.
+  The workflow stays enabled.
+- The 3,011 detail pages split 385 titles + 2,626 people (route table
+  of the merged build, CI run 32739240712).
 
 ## Why this work exists
 
@@ -29,9 +47,9 @@ crawler walking fresh ids still rendered every first hit, now with
 an ISR write attached. Sauel's round-two handoff called it out;
 verified accurate.
 
-## Round two: PR #64 (branch fix/bounded-detail-routes)
+## Round two: PR #64 (was branch fix/bounded-detail-routes)
 
-Open, all work committed and pushed. Commits:
+Merged 2026-08-24 (`ec77c0b`). Commits:
 
 - `a44e8a1` bound the detail routes to the catalog (dynamicParams =
   false, DB-sourced generateStaticParams, credits pass in sync,
@@ -81,7 +99,12 @@ All 8 review threads replied to (naming d36cb92) and resolved.
 7. **CI cost**: contained by actions/cache on .next/cache — the
    framework data cache carries TMDB responses across CI runs; first
    build of a day refetches expired entries, later ones near zero.
-   Exact-equality spec untouched.
+   Exact-equality spec untouched. Wall time does not show whether the
+   cache hit: the rate gate paces every tmdb call before the framework
+   cache answers, so even a fully cached CI build takes
+   3,011 × 334 ms ÷ 3 workers ≈ 5.6 min (measured 5.6 min on the
+   merged commit). Count calls with `TMDB_LOG_TIMING=1` to verify the
+   cache, not the clock.
 
 WebKit: never dropped — CI runs chromium+firefox+webkit; local runs
 are chromium+firefox (26/26), the config gates webkit to CI.
@@ -90,7 +113,8 @@ are chromium+firefox (26/26), the config gates webkit to CI.
 
 1. ci.yml: `permissions: contents: read` (workflow level).
 2. sync.yml: "Require deploy hook" step fails the run when the
-   secret is empty (silent green = silent freeze).
+   secret is empty (silent green = silent freeze). Since replaced by
+   a skip-with-warning step on Sauel's call; see "Since the merge".
 3. sync.yml: same permissions block, `persist-credentials: false`,
    secrets moved from job env to the steps that use them (both
    workflow files got the persist-credentials + step-env treatment).
@@ -120,13 +144,10 @@ are chromium+firefox (26/26), the config gates webkit to CI.
 
 ## Blocking on Sauel
 
-1. **CI green on d36cb92, then merge PR #64.** CI was still running
-   at session end; the earlier run on `0289b8e` re-ran green after
-   the first two secrets landed. If the e2e job fails on DB auth,
-   suspect the ci_read URL (he rotated DATABASE_URL to it mid-day).
-2. **After merge: disable the "Daily sync" workflow** (Actions tab →
-   Daily sync → ⋯ → Disable). Its Require-deploy-hook step fails by
-   design until the un-pause; disabling avoids daily red mail.
+1. ~~CI green on d36cb92, then merge PR #64.~~ Done 2026-08-24; CI
+   on `c6e2fc0` was green (Lighthouse skipped on PRs by design).
+2. ~~After merge: disable the "Daily sync" workflow.~~ Superseded:
+   the gate skips with a warning now. Leave the workflow enabled.
 3. **Un-pause request to Vercel**: already drafted and possibly
    already posted via vercel.com/help chat (Sauel was in the widget
    2026-08-24 ~09:00; body text lives in the session log and can be
@@ -138,14 +159,14 @@ are chromium+firefox (26/26), the config gates webkit to CI.
    us-east-1) to Vercel Production env BEFORE the first redeploy;
    (b) create the Deploy Hook (project Settings → Git → Deploy
    Hooks, name daily-sync, branch main — creation was blocked while
-   paused); (c) add its URL as Actions secret VERCEL_DEPLOY_HOOK_URL;
-   (d) re-enable the Daily sync workflow; (e) redeploy.
+   paused); (c) add its URL as Actions secret VERCEL_DEPLOY_HOOK_URL —
+   the next scheduled run deploys on its own; (d) redeploy.
 5. ISR-writes watch item: glance at the Usage page the first week.
 
 ## Re-verify from cold
 
 ```bash
-git checkout fix/bounded-detail-routes   # or main after merge
+git checkout main                        # PR #64 is merged
 pnpm install
 pnpm lint && pnpm exec tsc --noEmit
 pnpm build                                # needs .env.local; ~2.5 min,
