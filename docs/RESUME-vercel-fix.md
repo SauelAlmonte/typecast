@@ -51,11 +51,26 @@ needs nothing else.
   so a local `vercel build` needs `.env.local`'s values.
 - Hardening in PR #67: `DETAIL_REVALIDATE_S` 604800 (closes the
   expiry-vs-rebuild race, since builds land 10:00–10:30 UTC),
-  `prefetch={false}` on rail cards, Lighthouse parked behind a repo
-  variable. WAF rule to
-  configure: "Document rate cap", Request Path does not start with
-  `/_next/` AND Header `rsc` does not exist, Rate Limit 150 requests /
-  1 hour / IP / fixed window / 429.
+  `prefetch={false}` on rail cards (temporary: no hover preload,
+  revisit ~2026-09-22), Lighthouse parked behind a repo variable
+  (restore is issue #68, milestone due 2026-09-24). WAF rule as
+  published 2026-08-25: "Document rate cap", Request Path does not
+  start with `/_next/` AND request header `rsc` does not exist, Rate
+  Limit 25 requests / 600 s / IP / fixed window / 429. Not 150 per
+  hour: Hobby and Pro cap windows at 600 s (longer is Enterprise);
+  same rate, smaller window.
+- Seven-day window proven on the artifact: local `vercel build` of
+  `2f4fcb8` puts `expiration: 604800` in every prerender config, and
+  the deployed build's log (`typecast-bvhjsi3t1`, Ready 14:06 EDT)
+  shows `1w` in the Revalidate column for both detail routes, 3,021
+  pages by one worker in 16.8 min. Production builds are ~17 min.
+- Baseline ~17:30 UTC 2026-08-25: Fluid Active CPU 11h 54m,
+  Invocations 2,207,488, Edge Requests 2,703,830, Fast Origin
+  Transfer 26.09 GB. Preceding 90 min: Edge Requests +2,903,
+  Invocations +10. Firewall first day: AI Bots ruleset denied 8.6k
+  against 156.3k allowed (unbilled). Deployment Protection already
+  on (Vercel Authentication, Standard Protection, Protected
+  Sourcemaps); Upstash vars carry Preview scope too.
 
 ## Why this work exists
 
@@ -196,13 +211,11 @@ are chromium+firefox (26/26), the config gates webkit to CI.
    `pnpm db:sync`; a build failure surfaces only in Vercel
    (Deployments → Error, plus the deployment-failed email), the
    workflow stays green, and the previous deployment keeps serving.
-5. **Courtesy-window watch**: record the Usage page baseline once
-   the bounded build has served for a few hours, then Edge Requests
-   daily and the other meters weekly. The two revalidates are both
-   7d now, so ISR writes should stay near zero.
-6. **Configure the WAF rule** with the values above; then Upstash
-   Preview scope; then Settings → Deployment Protection: Vercel
-   Authentication on, Standard Protection (previews need a login).
+5. **Courtesy-window watch**: baseline recorded (above); Edge
+   Requests daily, the other meters weekly. Both revalidates are 7d
+   now, so ISR writes should stay near zero.
+6. ~~WAF rule, Upstash Preview scope, Deployment Protection.~~ All
+   done 2026-08-25; values and readings in "Since the merge".
 7. Lighthouse is parked behind the `LIGHTHOUSE_ENABLED` repository
    variable (unset). Restoring it: firewall allow rule for the runner,
    then set the variable to `true`; no commit. Warm-cache build wall
