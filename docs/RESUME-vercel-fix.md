@@ -14,20 +14,60 @@ needs nothing else.
   after the un-pause.
 - Daily sync fired 2026-08-25 06:00 EDT and failed at the deploy-hook
   gate as designed. Sauel's call: the gate now skips with a warning
-  annotation instead of failing (`chore/post-64-housekeeping`), so the
+  annotation instead of failing (PR #65), so the
   syncs keep the catalog current through the pause, the run stays
   green, and setting `VERCEL_DEPLOY_HOOK_URL` is the whole switch.
-  The workflow stays enabled.
+  The workflow stays enabled. Merged as PR #65 (`d96b129`); `main`'s
+  CI on it: lint, build, and e2e (39/39) green, Lighthouse red on the
+  402 only.
 - The 3,011 detail pages split 385 titles + 2,626 people (route table
-  of the merged build, CI run 32739240712).
+  of the merged build, CI run 32739240712; unchanged in PR #65's run
+  32866904237, since no sync has written to the database yet).
+- Vercel Firewall set 2026-08-25 while paused: Bot Protection to
+  Challenge, AI Bots to Deny. Part of the fix, not a footnote:
+  bounded routes cut CPU, invocations, and origin transfer, but a
+  crawler still costs an edge request per URL, and the firewall is
+  the only lever on that meter for crawlers that ignore robots.txt.
+- Correction: the Upstash env vars were NOT on the project until
+  the afternoon of 2026-08-25 (`vercel env ls` showed only the TMDB
+  token and DATABASE_URL; the attempt during the pause never saved).
+  Added for Production after the un-pause, Preview to follow. The
+  limiter is env-gated at module load, so it is live from the next
+  deploy after the add.
+- Un-paused 2026-08-25 on a one-time 3x courtesy for 30 days (to
+  ~2026-09-24). Spent usage stands, so the real headroom: Fluid
+  Active CPU 6 min, Invocations 792,522, Edge Requests 299,073, Fast
+  Origin Transfer 3.91 GB. Over the limits after the window means Pro.
+- Deploy Hook created (`daily-sync`, branch `main`), secret set, fired
+  by hand: HTTP 201, deployment `typecast-8l2eho0mf` Ready after an
+  18-minute build (Vercel's build machine: one static-generation
+  worker at the ~3 req/s gate). `robots.txt` serves; the Aug 20 build
+  is off.
+- Build Output proof (`vercel build` locally): 28 routes, no function
+  route for `/title/…` or `/person/…`, every prerendered page a
+  filesystem entry with `expiration` from the fetch constant, catch-all
+  `{"src":"/.*","status":404}` to `static/404.html`. Enumeration costs
+  edge requests only. `vercel pull` cannot fetch Sensitive variables,
+  so a local `vercel build` needs `.env.local`'s values.
+- Hardening in PR #67: `DETAIL_REVALIDATE_S` 604800 (closes the
+  expiry-vs-rebuild race, since builds land 10:00–10:30 UTC),
+  `prefetch={false}` on rail cards, Lighthouse parked behind a repo
+  variable. WAF rule to
+  configure: "Document rate cap", Request Path does not start with
+  `/_next/` AND Header `rsc` does not exist, Rate Limit 150 requests /
+  1 hour / IP / fixed window / 429.
 
 ## Why this work exists
 
 Vercel paused the Hobby team "Sauel Almonte's projects" on
-2026-08-23 (~11pm EST notice). The usage window (~17 days) showed
-11h 54m Fluid Active CPU against a 4h allowance (project typecast =
-98.6% of it), 2.2M function invocations / 1M, 2.5M edge requests /
-1M, 26 GB Fast Origin Transfer / 10 GB, and only 813 ISR reads.
+2026-08-23 (~11pm EST notice). The usage window (~17 days) had four
+meters over: Fluid Active CPU 11h 54m against a 4h allowance
+(project typecast = 98.6% of it), Invocations 2,207,478 / 1M, Edge
+Requests 2,700,927 / 1M, Fast Origin Transfer 26.09 GB / 10 GB. ISR
+Reads were 813, well under. Which part of the fix addresses which
+meter is in PROGRESS.md's "Free tier means bounded rendering" row;
+in short, bounded routes handle CPU, invocations, and origin
+transfer, and the Vercel Firewall handles edge requests.
 Root cause: every route except the landing page was server-rendered
 per request, and the detail pages link TMDB's entire id space through
 recommendation and cast rails, so crawlers never ran out of fresh
@@ -148,20 +188,25 @@ are chromium+firefox (26/26), the config gates webkit to CI.
    on `c6e2fc0` was green (Lighthouse skipped on PRs by design).
 2. ~~After merge: disable the "Daily sync" workflow.~~ Superseded:
    the gate skips with a warning now. Leave the workflow enabled.
-3. **Un-pause request to Vercel**: already drafted and possibly
-   already posted via vercel.com/help chat (Sauel was in the widget
-   2026-08-24 ~09:00; body text lives in the session log and can be
-   reconstructed from this doc + PR bodies). Pause date for forms:
-   August 23, 2026, ~11:05pm EST.
-4. **After un-pause, in order**: (a) add Upstash env vars
-   UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (values in
-   .env.local / Upstash console, database typecast-ratelimit,
-   us-east-1) to Vercel Production env BEFORE the first redeploy;
-   (b) create the Deploy Hook (project Settings → Git → Deploy
-   Hooks, name daily-sync, branch main — creation was blocked while
-   paused); (c) add its URL as Actions secret VERCEL_DEPLOY_HOOK_URL —
-   the next scheduled run deploys on its own; (d) redeploy.
-5. ISR-writes watch item: glance at the Usage page the first week.
+3. ~~Un-pause request to Vercel.~~ Sent and granted 2026-08-25:
+   one-time 3x for 30 days, to ~2026-09-24.
+4. ~~Deploy Hook, secret, first deploy.~~ Done 2026-08-25 16:43 UTC.
+   Tomorrow's 09:30 UTC run should show no annotation, the status
+   step's "is set" line, and `deploy hook: fired` at the end of
+   `pnpm db:sync`; a build failure surfaces only in Vercel
+   (Deployments → Error, plus the deployment-failed email), the
+   workflow stays green, and the previous deployment keeps serving.
+5. **Courtesy-window watch**: record the Usage page baseline once
+   the bounded build has served for a few hours, then Edge Requests
+   daily and the other meters weekly. The two revalidates are both
+   7d now, so ISR writes should stay near zero.
+6. **Configure the WAF rule** with the values above; then Upstash
+   Preview scope; then Settings → Deployment Protection: Vercel
+   Authentication on, Standard Protection (previews need a login).
+7. Lighthouse is parked behind the `LIGHTHOUSE_ENABLED` repository
+   variable (unset). Restoring it: firewall allow rule for the runner,
+   then set the variable to `true`; no commit. Warm-cache build wall
+   time is issue #66.
 
 ## Re-verify from cold
 

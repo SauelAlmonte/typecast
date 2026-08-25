@@ -87,7 +87,7 @@ is prerendered at build, so an id outside the catalog is a static 404
 that never renders or touches the database. New rows get pages
 through the sync's deploy hook rebuild. TMDB detail data is fetched
 at build through the framework data cache, one appended request per
-page, cached for a day.
+page, cached for seven days.
 
 ## Tech stack
 

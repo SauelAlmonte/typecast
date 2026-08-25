@@ -110,9 +110,11 @@ export default function CastRail({ title, cast }: CastRailProps) {
           return (
             <li className="tc-carousel__card" key={person.id}>
               {person.linked ? (
+                // No prefetch, for MediaRail's reason: edge requests.
                 <Link
                   className="tc-carousel__card-link"
                   href={`/person/${person.id}`}
+                  prefetch={false}
                 >
                   {card}
                 </Link>

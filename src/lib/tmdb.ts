@@ -145,8 +145,12 @@ const DETAIL_APPEND = {
   tv: "credits,videos,recommendations,keywords,content_ratings,images",
 } as const;
 
-/** Details drift about as fast as the catalog: a day of cache is fine. */
-const DETAIL_REVALIDATE_S = 86_400;
+/** Seven days. Freshness comes from the daily rebuild, not from this
+ * window: it floors the route segments' 7d and is the safety net if
+ * rebuilds stop. The old one-day window bought nothing and cost a
+ * regeneration per page whenever a rebuild landed after expiry, which
+ * Vercel's ~18-minute builds made routine (2026-08-25). */
+const DETAIL_REVALIDATE_S = 604_800;
 
 /** How long a render waits on TMDB before failing the page. */
 const TMDB_TIMEOUT_MS = 10_000;
@@ -311,7 +315,7 @@ export async function tmdbRequest(
 /**
  * Fetch one title's full detail record, sub-resources appended, so the
  * title page costs a single TMDB request. Cached in the framework data
- * cache for a day per URL.
+ * cache for seven days per URL.
  *
  * @param mediaType - Which TMDB namespace the id lives in.
  * @param tmdbId - TMDB's own id, the one our catalog stores as `tmdb_id`.
@@ -357,7 +361,7 @@ export const fetchTmdbDetail = cache(async function fetchTmdbDetail(
 /**
  * Fetch one person's detail record with combined credits appended, so
  * the person page costs a single TMDB request. Cached in the framework
- * data cache for a day per URL, the title page's reasoning.
+ * data cache for seven days per URL, the title page's reasoning.
  *
  * @param tmdbId - TMDB's person id, the one our catalog stores as `tmdb_id`.
  * @returns The decoded detail, or null when TMDB has no such person, so

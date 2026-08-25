@@ -48,9 +48,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # The framework data cache carries the build's TMDB responses
-      # between runs: the first build of a day refetches what the
-      # 24h fetch revalidate has expired, and every later build that
-      # day costs TMDB near zero. Restores the newest snapshot, saves
+      # between runs: the first build after the seven-day fetch
+      # revalidate expires refetches those entries, and every build
+      # inside the window costs TMDB near zero. Calls, not wall time:
+      # the rate gate paces cached calls too (issue #66). Restores the newest snapshot, saves
       # under this commit's key.
       - uses: actions/cache@v4
         with:
@@ -77,9 +78,16 @@ jobs:
   # Audits the deployed site, not this build: CI has no database, so the
   # deployed pages are the only honest render. Push-to-main only, so a PR
   # is never failed by a production regression it didn't cause.
+  # Parked for Vercel's courtesy window (to ~2026-09-24): every audit is
+  # nine document loads against the metered site, three of them /search
+  # renders, and Bot Protection challenges the runner anyway. The gate is
+  # the LIGHTHOUSE_ENABLED repository variable (Settings → Secrets and
+  # variables → Actions → Variables), unset for now. To restore: add a
+  # firewall allow rule for the runner, then set the variable to "true".
+  # No commit needed either way.
   lighthouse:
     name: Lighthouse
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && vars.LIGHTHOUSE_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
