@@ -4,6 +4,14 @@ Self-contained state of the Vercel un-pause work, written 2026-08-24
 ~10:30 EDT and corrected 2026-08-25 after the merge. A fresh session
 needs nothing else.
 
+**2026-09-03 update:** Sauel paused the project himself (Settings →
+General → Pause Project) to guarantee zero spend until the Aug 22–23
+spike leaves the rolling 30-day window, ~2026-09-22. No deploys land
+while paused, and the sync's deploy-hook secret is parked out of
+Actions so the daily run stays green. The unpause checklist sits at
+the top of `PROGRESS.md` → Open; this file predates the pause and
+stays as history.
+
 ## Since the merge (2026-08-25)
 
 - PR #64 merged 2026-08-24 10:46 EDT (`ec77c0b`); the branch is
