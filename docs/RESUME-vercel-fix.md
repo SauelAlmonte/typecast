@@ -7,10 +7,11 @@ needs nothing else.
 **2026-09-03 update:** Sauel paused the project himself (Settings →
 General → Pause Project) to guarantee zero spend until the Aug 22–23
 spike leaves the rolling 30-day window, ~2026-09-22. No deploys land
-while paused, and the sync's deploy-hook secret is parked out of
-Actions so the daily run stays green. The unpause checklist sits at
-the top of `PROGRESS.md` → Open; this file predates the pause and
-stays as history.
+while paused. The sync keeps its hook secret, so its morning runs
+may go red at the hook step until the unpause — known cause, and the
+syncs themselves still complete. The unpause checklist sits at the
+top of `PROGRESS.md` → Open; this file predates the pause and stays
+as history.
 
 ## Since the merge (2026-08-25)
 
